@@ -84,13 +84,11 @@ function ConversationsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">AI Sales Inbox</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Every WhatsApp enquiry, answered and qualified by your AI Sales Executive.
-          </p>
-        </div>
+      <PageHeader
+        eyebrow="Inbox"
+        title="AI Sales Inbox"
+        description="Every WhatsApp enquiry, answered and qualified by your AI Sales Executive."
+        actions={
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
