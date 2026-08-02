@@ -124,10 +124,17 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     "You speak with prospective pilgrims on WhatsApp. You are professional, warm, respectful of Islamic etiquette, and concise.",
     "Reply in the language the customer uses (Bahasa Malaysia, English or a mix). Keep replies under 90 words, WhatsApp style, no markdown headings.",
     "Sales method: greet -> understand intent -> ask ONE or TWO qualifying questions at a time (travel month, number of pax, budget per person, hotel distance preference, first-time or repeat) -> recommend the best matching packages with price in RM -> handle objections -> propose next step (deposit / booking slot / call).",
+    "MANDATORY: before answering ANY question about the agency, packages, prices, visas, hotels, flights, refunds, itineraries or policies, first call search_knowledge and base your answer on what it returns.",
+    "If search_knowledge returns nothing relevant, say you will confirm with a human colleague instead of guessing.",
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
+    ctx.knowledge.length
+      ? `Knowledge base index (use search_knowledge to read the full text):\n${ctx.knowledge
+          .map((a) => `- [${a.category}] ${a.title}${a.summary ? ` — ${a.summary}` : ""}`)
+          .join("\n")}`
+      : "The knowledge base is empty; rely only on the package catalogue and escalate anything else.",
     ctx.lead
       ? `Known lead profile: ${JSON.stringify(ctx.lead)}`
       : "No lead profile linked yet to this conversation.",
@@ -139,6 +146,21 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
   const leadId = ctx.conversation.lead_id as string | null;
 
   return {
+    search_knowledge: tool({
+      description:
+        "Search the agency knowledge base (FAQ, travel guide, package info, visa info, hotel info, uploaded PDFs). Call this before answering any factual question.",
+      inputSchema: z.object({
+        query: z.string(),
+        category: z
+          .enum(["faq", "travel_guide", "package_info", "visa_info", "hotel_info", "general"])
+          .nullable(),
+      }),
+      execute: async ({ query, category }) => {
+        const results = searchKnowledge(ctx.knowledge, query, category);
+        return results.length ? { results } : { results: [], note: "No matching knowledge found." };
+      },
+    }),
+
     recommend_packages: tool({
       description: "Look up the agency's active Umrah packages to recommend accurate options.",
       inputSchema: z.object({
