@@ -80,7 +80,11 @@ function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     },
     onError: (error: unknown) => {
-      toast.error(error instanceof z.ZodError ? error.issues[0].message : "Could not save profile.");
+      toast.error(
+        error instanceof z.ZodError
+          ? (error.issues[0]?.message ?? "Invalid details")
+          : "Could not save profile.",
+      );
     },
   });
 
