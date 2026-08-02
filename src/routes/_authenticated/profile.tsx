@@ -88,7 +88,8 @@ function ProfilePage() {
     },
   });
 
-  const agency = data?.agencies as { name: string; country: string; plan: string } | null | undefined;
+  const agency = data?.agencies as
+    { name: string; country: string; plan: string } | null | undefined;
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8">

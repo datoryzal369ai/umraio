@@ -127,8 +127,8 @@ function ConversationPage() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="panel flex h-[calc(100dvh-11rem)] min-h-[520px] flex-col overflow-hidden">
         <header className="flex items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3">
-          <Button asChild variant="ghost" size="icon" className="xl:hidden">
-            <Link to="/conversations">
+          <Button asChild variant="ghost" size="icon" className="min-h-11 min-w-11 xl:hidden">
+            <Link to="/conversations" aria-label="Back to inbox">
               <ArrowLeft className="size-4" />
             </Link>
           </Button>

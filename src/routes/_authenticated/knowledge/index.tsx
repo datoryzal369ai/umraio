@@ -1,19 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
-import {
-  BookOpen,
-  FileText,
-  Loader2,
-  Pencil,
-  Plus,
-  Search,
-  Sparkles,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { BookOpen, FileText, Loader2, Pencil, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -242,32 +234,26 @@ function KnowledgePage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-3xl">
-            Knowledge Base
-          </h1>
-          <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Articles, FAQs and PDF documents your AI Sales Executive reads before answering any
-            enquiry.
-          </p>
-        </div>
-        <Button onClick={startCreate}>
-          <Plus className="size-4" />
-          New article
-        </Button>
-      </header>
+      <PageHeader
+        eyebrow="AI Brain"
+        title="Knowledge Base"
+        description="Articles, FAQs and PDF documents your AI Sales Executive reads before answering any enquiry."
+        actions={
+          <Button onClick={startCreate}>
+            <Plus aria-hidden="true" className="size-4" />
+            New article
+          </Button>
+        }
+      />
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search articles, FAQs, documents…"
-            className="pl-9"
-          />
-        </div>
+        <SearchInput
+          className="flex-1"
+          value={search}
+          onChange={setSearch}
+          label="Search knowledge base"
+          placeholder="Search articles, FAQs, documents…"
+        />
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="sm:w-56">
             <SelectValue placeholder="Category" />

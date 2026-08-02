@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Plus, Search, Trash2, Pencil, Users } from "lucide-react";
+import { Plus, Trash2, Pencil, Users } from "lucide-react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -131,36 +132,30 @@ function LeadsPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Pipeline</p>
-          <h1 className="mt-2 text-3xl font-bold">Lead management</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {leads.length} leads · {counts.hot} hot · {counts.warm} warm · {counts.cold} cold
-          </p>
-        </div>
-        <Button
-          onClick={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        >
-          <Plus className="size-4" />
-          New lead
-        </Button>
-      </header>
+      <PageHeader
+        eyebrow="Pipeline"
+        title="Lead management"
+        description={`${leads.length} leads · ${counts.hot} hot · ${counts.warm} warm · ${counts.cold} cold`}
+        actions={
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
+            <Plus aria-hidden="true" className="size-4" />
+            New lead
+          </Button>
+        }
+      />
 
       <div className="panel grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, phone, email, tag"
-            className="pl-9"
-            aria-label="Search leads"
-          />
-        </div>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          label="Search leads"
+          placeholder="Search name, phone, email, tag"
+        />
         <FilterSelect
           label="Status"
           value={temperature}
@@ -359,7 +354,9 @@ function FilterSelect({
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">All {label === "Status" ? "statuses" : `${label.toLowerCase()}s`}</SelectItem>
+        <SelectItem value="all">
+          All {label === "Status" ? "statuses" : `${label.toLowerCase()}s`}
+        </SelectItem>
         {options.map((option) => (
           <SelectItem key={option} value={option} className="capitalize">
             {option}

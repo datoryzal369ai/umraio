@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { BadgeCheck, Bot, Flame, Percent, TrendingUp, Wallet } from "lucide-react";
 
+import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import {
   BookingTrendChart,
@@ -81,30 +82,30 @@ function AnalyticsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Insights</p>
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            AI Analytics
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            How your AI Sales Executive turns Umrah enquiries into confirmed pilgrims.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1">
-          {RANGES.map((option) => (
-            <Button
-              key={option.value}
-              size="sm"
-              variant={range === option.value ? "secondary" : "ghost"}
-              className="text-xs"
-              onClick={() => setRange(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Insights"
+        title="AI Analytics"
+        description="How your AI Sales Executive turns Umrah enquiries into confirmed pilgrims."
+        actions={
+          <div
+            role="group"
+            aria-label="Date range"
+            className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1"
+          >
+            {RANGES.map((option) => (
+              <Button
+                key={option.value}
+                size="sm"
+                variant={range === option.value ? "secondary" : "ghost"}
+                className="text-xs"
+                onClick={() => setRange(option.value)}
+              >
+                {option.label}
+              </Button>
+            ))}
+          </div>
+        }
+      />
 
       {isLoading || !data ? <AnalyticsSkeleton /> : <AnalyticsBody data={data} days={days} />}
     </div>
@@ -202,10 +203,7 @@ function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
             </p>
           )}
         </Panel>
-        <Panel
-          title="Follow-up performance"
-          description="Sent, pending and skipped AI follow-ups."
-        >
+        <Panel title="Follow-up performance" description="Sent, pending and skipped AI follow-ups.">
           <FollowupPerformanceChart data={followups} />
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Flame className="size-3.5 text-primary" />

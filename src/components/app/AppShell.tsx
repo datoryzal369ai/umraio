@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -36,10 +36,13 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
-
-
-
-
+/** Highlights the nav entry that owns the current pathname, including nested routes. */
+function isActive(pathname: string, to: string) {
+  if (to === "/settings/whatsapp") return pathname === to;
+  if (to === "/settings/agency")
+    return pathname.startsWith("/settings") && pathname !== "/settings/whatsapp";
+  return pathname === to || pathname.startsWith(`${to}/`);
+}
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -57,28 +60,40 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const nav = (
-    <nav className="flex flex-col gap-1">
-      {navItems.map((item) => (
-        <Link
-          key={item.to}
-          to={item.to}
-          onClick={() => setOpen(false)}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-            pathname === item.to
-              ? "bg-sidebar-accent text-sidebar-accent-foreground"
-              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-          )}
-        >
-          <item.icon className="size-4" />
-          {item.label}
-        </Link>
-      ))}
+    <nav aria-label="Main" className="flex flex-col gap-1">
+      {navItems.map((item) => {
+        const active = isActive(pathname, item.to);
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            aria-current={active ? "page" : undefined}
+            onClick={() => setOpen(false)}
+            className={cn(
+              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              active
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            )}
+          >
+            <item.icon aria-hidden="true" className="size-4 shrink-0" />
+            <span className="truncate">{item.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-dvh bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
+
       <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-sidebar-border bg-sidebar p-5 lg:flex">
         <div>
           <BrandLogo showTagline className="mb-8" />
@@ -92,11 +107,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BrandLogo />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Open menu">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-h-11 min-w-11"
+                aria-label="Open navigation menu"
+              >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="flex w-72 flex-col justify-between bg-sidebar p-5">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
               <div>
                 <BrandLogo showTagline className="mb-8" />
                 {nav}
@@ -106,7 +127,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Sheet>
         </header>
 
-        <main className="min-w-0 flex-1 p-5 sm:p-8">{children}</main>
+        <main id="main-content" className="min-w-0 flex-1 p-5 sm:p-8">
+          {children}
+        </main>
       </div>
     </div>
   );
@@ -117,7 +140,7 @@ function SignOutBlock({ email, onSignOut }: { email: string; onSignOut: () => vo
     <div className="space-y-3 border-t border-sidebar-border pt-4">
       <p className="truncate text-xs text-muted-foreground">{email}</p>
       <Button variant="outline" size="sm" className="w-full" onClick={onSignOut}>
-        <LogOut className="size-4" />
+        <LogOut aria-hidden="true" className="size-4" />
         Sign out
       </Button>
     </div>

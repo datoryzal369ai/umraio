@@ -8,7 +8,6 @@ import {
   Clock,
   ExternalLink,
   GripVertical,
-  Search,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { TemperatureBadge } from "@/components/leads/LeadBadges";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -115,8 +116,7 @@ function CrmPage() {
   );
 
   const moveMutation = useMutation({
-    mutationFn: ({ lead, stage }: { lead: Lead; stage: LeadStage }) =>
-      updateLeadStage(lead, stage),
+    mutationFn: ({ lead, stage }: { lead: Lead; stage: LeadStage }) => updateLeadStage(lead, stage),
     onSuccess: async (_data, variables) => {
       toast.success(`${variables.lead.full_name} → ${STAGE_LABELS[variables.stage]}`);
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -134,25 +134,19 @@ function CrmPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">CRM Pipeline</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Drag a card between columns to move a prospect. Tap a card for notes, tasks and
-            timeline.
-          </p>
-        </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+      <PageHeader
+        eyebrow="Pipeline"
+        title="CRM Pipeline"
+        description="Drag a card between columns to move a prospect. Tap a card for notes, tasks and timeline."
+        actions={
+          <SearchInput
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search pipeline"
-            className="pl-9"
-            aria-label="Search pipeline"
+            onChange={setQuery}
+            label="Search pipeline"
+            className="w-full sm:w-72"
           />
-        </div>
-      </header>
+        }
+      />
 
       {isLoading ? (
         <div className="panel p-8 text-sm text-muted-foreground">Loading pipeline…</div>
@@ -367,11 +361,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
             placeholder="Add a note about this prospect…"
             rows={3}
           />
-          <Button
-            size="sm"
-            onClick={() => noteMutation.mutate()}
-            disabled={noteMutation.isPending}
-          >
+          <Button size="sm" onClick={() => noteMutation.mutate()} disabled={noteMutation.isPending}>
             Add note
           </Button>
           <ul className="space-y-2">
@@ -419,7 +409,11 @@ function LeadPanel({ lead }: { lead: Lead }) {
               value={taskAt}
               onChange={(event) => setTaskAt(event.target.value)}
             />
-            <Button size="sm" onClick={() => taskMutation.mutate()} disabled={taskMutation.isPending}>
+            <Button
+              size="sm"
+              onClick={() => taskMutation.mutate()}
+              disabled={taskMutation.isPending}
+            >
               <BellPlus className="size-4" />
               Schedule task
             </Button>
@@ -482,9 +476,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                   <span className="absolute -left-[1.4rem] top-1.5 size-2 rounded-full bg-primary" />
                   <p className="text-sm font-medium">{item.action}</p>
                   {typeof item.meta?.["detail"] === "string" ? (
-                    <p className="text-xs text-muted-foreground">
-                      {item.meta["detail"] as string}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{item.meta["detail"] as string}</p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
                     {item.actor === "ai" ? "AI" : "Team"} · {relativeTime(item.created_at)}

@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bot, MessageSquarePlus, Search, User } from "lucide-react";
+import { Bot, MessageSquarePlus, User } from "lucide-react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,64 +86,60 @@ function ConversationsPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">AI Sales Inbox</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Every WhatsApp enquiry, answered and qualified by your AI Sales Executive.
-          </p>
-        </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <MessageSquarePlus className="size-4" /> New conversation
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Start a conversation</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="c-name">Customer name</Label>
-                <Input
-                  id="c-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nur Aisyah binti Rahman"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="c-phone">WhatsApp number</Label>
-                <Input
-                  id="c-phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+60 12-345 6789"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={() => createMutation.mutate()}
-                disabled={!name.trim() || createMutation.isPending}
-              >
-                {createMutation.isPending ? "Creating…" : "Create"}
+      <PageHeader
+        eyebrow="Inbox"
+        title="AI Sales Inbox"
+        description="Every WhatsApp enquiry, answered and qualified by your AI Sales Executive."
+        actions={
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <MessageSquarePlus className="size-4" /> New conversation
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </header>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start a conversation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="c-name">Customer name</Label>
+                  <Input
+                    id="c-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nur Aisyah binti Rahman"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="c-phone">WhatsApp number</Label>
+                  <Input
+                    id="c-phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+60 12-345 6789"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => createMutation.mutate()}
+                  disabled={!name.trim() || createMutation.isPending}
+                >
+                  {createMutation.isPending ? "Creating…" : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        }
+      />
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, number or message"
-          className="pl-9"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        label="Search conversations"
+        placeholder="Search by name, number or message"
+      />
 
       <div className="panel divide-y divide-border/60 overflow-hidden">
         {isLoading ? (
