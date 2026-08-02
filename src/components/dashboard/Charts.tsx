@@ -2,7 +2,6 @@ import {
   Area,
   AreaChart,
   Bar,
-  BarChart,
   CartesianGrid,
   Line,
   ComposedChart,
