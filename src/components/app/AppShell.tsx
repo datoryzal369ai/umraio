@@ -1,6 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Menu, UserRound, Users } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, MessagesSquare, UserRound, Users } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -14,8 +14,10 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users },
+  { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
+
 
 
 export function AppShell({ children }: { children: ReactNode }) {
