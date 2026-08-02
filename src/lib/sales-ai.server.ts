@@ -129,14 +129,20 @@ function scoreArticle(article: KnowledgeRow, terms: string[]) {
   return score;
 }
 
-export function searchKnowledge(articles: KnowledgeRow[], query: string, category?: string | null) {
+export function searchKnowledge(
+  articles: KnowledgeRow[],
+  query: string,
+  category?: string | null,
+  limit = 4,
+) {
   const terms = query.toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter((t) => t.length > 2);
   const pool = category ? articles.filter((a) => a.category === category) : articles;
   const ranked = pool
     .map((a) => ({ article: a, score: scoreArticle(a, terms) }))
     .sort((a, b) => b.score - a.score);
-  const hits = ranked.filter((r) => r.score > 0).slice(0, 4);
-  const chosen = (hits.length ? hits : ranked.slice(0, 2)).map((r) => r.article);
+  const max = Math.min(Math.max(limit, 1), 8);
+  const hits = ranked.filter((r) => r.score > 0).slice(0, max);
+  const chosen = (hits.length ? hits : ranked.slice(0, Math.min(2, max))).map((r) => r.article);
   return chosen.map((a) => ({
     title: a.title,
     category: a.category,
@@ -146,20 +152,82 @@ export function searchKnowledge(articles: KnowledgeRow[], query: string, categor
   }));
 }
 
+const PERSONALITY_HINTS: Record<string, string> = {
+  professional: "Corporate, precise and credible. No filler, no slang.",
+  friendly: "Warm, conversational and approachable, like a trusted travel consultant.",
+  consultative: "Advisory: dig deeper with thoughtful qualifying questions before recommending.",
+  concise: "Short, direct and always closing with a clear next step.",
+};
+
+const LENGTH_HINTS: Record<string, string> = {
+  short: "Keep replies under 45 words.",
+  balanced: "Keep replies under 90 words.",
+  detailed: "Keep replies under 150 words.",
+};
+
+const LANGUAGE_HINTS: Record<string, string> = {
+  auto: "Reply in the same language the customer uses (Bahasa Malaysia, English or a mix).",
+  ms: "Always reply in Bahasa Malaysia.",
+  en: "Always reply in English.",
+  mix: "Reply in a natural Bahasa Malaysia and English mix, as Malaysians commonly write.",
+  ar: "Always reply in Arabic.",
+};
+
+function businessHoursLine(settings: AgencyAiSettings | null) {
+  const hours = settings?.business_hours;
+  if (!hours) return null;
+  const labels: Record<string, string> = {
+    mon: "Mon",
+    tue: "Tue",
+    wed: "Wed",
+    thu: "Thu",
+    fri: "Fri",
+    sat: "Sat",
+    sun: "Sun",
+  };
+  const parts = Object.entries(labels).map(([key, label]) => {
+    const day = hours[key];
+    if (!day || day.closed) return `${label}: closed`;
+    return `${label}: ${day.open}-${day.close}`;
+  });
+  return `Agency business hours (${parts.join(", ")}). Outside these hours, tell the customer a human colleague will follow up when the office reopens.`;
+}
 
 function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
+  const s = ctx.settings;
+  const aiName = s?.ai_name?.trim() || "UMRAIO";
+  const personality = PERSONALITY_HINTS[s?.ai_personality ?? "professional"] ?? PERSONALITY_HINTS["professional"];
+  const length = LENGTH_HINTS[s?.ai_reply_length ?? "balanced"] ?? LENGTH_HINTS["balanced"];
+  const language = LANGUAGE_HINTS[s?.ai_language ?? "auto"] ?? LANGUAGE_HINTS["auto"];
+  const tone = s?.ai_tone ?? "warm";
+  const useKb = s?.kb_auto_use ?? true;
+
   return [
-    `You are UMRAIO, the AI Sales Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
-    "You speak with prospective pilgrims on WhatsApp. You are professional, warm, respectful of Islamic etiquette, and concise.",
-    "Reply in the language the customer uses (Bahasa Malaysia, English or a mix). Keep replies under 90 words, WhatsApp style, no markdown headings.",
+    `You are ${aiName}, the AI Sales Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
+    `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
+    `${language} ${length} WhatsApp style, no markdown headings.`,
+    s?.ai_emoji === false
+      ? "Do not use emojis."
+      : "You may use light, respectful emojis sparingly.",
     "Sales method: greet -> understand intent -> ask ONE or TWO qualifying questions at a time (travel month, number of pax, budget per person, hotel distance preference, first-time or repeat) -> recommend the best matching packages with price in RM -> handle objections -> propose next step (deposit / booking slot / call).",
-    "MANDATORY: before answering ANY question about the agency, packages, prices, visas, hotels, flights, refunds, itineraries or policies, first call search_knowledge and base your answer on what it returns.",
-    "If search_knowledge returns nothing relevant, say you will confirm with a human colleague instead of guessing.",
+    useKb
+      ? "MANDATORY: before answering ANY question about the agency, packages, prices, visas, hotels, flights, refunds, itineraries or policies, first call search_knowledge and base your answer on what it returns."
+      : "Use search_knowledge when the customer asks something the package catalogue cannot answer.",
+    s?.kb_strict_mode === false
+      ? "You may add general Umrah guidance beyond the knowledge base, but never invent agency-specific facts, prices or dates."
+      : "STRICT MODE: state agency facts only when they appear in the knowledge base or package catalogue. Never improvise.",
+    s?.kb_escalate_when_unknown === false
+      ? "If nothing relevant is found, answer generally and invite the customer to ask for details."
+      : "If search_knowledge returns nothing relevant, say you will confirm with a human colleague instead of guessing.",
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
+    businessHoursLine(s),
+    s?.ai_custom_instructions?.trim()
+      ? `Agency custom instructions (highest priority, never break platform safety rules):\n${s.ai_custom_instructions.trim()}`
+      : null,
     ctx.knowledge.length
       ? `Knowledge base index (use search_knowledge to read the full text):\n${ctx.knowledge
           .map((a) => `- [${a.category}] ${a.title}${a.summary ? ` — ${a.summary}` : ""}`)
@@ -168,8 +236,11 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     ctx.lead
       ? `Known lead profile: ${JSON.stringify(ctx.lead)}`
       : "No lead profile linked yet to this conversation.",
-  ].join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 }
+
 
 function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyId = ctx.conversation.agency_id as string;
