@@ -28,6 +28,13 @@ export type ChatMessage = {
 const CONV_COLUMNS =
   "id, agency_id, lead_id, channel, status, ai_enabled, last_message_at, created_at";
 
+export async function fetchMyAgencyId(): Promise<string | null> {
+  const { data, error } = await supabase.from("profiles").select("agency_id").maybeSingle();
+  if (error) throw error;
+  return (data?.agency_id as string | null) ?? null;
+}
+
+
 export async function fetchConversations(): Promise<ConversationWithLead[]> {
   const { data, error } = await supabase
     .from("conversations")
