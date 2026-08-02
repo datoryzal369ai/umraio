@@ -23,8 +23,8 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
+  { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: UserRound },
-] as const;
 
 
 
