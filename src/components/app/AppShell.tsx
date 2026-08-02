@@ -25,9 +25,12 @@ const navItems = [
   { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
+  { to: "/analytics", label: "AI Analytics", icon: BarChart3 },
   { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
+  { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
+
 
 
 
