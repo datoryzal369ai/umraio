@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
