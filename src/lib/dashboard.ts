@@ -53,8 +53,7 @@ export type DashboardData = {
   conversations: ConversationRow[];
 };
 
-const sinceIso = (days: number) =>
-  new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+const sinceIso = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
 export async function fetchDashboard(): Promise<DashboardData> {
   const [leads, bookings, followups, activities, conversations] = await Promise.all([

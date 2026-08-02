@@ -114,4 +114,3 @@ export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
     </ResponsiveContainer>
   );
 }
-

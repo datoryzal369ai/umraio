@@ -27,9 +27,7 @@ export function KpiCard({
           <span
             className={cn(
               "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-              trend.positive
-                ? "bg-success/15 text-success"
-                : "bg-destructive/15 text-destructive",
+              trend.positive ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive",
             )}
           >
             {trend.value}

@@ -117,9 +117,7 @@ function Dashboard() {
           </p>
           <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
             Welcome
-            {profileQuery.data?.full_name
-              ? `, ${profileQuery.data.full_name.split(" ")[0]}`
-              : ""}
+            {profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Here is what your AI Sales Executive handled today.
@@ -168,9 +166,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
   const todaysLeads = data.leads.filter((l) => isToday(l.created_at));
   const todaysConversations = data.conversations.filter((c) => isToday(c.last_message_at));
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).getTime();
-  const monthBookings = data.bookings.filter(
-    (b) => new Date(b.created_at).getTime() >= monthStart,
-  );
+  const monthBookings = data.bookings.filter((b) => new Date(b.created_at).getTime() >= monthStart);
   const monthRevenue = monthBookings.reduce((sum, b) => sum + Number(b.amount_myr), 0);
   const bookedLeads = data.leads.filter((l) => l.stage === "booked").length;
   const conversion = data.leads.length ? (bookedLeads / data.leads.length) * 100 : 0;
