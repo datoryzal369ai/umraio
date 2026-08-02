@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { BadgeCheck, Bot, Flame, Percent, TrendingUp, Wallet } from "lucide-react";
 
+import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import {
   BookingTrendChart,
