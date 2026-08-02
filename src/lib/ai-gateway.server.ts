@@ -5,8 +5,9 @@ export function createLovableAiGatewayProvider(lovableApiKey: string) {
     name: "lovable",
     baseURL: "https://ai.gateway.lovable.dev/v1",
     supportsStructuredOutputs: true,
-
+    headers: {
       "Lovable-API-Key": lovableApiKey,
+
       "X-Lovable-AIG-SDK": "vercel-ai-sdk",
     },
   });
