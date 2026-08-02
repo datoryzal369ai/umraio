@@ -30,7 +30,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
   if (error) throw error;
   if (!conversation) throw new Error("Conversation not found");
 
-  const [{ data: messages }, { data: lead }, { data: packages }, { data: agency }] =
+  const [{ data: messages }, { data: lead }, { data: packages }, { data: agency }, { data: knowledge }] =
     await Promise.all([
       supabase
         .from("messages")
@@ -56,6 +56,12 @@ export async function loadContext(supabase: Db, conversationId: string) {
         .order("price_myr", { ascending: true })
         .limit(30),
       supabase.from("agencies").select("name, country, timezone").maybeSingle(),
+      supabase
+        .from("knowledge_articles")
+        .select("id, title, category, summary, content, tags, file_name")
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false })
+        .limit(100),
     ]);
 
   return {
@@ -64,8 +70,52 @@ export async function loadContext(supabase: Db, conversationId: string) {
     lead,
     packages: packages ?? [],
     agency,
+    knowledge: (knowledge ?? []) as KnowledgeRow[],
   };
 }
+
+export type KnowledgeRow = {
+  id: string;
+  title: string;
+  category: string;
+  summary: string | null;
+  content: string;
+  tags: string[] | null;
+  file_name: string | null;
+};
+
+function scoreArticle(article: KnowledgeRow, terms: string[]) {
+  const haystack = [article.title, article.summary, article.category, (article.tags ?? []).join(" ")]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const body = article.content.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    if (!term) continue;
+    if (haystack.includes(term)) score += 3;
+    if (body.includes(term)) score += 1;
+  }
+  return score;
+}
+
+export function searchKnowledge(articles: KnowledgeRow[], query: string, category?: string | null) {
+  const terms = query.toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter((t) => t.length > 2);
+  const pool = category ? articles.filter((a) => a.category === category) : articles;
+  const ranked = pool
+    .map((a) => ({ article: a, score: scoreArticle(a, terms) }))
+    .sort((a, b) => b.score - a.score);
+  const hits = ranked.filter((r) => r.score > 0).slice(0, 4);
+  const chosen = (hits.length ? hits : ranked.slice(0, 2)).map((r) => r.article);
+  return chosen.map((a) => ({
+    title: a.title,
+    category: a.category,
+    summary: a.summary,
+    source_document: a.file_name,
+    excerpt: a.content.slice(0, 2500),
+  }));
+}
+
 
 function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
@@ -74,10 +124,17 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     "You speak with prospective pilgrims on WhatsApp. You are professional, warm, respectful of Islamic etiquette, and concise.",
     "Reply in the language the customer uses (Bahasa Malaysia, English or a mix). Keep replies under 90 words, WhatsApp style, no markdown headings.",
     "Sales method: greet -> understand intent -> ask ONE or TWO qualifying questions at a time (travel month, number of pax, budget per person, hotel distance preference, first-time or repeat) -> recommend the best matching packages with price in RM -> handle objections -> propose next step (deposit / booking slot / call).",
+    "MANDATORY: before answering ANY question about the agency, packages, prices, visas, hotels, flights, refunds, itineraries or policies, first call search_knowledge and base your answer on what it returns.",
+    "If search_knowledge returns nothing relevant, say you will confirm with a human colleague instead of guessing.",
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
+    ctx.knowledge.length
+      ? `Knowledge base index (use search_knowledge to read the full text):\n${ctx.knowledge
+          .map((a) => `- [${a.category}] ${a.title}${a.summary ? ` — ${a.summary}` : ""}`)
+          .join("\n")}`
+      : "The knowledge base is empty; rely only on the package catalogue and escalate anything else.",
     ctx.lead
       ? `Known lead profile: ${JSON.stringify(ctx.lead)}`
       : "No lead profile linked yet to this conversation.",
@@ -89,6 +146,21 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
   const leadId = ctx.conversation.lead_id as string | null;
 
   return {
+    search_knowledge: tool({
+      description:
+        "Search the agency knowledge base (FAQ, travel guide, package info, visa info, hotel info, uploaded PDFs). Call this before answering any factual question.",
+      inputSchema: z.object({
+        query: z.string(),
+        category: z
+          .enum(["faq", "travel_guide", "package_info", "visa_info", "hotel_info", "general"])
+          .nullable(),
+      }),
+      execute: async ({ query, category }) => {
+        const results = searchKnowledge(ctx.knowledge, query, category);
+        return results.length ? { results } : { results: [], note: "No matching knowledge found." };
+      },
+    }),
+
     recommend_packages: tool({
       description: "Look up the agency's active Umrah packages to recommend accurate options.",
       inputSchema: z.object({

@@ -1,6 +1,14 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { LayoutDashboard, LogOut, Menu, MessagesSquare, UserRound, Users } from "lucide-react";
+import {
+  BookOpen,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessagesSquare,
+  UserRound,
+  Users,
+} from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
@@ -15,8 +23,11 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
+  { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
+
+
 
 
 
