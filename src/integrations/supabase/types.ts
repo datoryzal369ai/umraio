@@ -621,7 +621,9 @@ export type Database = {
         | "contacted"
         | "qualified"
         | "proposal"
+        | "negotiation"
         | "booked"
+        | "completed"
         | "lost"
       lead_temperature: "hot" | "warm" | "cold"
       msg_sender: "customer" | "ai" | "human"
@@ -768,7 +770,9 @@ export const Constants = {
         "contacted",
         "qualified",
         "proposal",
+        "negotiation",
         "booked",
+        "completed",
         "lost",
       ],
       lead_temperature: ["hot", "warm", "cold"],
