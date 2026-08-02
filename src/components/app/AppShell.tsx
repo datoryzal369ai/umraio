@@ -25,6 +25,9 @@ const navItems = [
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
   { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
   { to: "/profile", label: "Profile", icon: UserRound },
+] as const;
+
+
 
 
 
