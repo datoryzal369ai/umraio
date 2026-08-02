@@ -4,11 +4,23 @@ export const LEAD_STAGES = [
   "new",
   "contacted",
   "qualified",
-  "proposal",
+  "negotiation",
   "booked",
+  "completed",
   "lost",
 ] as const;
 export type LeadStage = (typeof LEAD_STAGES)[number];
+
+export const STAGE_LABELS: Record<LeadStage, string> = {
+  new: "New Lead",
+  contacted: "Contacted",
+  qualified: "Qualified",
+  negotiation: "Negotiation",
+  booked: "Booked",
+  completed: "Completed",
+  lost: "Lost",
+};
+
 
 export const LEAD_TEMPERATURES = ["hot", "warm", "cold"] as const;
 export type LeadTemperature = (typeof LEAD_TEMPERATURES)[number];
