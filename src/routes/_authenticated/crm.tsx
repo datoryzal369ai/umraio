@@ -133,25 +133,19 @@ function CrmPage() {
 
   return (
     <div className="space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">CRM Pipeline</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Drag a card between columns to move a prospect. Tap a card for notes, tasks and
-            timeline.
-          </p>
-        </div>
-        <div className="relative w-full sm:w-72">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
+      <PageHeader
+        eyebrow="Pipeline"
+        title="CRM Pipeline"
+        description="Drag a card between columns to move a prospect. Tap a card for notes, tasks and timeline."
+        actions={
+          <SearchInput
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search pipeline"
-            className="pl-9"
-            aria-label="Search pipeline"
+            onChange={setQuery}
+            label="Search pipeline"
+            className="w-full sm:w-72"
           />
-        </div>
-      </header>
+        }
+      />
 
       {isLoading ? (
         <div className="panel p-8 text-sm text-muted-foreground">Loading pipeline…</div>
