@@ -257,7 +257,12 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           .nullable(),
       }),
       execute: async ({ query, category }) => {
-        const results = searchKnowledge(ctx.knowledge, query, category);
+        const results = searchKnowledge(
+          ctx.knowledge,
+          query,
+          category,
+          ctx.settings?.kb_max_articles ?? 4,
+        );
         return results.length ? { results } : { results: [], note: "No matching knowledge found." };
       },
     }),
