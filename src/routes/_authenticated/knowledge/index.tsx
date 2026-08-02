@@ -1,16 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useRef, useState } from "react";
-import {
-  BookOpen,
-  FileText,
-  Loader2,
-  Pencil,
-  Plus,
-  Sparkles,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { BookOpen, FileText, Loader2, Pencil, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";

@@ -117,11 +117,11 @@ function Dashboard() {
         description="Here is what your AI Sales Executive handled today."
         actions={
           <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
-          <span className="relative flex size-2">
-            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-70" />
-            <span className="relative inline-flex size-2 rounded-full bg-primary" />
-          </span>
-          <Bot className="size-4 text-primary" />
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-70" />
+              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+            </span>
+            <Bot className="size-4 text-primary" />
             <span className="text-xs font-medium">AI active · {agency?.plan ?? "trial"} plan</span>
           </div>
         }
