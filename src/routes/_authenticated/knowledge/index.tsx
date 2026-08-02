@@ -7,7 +7,6 @@ import {
   Loader2,
   Pencil,
   Plus,
-  Search,
   Sparkles,
   Trash2,
   Upload,
