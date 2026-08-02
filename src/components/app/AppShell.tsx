@@ -9,6 +9,7 @@ import {
   Menu,
   MessageCircle,
   MessagesSquare,
+  Settings,
   UserRound,
   Users,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const navItems = [
   { to: "/analytics", label: "AI Analytics", icon: BarChart3 },
   { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
   { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
+  { to: "/settings/agency", label: "Settings", icon: Settings },
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
