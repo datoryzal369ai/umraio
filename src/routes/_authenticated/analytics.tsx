@@ -81,17 +81,16 @@ function AnalyticsPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Insights</p>
-          <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-            AI Analytics
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            How your AI Sales Executive turns Umrah enquiries into confirmed pilgrims.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1">
+      <PageHeader
+        eyebrow="Insights"
+        title="AI Analytics"
+        description="How your AI Sales Executive turns Umrah enquiries into confirmed pilgrims."
+        actions={
+          <div
+            role="group"
+            aria-label="Date range"
+            className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1"
+          >
           {RANGES.map((option) => (
             <Button
               key={option.value}
