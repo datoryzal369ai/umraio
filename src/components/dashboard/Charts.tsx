@@ -116,12 +116,3 @@ export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
   );
 }
 
-export function BarOnly({ data }: { data: Point[] }) {
-  return (
-    <ResponsiveContainer width="100%" height={200}>
-      <BarChart data={data}>
-        <Bar dataKey="leads" fill="var(--color-chart-1)" radius={[6, 6, 0, 0]} />
-      </BarChart>
-    </ResponsiveContainer>
-  );
-}
