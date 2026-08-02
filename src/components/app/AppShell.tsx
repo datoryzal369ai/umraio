@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   BookOpen,
+  KanbanSquare,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
   { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
