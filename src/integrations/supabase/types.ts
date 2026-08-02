@@ -591,6 +591,59 @@ export type Database = {
           },
         ]
       }
+      whatsapp_configs: {
+        Row: {
+          access_token: string | null
+          agency_id: string
+          auto_reply: boolean
+          business_account_id: string | null
+          created_at: string
+          display_phone_number: string | null
+          id: string
+          is_connected: boolean
+          last_inbound_at: string | null
+          phone_number_id: string | null
+          updated_at: string
+          verify_token: string
+        }
+        Insert: {
+          access_token?: string | null
+          agency_id: string
+          auto_reply?: boolean
+          business_account_id?: string | null
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_connected?: boolean
+          last_inbound_at?: string | null
+          phone_number_id?: string | null
+          updated_at?: string
+          verify_token?: string
+        }
+        Update: {
+          access_token?: string | null
+          agency_id?: string
+          auto_reply?: boolean
+          business_account_id?: string | null
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          is_connected?: boolean
+          last_inbound_at?: string | null
+          phone_number_id?: string | null
+          updated_at?: string
+          verify_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_configs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
