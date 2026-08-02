@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bot, MessageSquarePlus, Search, User } from "lucide-react";
+import { Bot, MessageSquarePlus, User } from "lucide-react";
 import { toast } from "sonner";
 
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,17 +131,15 @@ function ConversationsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </header>
+        }
+      />
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name, number or message"
-          className="pl-9"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        label="Search conversations"
+        placeholder="Search by name, number or message"
+      />
 
       <div className="panel divide-y divide-border/60 overflow-hidden">
         {isLoading ? (
