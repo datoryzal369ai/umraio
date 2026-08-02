@@ -57,36 +57,196 @@ export type Database = {
       }
       agencies: {
         Row: {
+          address: string | null
+          contact_email: string | null
+          contact_phone: string | null
           country: string
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           plan: string
+          registration_no: string | null
           slug: string | null
           timezone: string
           updated_at: string
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
           country?: string
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           plan?: string
+          registration_no?: string | null
           slug?: string | null
           timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          country?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          plan?: string
+          registration_no?: string | null
+          slug?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      agency_settings: {
+        Row: {
+          agency_id: string
+          ai_custom_instructions: string
+          ai_emoji: boolean
+          ai_language: string
+          ai_name: string
+          ai_personality: string
+          ai_reply_length: string
+          ai_tone: string
+          business_hours: Json
+          created_at: string
+          id: string
+          kb_auto_use: boolean
+          kb_escalate_when_unknown: boolean
+          kb_max_articles: number
+          kb_strict_mode: boolean
+          notify_booking: boolean
+          notify_daily_summary: boolean
+          notify_email: boolean
+          notify_followup_due: boolean
+          notify_hot_lead: boolean
+          notify_new_lead: boolean
+          notify_whatsapp: boolean
+          plan: string
+          plan_status: string
+          renews_at: string | null
+          seats: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          ai_custom_instructions?: string
+          ai_emoji?: boolean
+          ai_language?: string
+          ai_name?: string
+          ai_personality?: string
+          ai_reply_length?: string
+          ai_tone?: string
+          business_hours?: Json
+          created_at?: string
+          id?: string
+          kb_auto_use?: boolean
+          kb_escalate_when_unknown?: boolean
+          kb_max_articles?: number
+          kb_strict_mode?: boolean
+          notify_booking?: boolean
+          notify_daily_summary?: boolean
+          notify_email?: boolean
+          notify_followup_due?: boolean
+          notify_hot_lead?: boolean
+          notify_new_lead?: boolean
+          notify_whatsapp?: boolean
+          plan?: string
+          plan_status?: string
+          renews_at?: string | null
+          seats?: number
           updated_at?: string
         }
         Update: {
-          country?: string
+          agency_id?: string
+          ai_custom_instructions?: string
+          ai_emoji?: boolean
+          ai_language?: string
+          ai_name?: string
+          ai_personality?: string
+          ai_reply_length?: string
+          ai_tone?: string
+          business_hours?: Json
           created_at?: string
           id?: string
-          name?: string
+          kb_auto_use?: boolean
+          kb_escalate_when_unknown?: boolean
+          kb_max_articles?: number
+          kb_strict_mode?: boolean
+          notify_booking?: boolean
+          notify_daily_summary?: boolean
+          notify_email?: boolean
+          notify_followup_due?: boolean
+          notify_hot_lead?: boolean
+          notify_new_lead?: boolean
+          notify_whatsapp?: boolean
           plan?: string
-          slug?: string | null
-          timezone?: string
+          plan_status?: string
+          renews_at?: string | null
+          seats?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agency_settings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_keys: {
+        Row: {
+          agency_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          key_hash: string
+          key_prefix: string
+          label: string
+          last_used_at: string | null
+          revoked: boolean
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash: string
+          key_prefix: string
+          label?: string
+          last_used_at?: string | null
+          revoked?: boolean
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          label?: string
+          last_used_at?: string | null
+          revoked?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       bookings: {
         Row: {
