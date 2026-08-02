@@ -156,9 +156,7 @@ function LeadsPage() {
           onChange={setSearch}
           label="Search leads"
           placeholder="Search name, phone, email, tag"
-            aria-label="Search leads"
-          />
-        </div>
+        />
         <FilterSelect
           label="Status"
           value={temperature}
