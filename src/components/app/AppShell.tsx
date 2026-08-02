@@ -1,15 +1,18 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  BarChart3,
   BookOpen,
   KanbanSquare,
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageCircle,
   MessagesSquare,
   UserRound,
   Users,
 } from "lucide-react";
+
 import { useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
