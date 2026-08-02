@@ -102,8 +102,9 @@ function AnalyticsPage() {
               {option.label}
             </Button>
           ))}
-        </div>
-      </header>
+          </div>
+        }
+      />
 
       {isLoading || !data ? <AnalyticsSkeleton /> : <AnalyticsBody data={data} days={days} />}
     </div>
