@@ -38,44 +38,44 @@ export async function loadContext(supabase: Db, conversationId: string) {
     { data: knowledge },
     { data: settings },
   ] = await Promise.all([
-      supabase
-        .from("messages")
-        .select("id, conversation_id, sender, body, created_at")
-        .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true })
-        .limit(200),
-      conversation.lead_id
-        ? supabase
-            .from("leads")
-            .select(
-              "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, tags, score",
-            )
-            .eq("id", conversation.lead_id)
-            .maybeSingle()
-        : Promise.resolve({ data: null }),
-      supabase
-        .from("packages")
-        .select(
-          "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions",
-        )
-        .eq("is_active", true)
-        .order("price_myr", { ascending: true })
-        .limit(30),
-      supabase.from("agencies").select("name, country, timezone").maybeSingle(),
-      supabase
-        .from("knowledge_articles")
-        .select("id, title, category, summary, content, tags, file_name")
-        .eq("is_active", true)
-        .order("updated_at", { ascending: false })
-        .limit(100),
-      supabase
-        .from("agency_settings")
-        .select(
-          "business_hours, ai_name, ai_personality, ai_tone, ai_reply_length, ai_language, ai_custom_instructions, ai_emoji, kb_strict_mode, kb_auto_use, kb_max_articles, kb_escalate_when_unknown",
-        )
-        .eq("agency_id", conversation.agency_id)
-        .maybeSingle(),
-    ]);
+    supabase
+      .from("messages")
+      .select("id, conversation_id, sender, body, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(200),
+    conversation.lead_id
+      ? supabase
+          .from("leads")
+          .select(
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, tags, score",
+          )
+          .eq("id", conversation.lead_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("packages")
+      .select(
+        "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions",
+      )
+      .eq("is_active", true)
+      .order("price_myr", { ascending: true })
+      .limit(30),
+    supabase.from("agencies").select("name, country, timezone").maybeSingle(),
+    supabase
+      .from("knowledge_articles")
+      .select("id, title, category, summary, content, tags, file_name")
+      .eq("is_active", true)
+      .order("updated_at", { ascending: false })
+      .limit(100),
+    supabase
+      .from("agency_settings")
+      .select(
+        "business_hours, ai_name, ai_personality, ai_tone, ai_reply_length, ai_language, ai_custom_instructions, ai_emoji, kb_strict_mode, kb_auto_use, kb_max_articles, kb_escalate_when_unknown",
+      )
+      .eq("agency_id", conversation.agency_id)
+      .maybeSingle(),
+  ]);
 
   return {
     conversation,
@@ -103,7 +103,6 @@ export type AgencyAiSettings = {
   kb_escalate_when_unknown: boolean;
 };
 
-
 export type KnowledgeRow = {
   id: string;
   title: string;
@@ -115,7 +114,12 @@ export type KnowledgeRow = {
 };
 
 function scoreArticle(article: KnowledgeRow, terms: string[]) {
-  const haystack = [article.title, article.summary, article.category, (article.tags ?? []).join(" ")]
+  const haystack = [
+    article.title,
+    article.summary,
+    article.category,
+    (article.tags ?? []).join(" "),
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();
@@ -135,7 +139,10 @@ export function searchKnowledge(
   category?: string | null,
   limit = 4,
 ) {
-  const terms = query.toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter((t) => t.length > 2);
+  const terms = query
+    .toLowerCase()
+    .split(/[^a-z0-9\u00c0-\u024f]+/)
+    .filter((t) => t.length > 2);
   const pool = category ? articles.filter((a) => a.category === category) : articles;
   const ranked = pool
     .map((a) => ({ article: a, score: scoreArticle(a, terms) }))
@@ -197,7 +204,8 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
   const s = ctx.settings;
   const aiName = s?.ai_name?.trim() || "UMRAIO";
-  const personality = PERSONALITY_HINTS[s?.ai_personality ?? "professional"] ?? PERSONALITY_HINTS["professional"];
+  const personality =
+    PERSONALITY_HINTS[s?.ai_personality ?? "professional"] ?? PERSONALITY_HINTS["professional"];
   const length = LENGTH_HINTS[s?.ai_reply_length ?? "balanced"] ?? LENGTH_HINTS["balanced"];
   const language = LANGUAGE_HINTS[s?.ai_language ?? "auto"] ?? LANGUAGE_HINTS["auto"];
   const tone = s?.ai_tone ?? "warm";
@@ -240,7 +248,6 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     .filter(Boolean)
     .join("\n");
 }
-
 
 function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyId = ctx.conversation.agency_id as string;

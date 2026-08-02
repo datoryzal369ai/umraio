@@ -25,10 +25,7 @@ const COLUMNS =
   "id, agency_id, display_phone_number, phone_number_id, business_account_id, access_token, verify_token, is_connected, auto_reply, last_inbound_at";
 
 export async function fetchWhatsappConfig(): Promise<WhatsappConfig | null> {
-  const { data, error } = await supabase
-    .from("whatsapp_configs")
-    .select(COLUMNS)
-    .maybeSingle();
+  const { data, error } = await supabase.from("whatsapp_configs").select(COLUMNS).maybeSingle();
   if (error) throw error;
   return (data as WhatsappConfig | null) ?? null;
 }

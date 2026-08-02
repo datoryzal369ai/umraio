@@ -236,7 +236,10 @@ export function RevenueConversionChart({
           {...axisProps}
           tickFormatter={(v: number) => `${v}%`}
         />
-        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={mixedTooltip as never} />
+        <Tooltip
+          cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
+          content={mixedTooltip as never}
+        />
         <Bar
           yAxisId="left"
           dataKey="revenue"
@@ -270,14 +273,11 @@ export function FollowupPerformanceChart({
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
         <XAxis dataKey="month" {...axisProps} />
         <YAxis {...axisProps} allowDecimals={false} />
-        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={countTooltip as never} />
-        <Bar
-          dataKey="sent"
-          name="Sent"
-          stackId="f"
-          fill="var(--color-chart-1)"
-          maxBarSize={34}
+        <Tooltip
+          cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
+          content={countTooltip as never}
         />
+        <Bar dataKey="sent" name="Sent" stackId="f" fill="var(--color-chart-1)" maxBarSize={34} />
         <Bar dataKey="pending" name="Pending" stackId="f" fill="var(--color-chart-3)" />
         <Bar
           dataKey="skipped"

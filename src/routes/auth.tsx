@@ -284,12 +284,7 @@ function AuthPage() {
             <Input ref={emailRef} name="email" type="email" autoComplete="email" required />
           </Field>
           <SubmitButton pending={pending}>Send reset link</SubmitButton>
-          <Button
-            type="button"
-            variant="ghost"
-            className="w-full"
-            onClick={() => setMode("login")}
-          >
+          <Button type="button" variant="ghost" className="w-full" onClick={() => setMode("login")}>
             Back to sign in
           </Button>
         </form>

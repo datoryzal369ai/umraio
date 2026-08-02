@@ -21,7 +21,6 @@ export const STAGE_LABELS: Record<LeadStage, string> = {
   lost: "Lost",
 };
 
-
 export const LEAD_TEMPERATURES = ["hot", "warm", "cold"] as const;
 export type LeadTemperature = (typeof LEAD_TEMPERATURES)[number];
 
@@ -139,7 +138,6 @@ export async function updateLeadStage(lead: Lead, stage: LeadStage): Promise<voi
 }
 
 export async function deleteLead(id: string): Promise<void> {
-
   const { error } = await supabase.from("leads").delete().eq("id", id);
   if (error) throw error;
 }
@@ -213,10 +211,7 @@ export async function createReminder(args: {
 }
 
 export async function completeReminder(id: string): Promise<void> {
-  const { error } = await supabase
-    .from("followup_jobs")
-    .update({ status: "sent" })
-    .eq("id", id);
+  const { error } = await supabase.from("followup_jobs").update({ status: "sent" }).eq("id", id);
   if (error) throw error;
 }
 

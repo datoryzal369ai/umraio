@@ -36,11 +36,6 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
-
-
-
-
-
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();

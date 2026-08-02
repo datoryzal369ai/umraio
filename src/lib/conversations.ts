@@ -34,7 +34,6 @@ export async function fetchMyAgencyId(): Promise<string | null> {
   return (data?.agency_id as string | null) ?? null;
 }
 
-
 export async function fetchConversations(): Promise<ConversationWithLead[]> {
   const { data, error } = await supabase
     .from("conversations")

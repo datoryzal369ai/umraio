@@ -71,11 +71,7 @@ export async function fetchAnalytics(days: number): Promise<AnalyticsData> {
       .gte("created_at", since)
       .limit(1000),
     supabase.from("packages").select("id, name, price_myr").limit(200),
-    supabase
-      .from("messages")
-      .select("id, sender, created_at")
-      .gte("created_at", since)
-      .limit(2000),
+    supabase.from("messages").select("id, sender, created_at").gte("created_at", since).limit(2000),
   ]);
 
   return {
@@ -205,9 +201,7 @@ export function followupSeries(data: AnalyticsData, days: number) {
 
 export function summary(data: AnalyticsData) {
   const totalLeads = data.leads.length;
-  const booked = data.leads.filter(
-    (l) => l.stage === "booked" || l.stage === "completed",
-  ).length;
+  const booked = data.leads.filter((l) => l.stage === "booked" || l.stage === "completed").length;
   const revenue = data.bookings
     .filter((b) => b.status !== "cancelled")
     .reduce((sum, b) => sum + b.amount_myr, 0);

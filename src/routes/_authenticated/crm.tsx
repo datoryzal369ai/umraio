@@ -115,8 +115,7 @@ function CrmPage() {
   );
 
   const moveMutation = useMutation({
-    mutationFn: ({ lead, stage }: { lead: Lead; stage: LeadStage }) =>
-      updateLeadStage(lead, stage),
+    mutationFn: ({ lead, stage }: { lead: Lead; stage: LeadStage }) => updateLeadStage(lead, stage),
     onSuccess: async (_data, variables) => {
       toast.success(`${variables.lead.full_name} → ${STAGE_LABELS[variables.stage]}`);
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -367,11 +366,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
             placeholder="Add a note about this prospect…"
             rows={3}
           />
-          <Button
-            size="sm"
-            onClick={() => noteMutation.mutate()}
-            disabled={noteMutation.isPending}
-          >
+          <Button size="sm" onClick={() => noteMutation.mutate()} disabled={noteMutation.isPending}>
             Add note
           </Button>
           <ul className="space-y-2">
@@ -419,7 +414,11 @@ function LeadPanel({ lead }: { lead: Lead }) {
               value={taskAt}
               onChange={(event) => setTaskAt(event.target.value)}
             />
-            <Button size="sm" onClick={() => taskMutation.mutate()} disabled={taskMutation.isPending}>
+            <Button
+              size="sm"
+              onClick={() => taskMutation.mutate()}
+              disabled={taskMutation.isPending}
+            >
               <BellPlus className="size-4" />
               Schedule task
             </Button>
@@ -482,9 +481,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                   <span className="absolute -left-[1.4rem] top-1.5 size-2 rounded-full bg-primary" />
                   <p className="text-sm font-medium">{item.action}</p>
                   {typeof item.meta?.["detail"] === "string" ? (
-                    <p className="text-xs text-muted-foreground">
-                      {item.meta["detail"] as string}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{item.meta["detail"] as string}</p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
                     {item.actor === "ai" ? "AI" : "Team"} · {relativeTime(item.created_at)}

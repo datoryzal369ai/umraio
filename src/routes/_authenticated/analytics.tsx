@@ -202,10 +202,7 @@ function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
             </p>
           )}
         </Panel>
-        <Panel
-          title="Follow-up performance"
-          description="Sent, pending and skipped AI follow-ups."
-        >
+        <Panel title="Follow-up performance" description="Sent, pending and skipped AI follow-ups.">
           <FollowupPerformanceChart data={followups} />
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Flame className="size-3.5 text-primary" />

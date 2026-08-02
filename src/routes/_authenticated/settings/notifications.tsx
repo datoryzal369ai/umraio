@@ -37,7 +37,11 @@ const EVENTS = [
     title: "Hot lead detected",
     description: "The AI marks a prospect as hot and ready to close.",
   },
-  { key: "notify_booking", title: "Booking confirmed", description: "A lead converts to a booking." },
+  {
+    key: "notify_booking",
+    title: "Booking confirmed",
+    description: "A lead converts to a booking.",
+  },
   {
     key: "notify_followup_due",
     title: "Follow-up due",
@@ -59,9 +63,7 @@ const CHANNELS = [
   },
 ] as const;
 
-type Keys =
-  | (typeof EVENTS)[number]["key"]
-  | (typeof CHANNELS)[number]["key"];
+type Keys = (typeof EVENTS)[number]["key"] | (typeof CHANNELS)[number]["key"];
 
 function Row({
   title,
@@ -140,7 +142,9 @@ function NotificationSettingsPage() {
           </div>
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Events</h2>
-            <p className="text-xs text-muted-foreground">Pick what deserves your team's attention.</p>
+            <p className="text-xs text-muted-foreground">
+              Pick what deserves your team's attention.
+            </p>
           </div>
         </header>
         {EVENTS.map((event) => (
