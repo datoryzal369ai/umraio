@@ -5,8 +5,9 @@ const stageStyles: Record<LeadStage, string> = {
   new: "bg-muted text-muted-foreground",
   contacted: "bg-primary/10 text-primary",
   qualified: "bg-primary/20 text-primary",
-  proposal: "bg-accent/20 text-accent-foreground",
+  negotiation: "bg-accent/20 text-accent-foreground",
   booked: "bg-primary text-primary-foreground",
+  completed: "bg-primary/30 text-primary",
   lost: "bg-destructive/15 text-destructive",
 };
 
