@@ -25,6 +25,7 @@ import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedLeadsLeadIdRouteImport } from './routes/_authenticated/leads/$leadId'
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedSettingsAgencyRouteImport } from './routes/_authenticated/settings/agency'
+import { Route as AuthenticatedSettingsAiRouteImport } from './routes/_authenticated/settings/ai'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
 
@@ -114,6 +115,11 @@ const AuthenticatedSettingsAgencyRoute =
     path: '/agency',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsAiRoute = AuthenticatedSettingsAiRouteImport.update({
+  id: '/ai',
+  path: '/ai',
+  getParentRoute: () => AuthenticatedSettingsRouteRoute,
+} as any)
 const AuthenticatedSettingsWhatsappRoute =
   AuthenticatedSettingsWhatsappRouteImport.update({
     id: '/whatsapp',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
+  '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
@@ -156,6 +163,7 @@ export interface FileRoutesByTo {
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
+  '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
@@ -177,6 +185,7 @@ export interface FileRoutesById {
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/_authenticated/settings/agency': typeof AuthenticatedSettingsAgencyRoute
+  '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/conversations/$conversationId'
     | '/leads/$leadId'
     | '/settings/agency'
+    | '/settings/ai'
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations/'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/conversations/$conversationId'
     | '/leads/$leadId'
     | '/settings/agency'
+    | '/settings/ai'
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/_authenticated/conversations/$conversationId'
     | '/_authenticated/leads/$leadId'
     | '/_authenticated/settings/agency'
+    | '/_authenticated/settings/ai'
     | '/_authenticated/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
@@ -366,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsAgencyRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/ai': {
+      id: '/_authenticated/settings/ai'
+      path: '/ai'
+      fullPath: '/settings/ai'
+      preLoaderRoute: typeof AuthenticatedSettingsAiRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/whatsapp': {
       id: '/_authenticated/settings/whatsapp'
       path: '/whatsapp'
@@ -385,6 +404,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAgencyRoute: typeof AuthenticatedSettingsAgencyRoute
+  AuthenticatedSettingsAiRoute: typeof AuthenticatedSettingsAiRoute
   AuthenticatedSettingsWhatsappRoute: typeof AuthenticatedSettingsWhatsappRoute
   AuthenticatedSettingsIndexRoute: typeof AuthenticatedSettingsIndexRoute
 }
@@ -392,6 +412,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
 const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteChildren =
   {
     AuthenticatedSettingsAgencyRoute: AuthenticatedSettingsAgencyRoute,
+    AuthenticatedSettingsAiRoute: AuthenticatedSettingsAiRoute,
     AuthenticatedSettingsWhatsappRoute: AuthenticatedSettingsWhatsappRoute,
     AuthenticatedSettingsIndexRoute: AuthenticatedSettingsIndexRoute,
   }
