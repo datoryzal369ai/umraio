@@ -9,6 +9,7 @@ import {
   Menu,
   MessageCircle,
   MessagesSquare,
+  Settings,
   UserRound,
   Users,
 } from "lucide-react";
