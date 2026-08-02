@@ -124,7 +124,22 @@ export async function updateLead(id: string, input: Partial<LeadInput>): Promise
   return data as Lead;
 }
 
+export async function updateLeadStage(lead: Lead, stage: LeadStage): Promise<void> {
+  const { error } = await supabase
+    .from("leads")
+    .update({ stage, last_contact_at: new Date().toISOString() })
+    .eq("id", lead.id);
+  if (error) throw error;
+  await logActivity(
+    lead.agency_id,
+    "Pipeline stage changed",
+    lead.id,
+    `${STAGE_LABELS[lead.stage] ?? lead.stage} → ${STAGE_LABELS[stage]}`,
+  );
+}
+
 export async function deleteLead(id: string): Promise<void> {
+
   const { error } = await supabase.from("leads").delete().eq("id", id);
   if (error) throw error;
 }
