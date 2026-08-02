@@ -37,7 +37,7 @@ function Box({
   label,
   rows,
 }: {
-  label?: string | number;
+  label?: string | number | undefined;
   rows: Array<{ name: string; value: string }>;
 }) {
   return (
@@ -55,18 +55,24 @@ function Box({
 }
 
 type TooltipProps = {
-  active?: boolean;
-  label?: string | number;
-  payload?: Array<{ name?: string; dataKey?: string | number; value?: number | string }>;
+  active?: boolean | undefined;
+  label?: unknown;
+  payload?: unknown;
 };
 
 function makeTooltip(format: (key: string, value: number) => string) {
-  return function ChartTooltip({ active, payload, label }: TooltipProps) {
-    if (!active || !payload?.length) return null;
+  return function ChartTooltip(props: TooltipProps) {
+    const items = (props.payload ?? []) as Array<{
+      name?: string;
+      dataKey?: string | number;
+      value?: number | string;
+    }>;
+    if (!props.active || !items.length) return null;
+    const label = props.label as string | number | undefined;
     return (
       <Box
         label={label}
-        rows={payload.map((p) => ({
+        rows={items.map((p) => ({
           name: String(p.name ?? p.dataKey),
           value: format(String(p.dataKey), Number(p.value)),
         }))}
@@ -93,7 +99,7 @@ export function ConversionFunnelChart({
         <YAxis type="category" dataKey="stage" width={86} {...axisProps} />
         <Tooltip
           cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
-          content={makeTooltip((k, v) => (k === "rate" ? `${v}%` : String(v)))}
+          content={makeTooltip((k, v) => (k === "rate" ? `${v}%` : String(v))) as never}
         />
         <Bar dataKey="leads" name="Leads" radius={[0, 6, 6, 0]} maxBarSize={22}>
           {data.map((_, i) => (
@@ -122,7 +128,7 @@ export function TopPackagesChart({
         <YAxis type="category" dataKey="name" width={120} {...axisProps} />
         <Tooltip
           cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
-          content={makeTooltip((k, v) => (k === "revenue" ? myr(v) : String(v)))}
+          content={makeTooltip((k, v) => (k === "revenue" ? myr(v) : String(v))) as never}
         />
         <Bar
           dataKey="revenue"
@@ -164,7 +170,7 @@ export function LeadSourceChart({
             <span className="text-xs text-muted-foreground">{value}</span>
           )}
         />
-        <Tooltip content={countTooltip} />
+        <Tooltip content={countTooltip as never} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -187,7 +193,7 @@ export function BookingTrendChart({
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
         <XAxis dataKey="month" {...axisProps} />
         <YAxis {...axisProps} allowDecimals={false} />
-        <Tooltip content={countTooltip} />
+        <Tooltip content={countTooltip as never} />
         <Area
           dataKey="bookings"
           name="Bookings"
@@ -230,7 +236,7 @@ export function RevenueConversionChart({
           {...axisProps}
           tickFormatter={(v: number) => `${v}%`}
         />
-        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={mixedTooltip} />
+        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={mixedTooltip as never} />
         <Bar
           yAxisId="left"
           dataKey="revenue"
@@ -264,7 +270,7 @@ export function FollowupPerformanceChart({
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
         <XAxis dataKey="month" {...axisProps} />
         <YAxis {...axisProps} allowDecimals={false} />
-        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={countTooltip} />
+        <Tooltip cursor={{ fill: "var(--color-muted)", opacity: 0.25 }} content={countTooltip as never} />
         <Bar
           dataKey="sent"
           name="Sent"
