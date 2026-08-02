@@ -5,6 +5,7 @@ import { Check, Copy, MessageCircle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/app/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,16 +130,11 @@ function WhatsappSettings() {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
-      <header>
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Integration</p>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">
-          WhatsApp Business
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Connect the WhatsApp Cloud API so inbound enquiries create leads and the AI Sales
-          Executive replies instantly.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Integration"
+        title="WhatsApp Business"
+        description="Connect the WhatsApp Cloud API so inbound enquiries create leads and the AI Sales Executive replies instantly."
+      />
 
       {isLoading ? (
         <Skeleton className="h-96 rounded-2xl" />

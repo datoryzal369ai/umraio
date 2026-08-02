@@ -13,7 +13,9 @@ type PageHeaderProps = {
 /** Shared page header: eyebrow + h1 + description, with optional right-aligned actions. */
 export function PageHeader({ title, eyebrow, description, actions, className }: PageHeaderProps) {
   return (
-    <header className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}>
+    <header
+      className={cn("flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between", className)}
+    >
       <div className="min-w-0">
         {eyebrow ? (
           <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{eyebrow}</p>

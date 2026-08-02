@@ -92,17 +92,17 @@ function AnalyticsPage() {
             aria-label="Date range"
             className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1"
           >
-          {RANGES.map((option) => (
-            <Button
-              key={option.value}
-              size="sm"
-              variant={range === option.value ? "secondary" : "ghost"}
-              className="text-xs"
-              onClick={() => setRange(option.value)}
-            >
-              {option.label}
-            </Button>
-          ))}
+            {RANGES.map((option) => (
+              <Button
+                key={option.value}
+                size="sm"
+                variant={range === option.value ? "secondary" : "ghost"}
+                className="text-xs"
+                onClick={() => setRange(option.value)}
+              >
+                {option.label}
+              </Button>
+            ))}
           </div>
         }
       />

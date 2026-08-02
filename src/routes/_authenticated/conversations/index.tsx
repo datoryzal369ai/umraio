@@ -91,46 +91,46 @@ function ConversationsPage() {
         title="AI Sales Inbox"
         description="Every WhatsApp enquiry, answered and qualified by your AI Sales Executive."
         actions={
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="gap-2">
-              <MessageSquarePlus className="size-4" /> New conversation
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Start a conversation</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="c-name">Customer name</Label>
-                <Input
-                  id="c-name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Nur Aisyah binti Rahman"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="c-phone">WhatsApp number</Label>
-                <Input
-                  id="c-phone"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+60 12-345 6789"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                onClick={() => createMutation.mutate()}
-                disabled={!name.trim() || createMutation.isPending}
-              >
-                {createMutation.isPending ? "Creating…" : "Create"}
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <MessageSquarePlus className="size-4" /> New conversation
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Start a conversation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="c-name">Customer name</Label>
+                  <Input
+                    id="c-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Nur Aisyah binti Rahman"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="c-phone">WhatsApp number</Label>
+                  <Input
+                    id="c-phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+60 12-345 6789"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={() => createMutation.mutate()}
+                  disabled={!name.trim() || createMutation.isPending}
+                >
+                  {createMutation.isPending ? "Creating…" : "Create"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         }
       />
 

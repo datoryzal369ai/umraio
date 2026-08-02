@@ -39,7 +39,8 @@ const navItems = [
 /** Highlights the nav entry that owns the current pathname, including nested routes. */
 function isActive(pathname: string, to: string) {
   if (to === "/settings/whatsapp") return pathname === to;
-  if (to === "/settings/agency") return pathname.startsWith("/settings") && pathname !== "/settings/whatsapp";
+  if (to === "/settings/agency")
+    return pathname.startsWith("/settings") && pathname !== "/settings/whatsapp";
   return pathname === to || pathname.startsWith(`${to}/`);
 }
 
@@ -106,7 +107,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BrandLogo />
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="min-h-11 min-w-11" aria-label="Open navigation menu">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-h-11 min-w-11"
+                aria-label="Open navigation menu"
+              >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>

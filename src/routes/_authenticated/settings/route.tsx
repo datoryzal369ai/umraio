@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 
+import { PageHeader } from "@/components/app/PageHeader";
 import { cn } from "@/lib/utils";
 
 const tabs = [
@@ -20,19 +21,21 @@ function SettingsLayout() {
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
-      <header>
-        <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Workspace</p>
-        <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Configure your agency profile, AI Sales Executive, channels and plan.
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Workspace"
+        title="Settings"
+        description="Configure your agency profile, AI Sales Executive, channels and plan."
+      />
 
-      <nav className="-mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1">
+      <nav
+        aria-label="Settings sections"
+        className="-mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1"
+      >
         {tabs.map((tab) => (
           <Link
             key={tab.to}
             to={tab.to}
+            aria-current={pathname === tab.to ? "page" : undefined}
             className={cn(
               "shrink-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
               pathname === tab.to
