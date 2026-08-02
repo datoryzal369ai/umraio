@@ -8,7 +8,6 @@ import {
   Clock,
   ExternalLink,
   GripVertical,
-  Search,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -25,6 +24,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SearchInput } from "@/components/app/SearchInput";
 import { TemperatureBadge } from "@/components/leads/LeadBadges";
 import { useAuth } from "@/hooks/useAuth";
 import {
