@@ -30,7 +30,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
   if (error) throw error;
   if (!conversation) throw new Error("Conversation not found");
 
-  const [{ data: messages }, { data: lead }, { data: packages }, { data: agency }] =
+  const [{ data: messages }, { data: lead }, { data: packages }, { data: agency }, { data: knowledge }] =
     await Promise.all([
       supabase
         .from("messages")
@@ -56,6 +56,12 @@ export async function loadContext(supabase: Db, conversationId: string) {
         .order("price_myr", { ascending: true })
         .limit(30),
       supabase.from("agencies").select("name, country, timezone").maybeSingle(),
+      supabase
+        .from("knowledge_articles")
+        .select("id, title, category, summary, content, tags, file_name")
+        .eq("is_active", true)
+        .order("updated_at", { ascending: false })
+        .limit(100),
     ]);
 
   return {
@@ -64,8 +70,52 @@ export async function loadContext(supabase: Db, conversationId: string) {
     lead,
     packages: packages ?? [],
     agency,
+    knowledge: (knowledge ?? []) as KnowledgeRow[],
   };
 }
+
+export type KnowledgeRow = {
+  id: string;
+  title: string;
+  category: string;
+  summary: string | null;
+  content: string;
+  tags: string[] | null;
+  file_name: string | null;
+};
+
+function scoreArticle(article: KnowledgeRow, terms: string[]) {
+  const haystack = [article.title, article.summary, article.category, (article.tags ?? []).join(" ")]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  const body = article.content.toLowerCase();
+  let score = 0;
+  for (const term of terms) {
+    if (!term) continue;
+    if (haystack.includes(term)) score += 3;
+    if (body.includes(term)) score += 1;
+  }
+  return score;
+}
+
+export function searchKnowledge(articles: KnowledgeRow[], query: string, category?: string | null) {
+  const terms = query.toLowerCase().split(/[^a-z0-9\u00c0-\u024f]+/).filter((t) => t.length > 2);
+  const pool = category ? articles.filter((a) => a.category === category) : articles;
+  const ranked = pool
+    .map((a) => ({ article: a, score: scoreArticle(a, terms) }))
+    .sort((a, b) => b.score - a.score);
+  const hits = ranked.filter((r) => r.score > 0).slice(0, 4);
+  const chosen = (hits.length ? hits : ranked.slice(0, 2)).map((r) => r.article);
+  return chosen.map((a) => ({
+    title: a.title,
+    category: a.category,
+    summary: a.summary,
+    source_document: a.file_name,
+    excerpt: a.content.slice(0, 2500),
+  }));
+}
+
 
 function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
