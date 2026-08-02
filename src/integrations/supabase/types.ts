@@ -245,6 +245,51 @@ export type Database = {
           },
         ]
       }
+      lead_notes: {
+        Row: {
+          agency_id: string
+          author_id: string | null
+          body: string
+          created_at: string
+          id: string
+          lead_id: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          author_id?: string | null
+          body: string
+          created_at?: string
+          id?: string
+          lead_id: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          id?: string
+          lead_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_notes_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_notes_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           agency_id: string
@@ -261,6 +306,8 @@ export type Database = {
           score: number
           source: string
           stage: Database["public"]["Enums"]["lead_stage"]
+          tags: string[]
+          temperature: Database["public"]["Enums"]["lead_temperature"]
           updated_at: string
         }
         Insert: {
@@ -278,6 +325,8 @@ export type Database = {
           score?: number
           source?: string
           stage?: Database["public"]["Enums"]["lead_stage"]
+          tags?: string[]
+          temperature?: Database["public"]["Enums"]["lead_temperature"]
           updated_at?: string
         }
         Update: {
@@ -295,6 +344,8 @@ export type Database = {
           score?: number
           source?: string
           stage?: Database["public"]["Enums"]["lead_stage"]
+          tags?: string[]
+          temperature?: Database["public"]["Enums"]["lead_temperature"]
           updated_at?: string
         }
         Relationships: [
@@ -509,6 +560,7 @@ export type Database = {
         | "proposal"
         | "booked"
         | "lost"
+      lead_temperature: "hot" | "warm" | "cold"
       msg_sender: "customer" | "ai" | "human"
     }
     CompositeTypes: {
@@ -648,6 +700,7 @@ export const Constants = {
         "booked",
         "lost",
       ],
+      lead_temperature: ["hot", "warm", "cold"],
       msg_sender: ["customer", "ai", "human"],
     },
   },
