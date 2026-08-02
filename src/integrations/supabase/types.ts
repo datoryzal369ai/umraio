@@ -245,6 +245,62 @@ export type Database = {
           },
         ]
       }
+      knowledge_articles: {
+        Row: {
+          agency_id: string
+          category: Database["public"]["Enums"]["kb_category"]
+          content: string
+          created_at: string
+          created_by: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          is_active: boolean
+          summary: string | null
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          category?: Database["public"]["Enums"]["kb_category"]
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean
+          summary?: string | null
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          category?: Database["public"]["Enums"]["kb_category"]
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          is_active?: boolean
+          summary?: string | null
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_articles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_notes: {
         Row: {
           agency_id: string
@@ -553,6 +609,13 @@ export type Database = {
       app_role: "owner" | "admin" | "agent"
       channel: "whatsapp" | "web" | "manual"
       followup_status: "pending" | "sent" | "skipped" | "failed"
+      kb_category:
+        | "faq"
+        | "travel_guide"
+        | "package_info"
+        | "visa_info"
+        | "hotel_info"
+        | "general"
       lead_stage:
         | "new"
         | "contacted"
@@ -692,6 +755,14 @@ export const Constants = {
       app_role: ["owner", "admin", "agent"],
       channel: ["whatsapp", "web", "manual"],
       followup_status: ["pending", "sent", "skipped", "failed"],
+      kb_category: [
+        "faq",
+        "travel_guide",
+        "package_info",
+        "visa_info",
+        "hotel_info",
+        "general",
+      ],
       lead_stage: [
         "new",
         "contacted",
