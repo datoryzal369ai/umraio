@@ -52,7 +52,7 @@ function Index() {
   const { user, loading } = useAuth();
 
   return (
-    <div className="min-h-screen bg-aurora">
+    <div className="min-h-dvh bg-aurora">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
         <BrandLogo showTagline />
         <nav className="flex items-center gap-2">
