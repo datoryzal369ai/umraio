@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_log: {
+        Row: {
+          action: string
+          actor: string
+          agency_id: string
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          id: string
+          meta: Json
+        }
+        Insert: {
+          action: string
+          actor?: string
+          agency_id: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          meta?: Json
+        }
+        Update: {
+          action?: string
+          actor?: string
+          agency_id?: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          meta?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agencies: {
         Row: {
           country: string
@@ -46,6 +87,326 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      bookings: {
+        Row: {
+          agency_id: string
+          amount_myr: number
+          created_at: string
+          deposit_paid: boolean
+          id: string
+          lead_id: string | null
+          package_id: string | null
+          pax: number
+          status: string
+        }
+        Insert: {
+          agency_id: string
+          amount_myr?: number
+          created_at?: string
+          deposit_paid?: boolean
+          id?: string
+          lead_id?: string | null
+          package_id?: string | null
+          pax?: number
+          status?: string
+        }
+        Update: {
+          agency_id?: string
+          amount_myr?: number
+          created_at?: string
+          deposit_paid?: boolean
+          id?: string
+          lead_id?: string | null
+          package_id?: string | null
+          pax?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          agency_id: string
+          ai_enabled: boolean
+          channel: Database["public"]["Enums"]["channel"]
+          created_at: string
+          external_id: string | null
+          id: string
+          last_message_at: string
+          lead_id: string | null
+          status: string
+        }
+        Insert: {
+          agency_id: string
+          ai_enabled?: boolean
+          channel?: Database["public"]["Enums"]["channel"]
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          last_message_at?: string
+          lead_id?: string | null
+          status?: string
+        }
+        Update: {
+          agency_id?: string
+          ai_enabled?: boolean
+          channel?: Database["public"]["Enums"]["channel"]
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          last_message_at?: string
+          lead_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      followup_jobs: {
+        Row: {
+          agency_id: string
+          channel: Database["public"]["Enums"]["channel"]
+          created_at: string
+          id: string
+          lead_id: string | null
+          run_at: string
+          status: Database["public"]["Enums"]["followup_status"]
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          channel?: Database["public"]["Enums"]["channel"]
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          run_at?: string
+          status?: Database["public"]["Enums"]["followup_status"]
+          title?: string
+        }
+        Update: {
+          agency_id?: string
+          channel?: Database["public"]["Enums"]["channel"]
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          run_at?: string
+          status?: Database["public"]["Enums"]["followup_status"]
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "followup_jobs_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_jobs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          agency_id: string
+          assigned_to: string | null
+          budget_myr: number | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          last_contact_at: string | null
+          pax: number
+          phone: string | null
+          preferred_month: string | null
+          score: number
+          source: string
+          stage: Database["public"]["Enums"]["lead_stage"]
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          assigned_to?: string | null
+          budget_myr?: number | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          last_contact_at?: string | null
+          pax?: number
+          phone?: string | null
+          preferred_month?: string | null
+          score?: number
+          source?: string
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          assigned_to?: string | null
+          budget_myr?: number | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          last_contact_at?: string | null
+          pax?: number
+          phone?: string | null
+          preferred_month?: string | null
+          score?: number
+          source?: string
+          stage?: Database["public"]["Enums"]["lead_stage"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          agency_id: string
+          body: string
+          conversation_id: string
+          created_at: string
+          id: string
+          sender: Database["public"]["Enums"]["msg_sender"]
+        }
+        Insert: {
+          agency_id: string
+          body?: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          sender: Database["public"]["Enums"]["msg_sender"]
+        }
+        Update: {
+          agency_id?: string
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          sender?: Database["public"]["Enums"]["msg_sender"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      packages: {
+        Row: {
+          agency_id: string
+          airline: string | null
+          created_at: string
+          departure_date: string | null
+          hotel_madinah: string | null
+          hotel_makkah: string | null
+          id: string
+          inclusions: string[]
+          is_active: boolean
+          name: string
+          nights: number
+          price_myr: number
+          star_rating: number
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          airline?: string | null
+          created_at?: string
+          departure_date?: string | null
+          hotel_madinah?: string | null
+          hotel_makkah?: string | null
+          id?: string
+          inclusions?: string[]
+          is_active?: boolean
+          name: string
+          nights?: number
+          price_myr?: number
+          star_rating?: number
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          airline?: string | null
+          created_at?: string
+          departure_date?: string | null
+          hotel_madinah?: string | null
+          hotel_makkah?: string | null
+          id?: string
+          inclusions?: string[]
+          is_active?: boolean
+          name?: string
+          nights?: number
+          price_myr?: number
+          star_rating?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "packages_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -139,6 +500,16 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "agent"
+      channel: "whatsapp" | "web" | "manual"
+      followup_status: "pending" | "sent" | "skipped" | "failed"
+      lead_stage:
+        | "new"
+        | "contacted"
+        | "qualified"
+        | "proposal"
+        | "booked"
+        | "lost"
+      msg_sender: "customer" | "ai" | "human"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -267,6 +638,17 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "agent"],
+      channel: ["whatsapp", "web", "manual"],
+      followup_status: ["pending", "sent", "skipped", "failed"],
+      lead_stage: [
+        "new",
+        "contacted",
+        "qualified",
+        "proposal",
+        "booked",
+        "lost",
+      ],
+      msg_sender: ["customer", "ai", "human"],
     },
   },
 } as const
