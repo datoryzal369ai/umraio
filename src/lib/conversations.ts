@@ -1,0 +1,148 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export type Conversation = {
+  id: string;
+  agency_id: string;
+  lead_id: string | null;
+  channel: "whatsapp" | "web" | "manual";
+  status: string;
+  ai_enabled: boolean;
+  last_message_at: string;
+  created_at: string;
+};
+
+export type ConversationWithLead = Conversation & {
+  lead: { id: string; full_name: string; phone: string | null; stage: string } | null;
+  preview: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  conversation_id: string;
+  agency_id: string;
+  sender: "customer" | "ai" | "human";
+  body: string;
+  created_at: string;
+};
+
+const CONV_COLUMNS =
+  "id, agency_id, lead_id, channel, status, ai_enabled, last_message_at, created_at";
+
+export async function fetchConversations(): Promise<ConversationWithLead[]> {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select(`${CONV_COLUMNS}, lead:leads(id, full_name, phone, stage)`)
+    .order("last_message_at", { ascending: false })
+    .limit(200);
+  if (error) throw error;
+
+  const rows = (data ?? []) as unknown as ConversationWithLead[];
+  const ids = rows.map((r) => r.id);
+  const previews = new Map<string, string>();
+  if (ids.length) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("conversation_id, body, created_at")
+      .in("conversation_id", ids)
+      .order("created_at", { ascending: false })
+      .limit(600);
+    for (const m of msgs ?? []) {
+      if (!previews.has(m.conversation_id)) previews.set(m.conversation_id, m.body);
+    }
+  }
+  return rows.map((r) => ({ ...r, preview: previews.get(r.id) ?? "No messages yet" }));
+}
+
+export async function fetchConversation(id: string): Promise<ConversationWithLead | null> {
+  const { data, error } = await supabase
+    .from("conversations")
+    .select(`${CONV_COLUMNS}, lead:leads(id, full_name, phone, stage)`)
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as ConversationWithLead) ?? null;
+}
+
+export async function fetchMessages(conversationId: string): Promise<ChatMessage[]> {
+  const { data, error } = await supabase
+    .from("messages")
+    .select("id, conversation_id, agency_id, sender, body, created_at")
+    .eq("conversation_id", conversationId)
+    .order("created_at", { ascending: true })
+    .limit(500);
+  if (error) throw error;
+  return (data ?? []) as ChatMessage[];
+}
+
+export async function insertMessage(
+  conversationId: string,
+  agencyId: string,
+  sender: ChatMessage["sender"],
+  body: string,
+): Promise<ChatMessage> {
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({ conversation_id: conversationId, agency_id: agencyId, sender, body })
+    .select("id, conversation_id, agency_id, sender, body, created_at")
+    .single();
+  if (error) throw error;
+  await supabase
+    .from("conversations")
+    .update({ last_message_at: new Date().toISOString() })
+    .eq("id", conversationId);
+  return data as ChatMessage;
+}
+
+export async function setAiEnabled(conversationId: string, enabled: boolean) {
+  const { error } = await supabase
+    .from("conversations")
+    .update({ ai_enabled: enabled })
+    .eq("id", conversationId);
+  if (error) throw error;
+}
+
+export async function createConversation(input: {
+  agencyId: string;
+  fullName: string;
+  phone: string | null;
+}): Promise<string> {
+  const { data: lead, error: leadError } = await supabase
+    .from("leads")
+    .insert({
+      agency_id: input.agencyId,
+      full_name: input.fullName,
+      phone: input.phone,
+      source: "whatsapp",
+      stage: "new",
+      temperature: "warm",
+    })
+    .select("id")
+    .single();
+  if (leadError) throw leadError;
+
+  const { data: conv, error } = await supabase
+    .from("conversations")
+    .insert({
+      agency_id: input.agencyId,
+      lead_id: lead.id,
+      channel: "whatsapp",
+      status: "open",
+      ai_enabled: true,
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return conv.id as string;
+}
+
+export function chatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en-MY", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function chatDay(iso: string) {
+  const d = new Date(iso);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  if (isToday) return "Today";
+  return d.toLocaleDateString("en-MY", { day: "numeric", month: "short", year: "numeric" });
+}
