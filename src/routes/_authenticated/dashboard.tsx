@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { MonthlyAnalyticsChart, SalesPerformanceChart } from "@/components/dashboard/Charts";
 import { supabase } from "@/integrations/supabase/client";
@@ -110,28 +111,21 @@ function Dashboard() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            {agency?.name ?? "Your agency"}
-          </p>
-          <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-            Welcome
-            {profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Here is what your AI Sales Executive handled today.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
+      <PageHeader
+        eyebrow={agency?.name ?? "Your agency"}
+        title={`Welcome${profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}`}
+        description="Here is what your AI Sales Executive handled today."
+        actions={
+          <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-70" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
           </span>
           <Bot className="size-4 text-primary" />
-          <span className="text-xs font-medium">AI active · {agency?.plan ?? "trial"} plan</span>
-        </div>
-      </header>
+            <span className="text-xs font-medium">AI active · {agency?.plan ?? "trial"} plan</span>
+          </div>
+        }
+      />
 
       {!verified ? (
         <div className="panel flex flex-col gap-3 border-primary/40 p-5 sm:flex-row sm:items-center sm:justify-between">
