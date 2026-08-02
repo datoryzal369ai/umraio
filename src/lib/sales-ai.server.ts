@@ -30,8 +30,14 @@ export async function loadContext(supabase: Db, conversationId: string) {
   if (error) throw error;
   if (!conversation) throw new Error("Conversation not found");
 
-  const [{ data: messages }, { data: lead }, { data: packages }, { data: agency }, { data: knowledge }] =
-    await Promise.all([
+  const [
+    { data: messages },
+    { data: lead },
+    { data: packages },
+    { data: agency },
+    { data: knowledge },
+    { data: settings },
+  ] = await Promise.all([
       supabase
         .from("messages")
         .select("id, conversation_id, sender, body, created_at")
@@ -62,6 +68,13 @@ export async function loadContext(supabase: Db, conversationId: string) {
         .eq("is_active", true)
         .order("updated_at", { ascending: false })
         .limit(100),
+      supabase
+        .from("agency_settings")
+        .select(
+          "business_hours, ai_name, ai_personality, ai_tone, ai_reply_length, ai_language, ai_custom_instructions, ai_emoji, kb_strict_mode, kb_auto_use, kb_max_articles, kb_escalate_when_unknown",
+        )
+        .eq("agency_id", conversation.agency_id)
+        .maybeSingle(),
     ]);
 
   return {
@@ -71,8 +84,25 @@ export async function loadContext(supabase: Db, conversationId: string) {
     packages: packages ?? [],
     agency,
     knowledge: (knowledge ?? []) as KnowledgeRow[],
+    settings: (settings ?? null) as AgencyAiSettings | null,
   };
 }
+
+export type AgencyAiSettings = {
+  business_hours: Record<string, { open: string; close: string; closed: boolean }> | null;
+  ai_name: string;
+  ai_personality: string;
+  ai_tone: string;
+  ai_reply_length: string;
+  ai_language: string;
+  ai_custom_instructions: string | null;
+  ai_emoji: boolean;
+  kb_strict_mode: boolean;
+  kb_auto_use: boolean;
+  kb_max_articles: number;
+  kb_escalate_when_unknown: boolean;
+};
+
 
 export type KnowledgeRow = {
   id: string;
