@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { MailCheck, Loader2 } from "lucide-react";
+import { MailCheck } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { SubmitButton } from "@/components/app/SubmitButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -333,13 +334,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label>{label}</Label>
       {children}
     </div>
-  );
-}
-
-function SubmitButton({ pending, children }: { pending: boolean; children: React.ReactNode }) {
-  return (
-    <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? <Loader2 className="size-4 animate-spin" /> : children}
-    </Button>
   );
 }
