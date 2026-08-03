@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { SubmitButton } from "@/components/app/SubmitButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -115,9 +116,9 @@ function ResetPassword() {
                 minLength={8}
               />
             </div>
-            <Button type="submit" className="w-full" disabled={pending}>
-              {pending ? <Loader2 className="size-4 animate-spin" /> : "Update password"}
-            </Button>
+            <SubmitButton pending={pending} className="w-full">
+              Update password
+            </SubmitButton>
           </form>
         ) : (
           <Button
