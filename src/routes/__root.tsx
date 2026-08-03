@@ -106,7 +106,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "UMRAIO",
+          url: "https://umraio.com",
+          description:
+            "UMRAIO is an AI Sales Executive for Umrah agencies: it answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically.",
+          parentOrganization: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
+        }),
+      },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "UMRAIO — AI Sales Executive for Umrah Agencies",
+          url: "https://umraio.com",
+          publisher: { "@type": "Organization", name: "UMRAIO" },
+        }),
+      },
+    ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
