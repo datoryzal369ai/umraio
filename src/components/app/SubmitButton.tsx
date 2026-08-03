@@ -6,12 +6,7 @@ type SubmitButtonProps = React.ComponentProps<typeof Button> & {
   pending: boolean;
 };
 
-export function SubmitButton({
-  pending,
-  className,
-  children,
-  ...props
-}: SubmitButtonProps) {
+export function SubmitButton({ pending, className, children, ...props }: SubmitButtonProps) {
   const label = typeof children === "string" ? children : "";
 
   return (
