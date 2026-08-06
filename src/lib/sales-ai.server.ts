@@ -212,7 +212,7 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const useKb = s?.kb_auto_use ?? true;
 
   return [
-    `You are ${aiName}, the AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
+    `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
     `${language} ${length} WhatsApp style, no markdown headings.`,
     s?.ai_emoji === false

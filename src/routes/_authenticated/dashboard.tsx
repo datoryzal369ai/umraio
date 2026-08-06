@@ -36,13 +36,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
-      { title: "Dashboard — UMRAIO AI Business Executive" },
+      { title: "Dashboard — UMRAIO Autonomous AI Business Executive" },
       {
         name: "description",
         content:
           "Live Umrah sales command centre: today's leads, conversations, bookings, conversion rate, hot leads and AI follow-up tasks.",
       },
-      { property: "og:title", content: "Dashboard — UMRAIO AI Business Executive" },
+      { property: "og:title", content: "Dashboard — UMRAIO Autonomous AI Business Executive" },
       {
         property: "og:description",
         content: "Track leads, conversations, bookings and AI follow-ups in one place.",
@@ -114,7 +114,7 @@ function Dashboard() {
       <PageHeader
         eyebrow={agency?.name ?? "Your agency"}
         title={`Welcome${profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}`}
-        description="Here is what your AI Business Executive handled today."
+        description="Here is what your Autonomous AI Business Executive handled today."
         actions={
           <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
             <span className="relative flex size-2">

@@ -23,11 +23,11 @@ import {
 export const Route = createFileRoute("/_authenticated/settings/whatsapp")({
   head: () => ({
     meta: [
-      { title: "WhatsApp Integration — UMRAIO AI Business Executive" },
+      { title: "WhatsApp Integration — UMRAIO Autonomous AI Business Executive" },
       {
         name: "description",
         content:
-          "Connect your WhatsApp Business number so the UMRAIO AI Business Executive answers Umrah enquiries automatically.",
+          "Connect your WhatsApp Business number so the UMRAIO Autonomous AI Business Executive answers Umrah enquiries automatically.",
       },
       { property: "og:title", content: "WhatsApp Integration — UMRAIO" },
       {
@@ -133,7 +133,7 @@ function WhatsappSettings() {
       <PageHeader
         eyebrow="Integration"
         title="WhatsApp Business"
-        description="Connect the WhatsApp Cloud API so inbound enquiries create leads and the AI Business Executive replies instantly."
+        description="Connect the WhatsApp Cloud API so inbound enquiries create leads and the Autonomous AI Business Executive replies instantly."
       />
 
       {isLoading ? (
@@ -213,7 +213,7 @@ function WhatsappSettings() {
               <div>
                 <p className="text-sm font-medium">AI auto-reply</p>
                 <p className="text-xs text-muted-foreground">
-                  Let the AI Business Executive answer inbound WhatsApp messages automatically.
+                  Let the Autonomous AI Business Executive answer inbound WhatsApp messages automatically.
                 </p>
               </div>
               <Switch

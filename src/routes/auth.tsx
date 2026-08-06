@@ -25,13 +25,13 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — UMRAIO AI Business Executive" },
+      { title: "Sign in — UMRAIO Autonomous AI Business Executive" },
       {
         name: "description",
         content:
           "Sign in or create your UMRAIO agency account to manage AI-powered Umrah sales conversations.",
       },
-      { property: "og:title", content: "Sign in — UMRAIO AI Business Executive" },
+      { property: "og:title", content: "Sign in — UMRAIO Autonomous AI Business Executive" },
       {
         property: "og:description",
         content: "Access your UMRAIO agency workspace.",
@@ -222,7 +222,7 @@ function AuthPage() {
       <p className="mt-2 text-sm text-muted-foreground">
         {mode === "forgot"
           ? "We'll email you a secure link to set a new password."
-          : "Your AI Business Executive workspace for Umrah agencies."}
+          : "Your Autonomous AI Business Executive workspace for Umrah agencies."}
       </p>
 
       {mode !== "forgot" ? (
