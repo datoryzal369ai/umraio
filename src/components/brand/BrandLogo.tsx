@@ -12,23 +12,32 @@ export function BrandLogo({
   showTagline?: boolean;
 }) {
   return (
-    <Link to="/" className={cn("flex items-center gap-3", className)}>
+    <Link
+      to="/"
+      className={cn(
+        "group flex items-center gap-3 transition-opacity duration-300 hover:opacity-90",
+        className,
+      )}
+    >
       <img
         src={logoAsset.url}
         alt="UMRAIO® logo"
-        className="h-10 w-10 rounded-full object-cover ring-1 ring-border"
-        width={40}
-        height={40}
+        className="size-11 rounded-2xl object-cover ring-1 ring-border transition-shadow duration-300 group-hover:glow-ring"
+        width={44}
+        height={44}
       />
       <span className="flex flex-col leading-none">
-        <span className="font-display text-lg font-bold tracking-tight">UMRAIO®</span>
+        <span className="brand-wordmark text-xl font-extrabold sm:text-2xl">
+          UMRAIO<sup className="align-super text-[0.5em] tracking-normal">®</sup>
+        </span>
         {showTagline ? (
-          <span className="mt-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          <span className="mt-1.5 text-[9px] uppercase tracking-[0.26em] text-muted-foreground sm:text-[10px]">
             Autonomous AI Business Executive
           </span>
         ) : null}
       </span>
     </Link>
+
   );
 }
 
