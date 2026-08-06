@@ -101,6 +101,25 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         );
       })}
+
+      <p className="mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+        AI Workforce
+      </p>
+      <ul className="mt-1 flex flex-col gap-1">
+        {futureModules.map((module) => (
+          <li
+            key={module.label}
+            className="flex min-h-11 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/60"
+            aria-disabled="true"
+          >
+            <module.icon aria-hidden="true" className="size-4 shrink-0" />
+            <span className="truncate">{module.label}</span>
+            <span className="ml-auto shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider">
+              Soon
+            </span>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 
