@@ -96,7 +96,10 @@ function WorkerDetail() {
       .from("ai_workers")
       .update({ is_enabled: !worker.is_enabled })
       .eq("id", worker.id);
-    if (error) return toast.error(error.message);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
     queryClient.invalidateQueries({ queryKey: ["ai-workers"] });
   }
 
