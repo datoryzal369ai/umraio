@@ -207,8 +207,10 @@ export type Database = {
       ai_tasks: {
         Row: {
           agency_id: string
+          approval_reason: string | null
           approved_at: string | null
           approved_by: string | null
+          cancelled_at: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -218,9 +220,15 @@ export type Database = {
           kind: string
           lead_id: string | null
           minutes_saved: number
+          origin: string
           output: Json | null
+          plan: Json
+          priority: string
           requires_approval: boolean
-          status: Database["public"]["Enums"]["ai_task_status"]
+          scheduled_for: string | null
+          started_at: string | null
+          status: string
+          steps: Json
           summary: string | null
           title: string
           updated_at: string
@@ -228,8 +236,10 @@ export type Database = {
         }
         Insert: {
           agency_id: string
+          approval_reason?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          cancelled_at?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -239,9 +249,15 @@ export type Database = {
           kind: string
           lead_id?: string | null
           minutes_saved?: number
+          origin?: string
           output?: Json | null
+          plan?: Json
+          priority?: string
           requires_approval?: boolean
-          status?: Database["public"]["Enums"]["ai_task_status"]
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          steps?: Json
           summary?: string | null
           title: string
           updated_at?: string
@@ -249,8 +265,10 @@ export type Database = {
         }
         Update: {
           agency_id?: string
+          approval_reason?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          cancelled_at?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -260,9 +278,15 @@ export type Database = {
           kind?: string
           lead_id?: string | null
           minutes_saved?: number
+          origin?: string
           output?: Json | null
+          plan?: Json
+          priority?: string
           requires_approval?: boolean
-          status?: Database["public"]["Enums"]["ai_task_status"]
+          scheduled_for?: string | null
+          started_at?: string | null
+          status?: string
+          steps?: Json
           summary?: string | null
           title?: string
           updated_at?: string
@@ -758,6 +782,56 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          agency_id: string
+          body: string
+          created_at: string
+          entity: string | null
+          entity_id: string | null
+          id: string
+          kind: string
+          meta: Json
+          read_at: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          agency_id: string
+          body?: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          kind: string
+          meta?: Json
+          read_at?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          agency_id?: string
+          body?: string
+          created_at?: string
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+          kind?: string
+          meta?: Json
+          read_at?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
