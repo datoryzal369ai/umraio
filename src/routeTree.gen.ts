@@ -19,6 +19,7 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
 import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
@@ -34,6 +35,7 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
+import { Route as ApiPublicHooksTaskEngineRouteImport } from './routes/api/public/hooks/task-engine'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -85,6 +87,11 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConversationsIndexRoute =
   AuthenticatedConversationsIndexRouteImport.update({
     id: '/conversations/',
@@ -172,6 +179,12 @@ const ApiPublicWhatsappRoute = ApiPublicWhatsappRouteImport.update({
   path: '/api/public/whatsapp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksTaskEngineRoute =
+  ApiPublicHooksTaskEngineRouteImport.update({
+    id: '/api/public/hooks/task-engine',
+    path: '/api/public/hooks/task-engine',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -183,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -198,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -208,6 +223,7 @@ export interface FileRoutesByTo {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -223,6 +239,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -236,6 +253,7 @@ export interface FileRoutesById {
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/_authenticated/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -251,6 +269,7 @@ export interface FileRoutesById {
   '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -264,6 +283,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/tasks'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -279,6 +299,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/leads/'
     | '/settings/'
+    | '/api/public/hooks/task-engine'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -289,6 +310,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/tasks'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -304,6 +326,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/leads'
     | '/settings'
+    | '/api/public/hooks/task-engine'
   id:
     | '__root__'
     | '/'
@@ -316,6 +339,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
+    | '/_authenticated/tasks'
     | '/_authenticated/conversations/$conversationId'
     | '/_authenticated/executive/$workerKey'
     | '/_authenticated/leads/$leadId'
@@ -331,6 +355,7 @@ export interface FileRouteTypes {
     | '/_authenticated/knowledge/'
     | '/_authenticated/leads/'
     | '/_authenticated/settings/'
+    | '/api/public/hooks/task-engine'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -340,6 +365,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
+  ApiPublicHooksTaskEngineRoute: typeof ApiPublicHooksTaskEngineRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -412,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/conversations/': {
@@ -519,6 +552,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/task-engine': {
+      id: '/api/public/hooks/task-engine'
+      path: '/api/public/hooks/task-engine'
+      fullPath: '/api/public/hooks/task-engine'
+      preLoaderRoute: typeof ApiPublicHooksTaskEngineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -556,6 +596,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
   AuthenticatedExecutiveWorkerKeyRoute: typeof AuthenticatedExecutiveWorkerKeyRoute
   AuthenticatedLeadsLeadIdRoute: typeof AuthenticatedLeadsLeadIdRoute
@@ -571,6 +612,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedConversationsConversationIdRoute:
     AuthenticatedConversationsConversationIdRoute,
   AuthenticatedExecutiveWorkerKeyRoute: AuthenticatedExecutiveWorkerKeyRoute,
@@ -591,6 +633,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
+  ApiPublicHooksTaskEngineRoute: ApiPublicHooksTaskEngineRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
