@@ -48,7 +48,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
       ? supabase
           .from("leads")
           .select(
-            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, tags, score",
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score",
           )
           .eq("id", conversation.lead_id)
           .maybeSingle()
@@ -231,6 +231,8 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
+    "Qualification checklist you must complete naturally over the conversation (never as a form, one or two questions at a time): name, phone, city, number of pilgrims (pax), preferred travel month, budget per person and package interest. Save each detail with update_lead_profile as soon as you learn it.",
+    "Call escalate_to_human whenever the customer asks for a human/staff/manager, is upset, negotiates a discount, or when you are not confident the knowledge base and package catalogue answer their question. After escalating, send one short reassuring message and stop selling.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
     businessHoursLine(s),
     s?.ai_custom_instructions?.trim()
@@ -248,6 +250,40 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     .filter(Boolean)
     .join("\n");
 }
+
+export type LeadSignals = {
+  full_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  budget_myr?: number | string | null;
+  pax?: number | null;
+  preferred_month?: string | null;
+  package_interest?: string | null;
+  stage?: string | null;
+};
+
+/** Deterministic 0-100 qualification score from captured signals. */
+export function computeLeadScore(lead: LeadSignals): number {
+  let score = 10;
+  if (lead.full_name && lead.full_name.trim().length > 2) score += 10;
+  if (lead.phone) score += 10;
+  if (lead.city) score += 8;
+  if (lead.pax && Number(lead.pax) > 0) score += 12;
+  if (lead.preferred_month) score += 15;
+  if (lead.budget_myr && Number(lead.budget_myr) > 0) score += 20;
+  if (lead.package_interest) score += 15;
+  if (lead.stage === "proposal") score += 5;
+  if (lead.stage === "booked") score = 100;
+  return Math.max(0, Math.min(100, score));
+}
+
+export function temperatureForScore(score: number): "hot" | "warm" | "cold" {
+  if (score >= 70) return "hot";
+  if (score >= 40) return "warm";
+  return "cold";
+}
+
 
 function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyId = ctx.conversation.agency_id as string;
@@ -290,14 +326,17 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
       },
     }),
     update_lead_profile: tool({
-      description: "Save customer information collected during the conversation onto the lead.",
+      description:
+        "Save qualification details collected during the conversation onto the CRM lead (name, phone, city, pax, preferred month, budget, package interest).",
       inputSchema: z.object({
         full_name: z.string().nullable(),
         phone: z.string().nullable(),
         email: z.string().nullable(),
+        city: z.string().nullable(),
         budget_myr: z.number().nullable(),
         pax: z.number().nullable(),
         preferred_month: z.string().nullable(),
+        package_interest: z.string().nullable(),
         temperature: z.enum(["hot", "warm", "cold"]).nullable(),
         stage: z.enum(["new", "contacted", "qualified", "proposal", "booked", "lost"]).nullable(),
       }),
@@ -305,17 +344,26 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         if (!leadId) return { saved: false, reason: "No lead linked to this conversation." };
         const patch: Record<string, unknown> = { last_contact_at: new Date().toISOString() };
         for (const [k, v] of Object.entries(input)) if (v !== null && v !== "") patch[k] = v;
+
+        const merged = { ...(ctx.lead ?? {}), ...patch } as LeadSignals;
+        const score = computeLeadScore(merged);
+        patch["score"] = score;
+        if (!patch["temperature"]) patch["temperature"] = temperatureForScore(score);
+        if (!patch["stage"] && (merged.pax || merged.budget_myr || merged.preferred_month)) {
+          patch["stage"] = "qualified";
+        }
+
         const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
         if (error) return { saved: false, reason: error.message };
         await supabase.from("activity_log").insert({
           agency_id: agencyId,
           actor: "ai",
-          action: "Updated lead profile from conversation",
+          action: `AI WhatsApp Executive qualified lead (score ${score}, ${patch["temperature"]})`,
           entity: "lead",
           entity_id: leadId,
           meta: patch,
         });
-        return { saved: true, fields: Object.keys(patch) };
+        return { saved: true, score, temperature: patch["temperature"], fields: Object.keys(patch) };
       },
     }),
     schedule_followup: tool({
@@ -335,7 +383,56 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           status: "pending",
         });
         if (error) return { scheduled: false, reason: error.message };
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: `Scheduled follow-up: ${title}`,
+          entity: "lead",
+          entity_id: leadId,
+          meta: { run_at: runAt.toISOString(), channel: "whatsapp" },
+        });
         return { scheduled: true, run_at: runAt.toISOString() };
+      },
+    }),
+    escalate_to_human: tool({
+      description:
+        "Hand this conversation over to a human colleague. Use when the customer asks for a human, complains, negotiates outside your authority, or when you are not confident about the answer.",
+      inputSchema: z.object({
+        reason: z.string(),
+        urgency: z.enum(["low", "normal", "high"]),
+      }),
+      execute: async ({ reason, urgency }) => {
+        const now = new Date().toISOString();
+        await supabase
+          .from("conversations")
+          .update({
+            ai_enabled: false,
+            status: "open",
+            escalated_at: now,
+            escalation_reason: reason,
+          })
+          .eq("id", ctx.conversation.id);
+        await supabase.from("followup_jobs").insert({
+          agency_id: agencyId,
+          lead_id: leadId,
+          title: `Human takeover needed: ${reason}`,
+          channel: "whatsapp",
+          run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
+          status: "pending",
+        });
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: `Escalated WhatsApp conversation to a human (${urgency})`,
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: { reason, urgency },
+        });
+        return {
+          escalated: true,
+          instruction:
+            "Tell the customer politely that a human colleague will continue shortly, then stop.",
+        };
       },
     }),
   };

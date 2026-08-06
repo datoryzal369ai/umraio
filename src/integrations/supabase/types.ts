@@ -312,7 +312,10 @@ export type Database = {
           ai_enabled: boolean
           channel: Database["public"]["Enums"]["channel"]
           created_at: string
+          escalated_at: string | null
+          escalation_reason: string | null
           external_id: string | null
+          first_response_ms: number | null
           id: string
           last_message_at: string
           lead_id: string | null
@@ -323,7 +326,10 @@ export type Database = {
           ai_enabled?: boolean
           channel?: Database["public"]["Enums"]["channel"]
           created_at?: string
+          escalated_at?: string | null
+          escalation_reason?: string | null
           external_id?: string | null
+          first_response_ms?: number | null
           id?: string
           last_message_at?: string
           lead_id?: string | null
@@ -334,7 +340,10 @@ export type Database = {
           ai_enabled?: boolean
           channel?: Database["public"]["Enums"]["channel"]
           created_at?: string
+          escalated_at?: string | null
+          escalation_reason?: string | null
           external_id?: string | null
+          first_response_ms?: number | null
           id?: string
           last_message_at?: string
           lead_id?: string | null
@@ -511,11 +520,13 @@ export type Database = {
           agency_id: string
           assigned_to: string | null
           budget_myr: number | null
+          city: string | null
           created_at: string
           email: string | null
           full_name: string
           id: string
           last_contact_at: string | null
+          package_interest: string | null
           pax: number
           phone: string | null
           preferred_month: string | null
@@ -530,11 +541,13 @@ export type Database = {
           agency_id: string
           assigned_to?: string | null
           budget_myr?: number | null
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name: string
           id?: string
           last_contact_at?: string | null
+          package_interest?: string | null
           pax?: number
           phone?: string | null
           preferred_month?: string | null
@@ -549,11 +562,13 @@ export type Database = {
           agency_id?: string
           assigned_to?: string | null
           budget_myr?: number | null
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name?: string
           id?: string
           last_contact_at?: string | null
+          package_interest?: string | null
           pax?: number
           phone?: string | null
           preferred_month?: string | null

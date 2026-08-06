@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { MonthlyAnalyticsChart, SalesPerformanceChart } from "@/components/dashboard/Charts";
+import { WhatsappExecutiveCard } from "@/components/dashboard/WhatsappExecutiveCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -201,7 +202,10 @@ function DashboardBody({ data }: { data: DashboardData }) {
         />
       </section>
 
+      <WhatsappExecutiveCard />
+
       <section className="grid gap-4 lg:grid-cols-3">
+
         <div className="panel p-5 lg:col-span-2">
           <PanelHeader
             icon={TrendingUp}
