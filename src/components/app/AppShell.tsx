@@ -112,6 +112,29 @@ export function AppShell({ children }: { children: ReactNode }) {
         AI Workforce
       </p>
       <ul className="mt-1 flex flex-col gap-1">
+        {activeWorkers.map((worker) => (
+          <li key={worker.key}>
+            <Link
+              to="/executive/$workerKey"
+              params={{ workerKey: worker.key }}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                pathname === `/executive/${worker.key}`
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <worker.icon aria-hidden="true" className="size-4 shrink-0" />
+              <span className="truncate">{worker.label}</span>
+              <span className="ml-auto size-1.5 shrink-0 rounded-full bg-primary" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <ul className="mt-1 flex flex-col gap-1">
         {futureModules.map((module) => (
           <li
             key={module.label}
