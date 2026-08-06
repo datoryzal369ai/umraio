@@ -334,7 +334,7 @@ function Bubble({ message }: { message: ChatMessage }) {
           >
             {message.sender === "ai" ? (
               <>
-                <Bot className="size-3" /> AI Business Executive
+                <AssistantAvatar size={14} /> AI Business Executive
               </>
             ) : (
               <>
