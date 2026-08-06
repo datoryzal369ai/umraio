@@ -31,7 +31,7 @@ export function BrandLogo({
         <img
           src={wordmarkAsset.url}
           alt="UMRAIO®"
-          className="h-6 w-auto object-contain sm:h-7"
+          className="h-7 w-auto object-contain mix-blend-screen sm:h-8"
         />
         {showTagline ? (
           <span className="mt-2 text-[9px] font-light uppercase tracking-[0.3em] text-muted-foreground sm:text-[10px]">

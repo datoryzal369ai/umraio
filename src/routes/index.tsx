@@ -119,7 +119,7 @@ function Index() {
               <img
                 src={wordmarkAsset.url}
                 alt="UMRAIO® — Autonomous AI Business Executive"
-                className="mx-auto w-full max-w-2xl object-contain"
+                className="mx-auto w-full max-w-2xl object-contain mix-blend-screen"
               />
             </div>
             <p
