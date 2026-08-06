@@ -33,13 +33,7 @@ export function BrandLogo({
 }
 
 /** The robot mark from the official logo — used as the AI Executive's identity in the UI. */
-export function AssistantAvatar({
-  className,
-  size = 32,
-}: {
-  className?: string;
-  size?: number;
-}) {
+export function AssistantAvatar({ className, size = 32 }: { className?: string; size?: number }) {
   return (
     <img
       src={robotAsset.url}

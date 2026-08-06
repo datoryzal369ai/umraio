@@ -1,16 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  Bot,
-  CalendarCheck,
-  Loader2,
-  Send,
-  Sparkle,
-  User,
-  UserRound,
-} from "lucide-react";
+import { ArrowLeft, CalendarCheck, Loader2, Send, Sparkle, User, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
 import { AssistantAvatar } from "@/components/brand/BrandLogo";

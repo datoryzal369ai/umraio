@@ -14,7 +14,10 @@ export const Route = createFileRoute("/")({
         content:
           "UMRAIO answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically for Malaysian Umrah agencies.",
       },
-      { property: "og:title", content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
+      {
+        property: "og:title",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
+      },
       {
         property: "og:description",
         content:
@@ -83,7 +86,8 @@ function Index() {
             Powered by Digital Renaissance Metaverse
           </span>
           <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.05] sm:text-6xl">
-            The <span className="text-gradient-brand">Autonomous AI Business Executive</span> for Umrah agencies
+            The <span className="text-gradient-brand">Autonomous AI Business Executive</span> for
+            Umrah agencies
           </h1>
           <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
             Not a chatbot. A trained sales executive that works every enquiry, qualifies every
