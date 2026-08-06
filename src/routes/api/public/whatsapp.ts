@@ -99,6 +99,8 @@ export const Route = createFileRoute("/api/public/whatsapp")({
             .update({ last_contact_at: new Date().toISOString() })
             .eq("id", leadId);
         } else {
+          const { computeLeadScore, temperatureForScore } = await import("@/lib/sales-ai.server");
+          const score = computeLeadScore({ full_name: profileName, phone: from });
           const { data: created } = await supabaseAdmin
             .from("leads")
             .insert({
@@ -106,11 +108,23 @@ export const Route = createFileRoute("/api/public/whatsapp")({
               full_name: profileName,
               phone: from,
               source: "whatsapp",
+              score,
+              temperature: temperatureForScore(score),
               last_contact_at: new Date().toISOString(),
             })
             .select("id")
             .single();
           leadId = created?.id ?? null;
+          if (leadId) {
+            await supabaseAdmin.from("activity_log").insert({
+              agency_id: agencyId,
+              actor: "ai",
+              action: "Created CRM lead from WhatsApp enquiry",
+              entity: "lead",
+              entity_id: leadId,
+              meta: { phone: from, source: "whatsapp", score },
+            });
+          }
         }
 
         // Find or create the conversation
