@@ -231,6 +231,8 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
+    "Qualification checklist you must complete naturally over the conversation (never as a form, one or two questions at a time): name, phone, city, number of pilgrims (pax), preferred travel month, budget per person and package interest. Save each detail with update_lead_profile as soon as you learn it.",
+    "Call escalate_to_human whenever the customer asks for a human/staff/manager, is upset, negotiates a discount, or when you are not confident the knowledge base and package catalogue answer their question. After escalating, send one short reassuring message and stop selling.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
     businessHoursLine(s),
     s?.ai_custom_instructions?.trim()
