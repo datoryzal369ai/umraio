@@ -249,6 +249,40 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     .join("\n");
 }
 
+export type LeadSignals = {
+  full_name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  city?: string | null;
+  budget_myr?: number | string | null;
+  pax?: number | null;
+  preferred_month?: string | null;
+  package_interest?: string | null;
+  stage?: string | null;
+};
+
+/** Deterministic 0-100 qualification score from captured signals. */
+export function computeLeadScore(lead: LeadSignals): number {
+  let score = 10;
+  if (lead.full_name && lead.full_name.trim().length > 2) score += 10;
+  if (lead.phone) score += 10;
+  if (lead.city) score += 8;
+  if (lead.pax && Number(lead.pax) > 0) score += 12;
+  if (lead.preferred_month) score += 15;
+  if (lead.budget_myr && Number(lead.budget_myr) > 0) score += 20;
+  if (lead.package_interest) score += 15;
+  if (lead.stage === "proposal") score += 5;
+  if (lead.stage === "booked") score = 100;
+  return Math.max(0, Math.min(100, score));
+}
+
+export function temperatureForScore(score: number): "hot" | "warm" | "cold" {
+  if (score >= 70) return "hot";
+  if (score >= 40) return "warm";
+  return "cold";
+}
+
+
 function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyId = ctx.conversation.agency_id as string;
   const leadId = ctx.conversation.lead_id as string | null;
