@@ -1,23 +1,30 @@
-# UMRAIO AI Sales Executive — Architecture v1.0
+# UMRAIO® — Production Architecture
 
-Tagline: AI Sales Executive For Umrah Agencies · Powered by Digital Renaissance Metaverse
+**Product:** UMRAIO® AI Autonomous Business Executive
+**Tagline:** The Autonomous AI Business Executive for Umrah Agencies
+**Company:** Digital Renaissance Metaverse
+
+This document describes the architecture as it is actually implemented and deployed.
+Brand identity (uploaded UMRAIO® logo, robot AI mark, turquoise/black/white/dark-gray
+palette, Sora + Manrope typography) is fixed and must not be redesigned.
 
 ---
 
 ## 1. Tech Stack
 
-| Layer | Choice |
+| Layer | Technology |
 | --- | --- |
-| Framework | TanStack Start v1 (React 19, SSR, server functions), Vite 7 |
-| Styling | Tailwind CSS v4 + shadcn/ui, semantic oklch tokens in `src/styles.css` |
-| State/Data | TanStack Query (loader `ensureQueryData` + `useSuspenseQuery`) |
+| Framework | TanStack Start v1 (React 19, SSR + file routing) |
+| Build | Vite 7, deployed to an edge worker runtime |
+| Styling | Tailwind CSS v4 via `src/styles.css`, OKLCH semantic tokens, dark-mode first |
+| Components | shadcn/ui primitives in `src/components/ui` |
+| Data layer | TanStack Query (30s `staleTime`, route-loader prefetch) |
 | Backend | Lovable Cloud (Postgres, Auth, Storage, RLS) |
-| AI | Lovable AI Gateway via AI SDK (`openai/gpt-5.6-sol`), streaming chat route |
-| Messaging | WhatsApp Cloud API webhook → `/api/public/whatsapp` |
-| Charts | Recharts | 
-| Deploy | Cloudflare Workers (edge) |
-
-Design language: dark-first, near-black surfaces, turquoise accent, white/gray text; Apple/Stripe/Linear restraint. No hardcoded color classes — all tokens.
+| Server logic | `createServerFn` (app-internal) + server routes under `src/routes/api` |
+| AI | Lovable AI Gateway via the `ai` SDK, tool-calling agent |
+| Channels | WhatsApp Cloud API (inbound webhook + outbound send) |
+| Charts | Recharts |
+| Notifications | sonner |
 
 ---
 
@@ -25,119 +32,179 @@ Design language: dark-first, near-black surfaces, turquoise accent, white/gray t
 
 ```text
 src/
-  routes/
-    __root.tsx                 shell, providers, head defaults
-    index.tsx                  marketing home (hero, product, pricing CTA)
-    pricing.tsx  features.tsx  contact.tsx
-    auth.tsx                   sign in / sign up
-    reset-password.tsx
-    _authenticated/
-      route.tsx                auth gate (redirect to /auth)
-      dashboard.tsx            KPIs, pipeline, AI activity
-      inbox/index.tsx          conversation list
-      inbox/$conversationId.tsx  live thread + AI takeover
-      leads/index.tsx  leads/$leadId.tsx
-      packages/index.tsx  packages/$packageId.tsx
-      followups.tsx            sequences + queue
-      ai/persona.tsx           AI persona, tone, guardrails
-      ai/knowledge.tsx         knowledge base / docs
-      analytics.tsx
-      settings/agency.tsx  settings/team.tsx  settings/channels.tsx  settings/billing.tsx
-    api/
-      chat.ts                            streaming AI (useChat)
-      public/whatsapp.ts                 inbound webhook (signature verified)
-      public/cron-followups.ts           scheduled follow-up runner (secret header)
+  assets/                 official brand assets (logo, robot mark) — do not modify
   components/
-    ui/            shadcn primitives
-    marketing/     Hero, LogoCloud, FeatureGrid, PricingTable, FAQ, Footer
-    app/           AppShell, Sidebar, Topbar, PageHeader, EmptyState, DataTable
-    inbox/         ConversationList, MessageBubble, Composer, AiSuggestion
-    leads/         LeadCard, StageBadge, PipelineBoard, LeadDrawer
-    packages/      PackageCard, PackageForm
-    charts/        KpiCard, TrendChart, FunnelChart
-  lib/
-    *.functions.ts   client-callable server fns (leads, packages, agency, analytics)
-    *.server.ts      server-only helpers (ai-gateway, whatsapp, scoring)
-    query-options.ts, utils.ts
-  hooks/           useAuth, useAgency, useMobile
-  integrations/supabase/  generated client, types, auth middleware
-supabase/migrations/
+    app/                  AppShell, PageHeader, SearchInput, SubmitButton
+    brand/                BrandLogo, AssistantAvatar (official identity)
+    dashboard/            KpiCard, Charts, AnalyticsCharts
+    leads/                LeadBadges, LeadFormDialog
+    ui/                   shadcn primitives
+  hooks/                  useAuth, use-mobile
+  integrations/
+    supabase/             generated clients, auth middleware, types
+    lovable/              OAuth broker helpers
+  lib/                    domain modules (leads, conversations, dashboard,
+                          analytics, knowledge, settings, whatsapp)
+                          *.server.ts = server-only; *.functions.ts = RPC surface
+  routes/
+    __root.tsx            shell, head metadata, JSON-LD, providers
+    index.tsx             public marketing route
+    auth.tsx              login / register / forgot password
+    reset-password.tsx    recovery flow
+    sitemap[.]xml.ts      generated sitemap
+    api/public/whatsapp.ts  signed inbound webhook
+    _authenticated/       gated product surface
+      route.tsx           integration-managed auth gate (ssr:false)
+      dashboard, crm, leads, conversations, analytics,
+      knowledge, profile, settings/*
 docs/ARCHITECTURE.md
+supabase/                 migrations + config
 ```
+
+Convention: one route file per product surface; shared UI is extracted into
+`components/app` once used twice; all data access for a domain lives in one
+`src/lib/<domain>.ts` module so routes stay presentational.
 
 ---
 
-## 3. Database Schema (Postgres, multi-tenant by `agency_id`)
+## 3. Database Schema
 
-Enums: `app_role(owner,admin,agent)`, `lead_stage(new,contacted,qualified,proposal,booked,lost)`, `channel(whatsapp,web,manual)`, `msg_sender(customer,ai,human)`, `followup_status(pending,sent,skipped,failed)`.
+Multi-tenant. Every business table carries `agency_id` and is isolated by RLS.
 
-| Table | Key columns |
+| Table | Purpose |
 | --- | --- |
-| `agencies` | id, name, slug, logo_url, country, timezone, plan, created_at |
-| `profiles` | id → auth.users, agency_id, full_name, avatar_url, phone |
-| `user_roles` | id, user_id, agency_id, role (separate table; `has_role()` security-definer) |
-| `packages` | id, agency_id, name, city_pair, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions[], is_active |
-| `leads` | id, agency_id, full_name, phone, email, source, stage, score, budget_myr, pax, preferred_month, assigned_to, last_contact_at |
-| `conversations` | id, agency_id, lead_id, channel, external_id, status, ai_enabled, last_message_at |
-| `messages` | id, conversation_id, sender, body, parts jsonb, tokens, created_at |
-| `ai_personas` | id, agency_id, name, tone, language, system_prompt, guardrails, is_active |
-| `knowledge_docs` | id, agency_id, title, content, source_url, embedding vector(1536) |
-| `followup_sequences` | id, agency_id, name, trigger_stage, steps jsonb, is_active |
-| `followup_jobs` | id, agency_id, lead_id, sequence_id, step_index, run_at, status |
-| `bookings` | id, agency_id, lead_id, package_id, pax, amount_myr, deposit_paid, status |
-| `activity_log` | id, agency_id, actor, action, entity, entity_id, meta jsonb |
-| `channel_configs` | id, agency_id, provider, phone_number_id, verified, secret_ref |
+| `agencies` | Tenant root (name, logo, business hours, locale) |
+| `profiles` | One per auth user; binds user to `agency_id` (immutable via trigger) |
+| `user_roles` | `owner` / `admin` / `agent`, separate table, client-write revoked |
+| `agency_settings` | AI personality, language, knowledge behaviour, notifications |
+| `packages` | Umrah packages: price, hotels, duration, inclusions |
+| `leads` | Contact, source, pipeline stage, temperature (hot/warm/cold), tags |
+| `lead_notes` | Free-form notes per lead |
+| `conversations` | One thread per lead/channel, AI-autopilot flag |
+| `messages` | Inbound/outbound messages, sender = customer / ai / agent |
+| `bookings` | Confirmed bookings linked to lead + package |
+| `followup_jobs` | Scheduled follow-ups executed by the autonomous executive |
+| `knowledge_articles` | FAQ, visa, hotel, travel-guide, PDF-backed content |
+| `whatsapp_configs` | Per-agency Meta credentials + verify token |
+| `api_keys` | Hashed outbound integration keys (delete restricted) |
+| `activity_log` | Append-only audit trail powering all timelines |
 
-Every `CREATE TABLE` in `public` is followed by explicit `GRANT` to `authenticated` + `service_role` (anon only for public package listings), then `ENABLE ROW LEVEL SECURITY`, then policies. Core policy: rows visible only when `agency_id = current_agency_id()` (security-definer helper reading `profiles`); writes gated by `has_role(auth.uid(),'admin'|'owner')` for settings, billing, team.
+Storage buckets: `branding` (private), `knowledge` (private).
+
+**Security model**
+- RLS enabled on every public table with explicit `GRANT`s.
+- Policies resolve tenancy through a `SECURITY DEFINER` helper in the `private`
+  schema; `EXECUTE` is revoked from client roles.
+- `profiles.agency_id` and `profiles.id` are immutable (`prevent_profile_tenant_change`).
+- Roles are never stored on `profiles`; `has_role()` is the single authority.
+- `handle_new_user()` provisions agency + profile + owner role atomically on signup.
 
 ---
 
 ## 4. Authentication Flow
 
-1. Email + password via Lovable Cloud auth; optional Google sign-in later.
-2. Signup collects full name + agency name → trigger creates `profiles` row; first user of a new agency gets `owner` in `user_roles`.
-3. Email confirmation on by default; signup shows "check your email" state, session arrives via `onAuthStateChange`.
-4. `useAuth` registers `onAuthStateChange` early; trusted checks use `getUser()`.
-5. `/reset-password` public route handles `type=recovery` and calls `updateUser({password})`.
-6. `_authenticated/route.tsx` gate redirects unauthenticated users to `/auth`; protected loaders live only under that subtree.
-7. Server functions use `.middleware([requireSupabaseAuth])`; RLS enforces tenancy as the user. Service role only for webhook ingestion after signature verification.
-8. Invites: owner/admin creates a pending `profiles` invite row scoped to the agency; role assignment always through `user_roles`.
+1. **Register** — email/password or Google (Lovable OAuth broker). The
+   `on_auth_user_created` trigger creates the agency, profile and owner role.
+2. **Email verification** — Supabase confirmation link; unverified users can sign
+   in but see a verification prompt.
+3. **Login** — `/auth?mode=login`; session persisted client-side.
+4. **Forgot password** — `/auth?mode=forgot` → email link → `/reset-password`.
+5. **Protected routes** — everything under `_authenticated/`, gated by the managed
+   `ssr:false` layout calling `supabase.auth.getUser()` and redirecting to `/auth`.
+6. **Server calls** — `requireSupabaseAuth` middleware validates the bearer token
+   attached by `functionMiddleware` in `src/start.ts`; RLS applies as the user.
+7. **Profile** — `/profile` for name, phone, job title, password change.
+8. **Logout** — cancels in-flight queries, clears the query cache, signs out,
+   redirects to `/auth`.
 
 ---
 
-## 5. Routing Map
+## 5. Routing
 
-Public: `/`, `/features`, `/pricing`, `/contact`, `/auth`, `/reset-password`
-App: `/dashboard`, `/inbox`, `/inbox/:conversationId`, `/leads`, `/leads/:leadId`, `/packages`, `/packages/:packageId`, `/followups`, `/ai/persona`, `/ai/knowledge`, `/analytics`, `/settings/{agency,team,channels,billing}`
-API: `POST /api/chat` (stream), `POST /api/public/whatsapp` (+ GET verify), `POST /api/public/cron-followups`
+| Route | Access | Purpose |
+| --- | --- | --- |
+| `/` | public | Product marketing page |
+| `/auth`, `/reset-password` | public | Auth flows |
+| `/sitemap.xml` | public | SEO |
+| `/api/public/whatsapp` | public (signature-verified) | Inbound WhatsApp webhook |
+| `/dashboard` | auth | KPIs, hot leads, activity, follow-ups |
+| `/crm` | auth | Drag-and-drop pipeline (New → Completed / Lost) |
+| `/leads`, `/leads/$leadId` | auth | Lead CRUD, filters, timeline, notes |
+| `/conversations`, `/conversations/$id` | auth | WhatsApp-style AI inbox + sales brief |
+| `/analytics` | auth | Conversion, sources, top packages, trends |
+| `/knowledge` | auth | Articles, PDFs, AI grounding source |
+| `/settings/*` | auth | Agency, AI, WhatsApp, notifications, API keys, subscription |
+| `/profile` | auth | User profile |
 
-Each content route defines its own `head()` with unique title/description/og.
-
----
-
-## 6. Component Architecture
-
-- **AppShell**: collapsible sidebar (icon rail on tablet, sheet on mobile), topbar with agency switcher, search, AI status pill.
-- **DataTable**: shared sortable/filterable table for leads, packages, bookings.
-- **Inbox**: three-pane on desktop, stacked on mobile; per-conversation AI toggle, AI-suggested reply with human approve/edit/send.
-- **AI layer**: server-side persona + retrieved knowledge + package catalog as tools (`recommend_packages`, `create_lead`, `schedule_followup`, `escalate_to_human`) with `stepCountIs(50)`.
-- **Charts**: KPI cards (leads, reply rate, qualified, bookings, revenue MYR), funnel and trend charts.
-- Loading = skeletons, errors = route `errorComponent` + `router.invalidate()`, empty states everywhere.
-
----
-
-## 7. Future Scalability
-
-- Multi-agency / multi-branch already modeled via `agency_id`; agency switcher ready.
-- Channel abstraction (`channel_configs`) allows Instagram DM, Telegram, web widget, email without schema change.
-- `knowledge_docs.embedding` enables pgvector RAG; swap models via gateway id only.
-- Follow-up engine is data-driven (`steps jsonb`) — new sequence types need no deploy.
-- Billing hooks: `agencies.plan` + usage metering table for per-message pricing (Stripe later).
-- i18n-ready: Bahasa Malaysia / English persona language field; UI strings centralized.
-- Audit trail via `activity_log`; role model supports finer permissions without migration risk.
+Each content route defines its own `head()` with unique title, description and
+Open Graph tags; `__root.tsx` holds sitewide defaults and JSON-LD only.
 
 ---
 
-## Next Step
+## 6. AI Executive Architecture
 
-Approve this architecture and I'll implement in order: design system + tokens → app shell + auth → dashboard/leads/packages → inbox + AI → follow-ups + analytics.
+```text
+inbound message (WhatsApp webhook | agent UI)
+      │
+      ▼
+sales-ai.functions.ts  (authenticated RPC surface)
+      │
+      ▼
+sales-ai.server.ts  — system prompt assembled from agency_settings
+      │  (persona, language, tone, business hours, agency profile)
+      ├── tool: search_knowledge     → knowledge_articles (grounding first)
+      ├── tool: recommend_packages   → packages
+      ├── tool: sync_lead            → leads / lead qualification fields
+      └── tool: schedule_followup    → followup_jobs
+      ▼
+reply persisted to messages → activity_log → optional WhatsApp send
+```
+
+Rules: knowledge base is consulted before answering; the agent qualifies before
+recommending; every AI action is written to `activity_log`; autopilot can be
+disabled per conversation so a human agent takes over.
+
+---
+
+## 7. Component System
+
+- `AppShell` — sidebar + mobile sheet navigation, sign-out block, skip link.
+- `BrandLogo` / `AssistantAvatar` — the only permitted brand surfaces; sourced
+  from the uploaded official logo asset.
+- `PageHeader`, `SearchInput`, `SubmitButton` — shared page primitives
+  (SubmitButton keeps an accessible name while pending).
+- `KpiCard`, `Charts`, `AnalyticsCharts` — data visualisation.
+- `LeadBadges`, `LeadFormDialog` — lead domain UI.
+- All colour comes from semantic tokens in `src/styles.css`; no hardcoded colours.
+- Glassmorphism + subtle gradients only (`.panel`, `bg-aurora`, `shadow-elevated`).
+
+---
+
+## 8. Non-Functional Standards
+
+- **Responsive** — mobile (single column, sheet nav), tablet, desktop (sidebar).
+- **Accessibility** — landmarks, `aria-current`, labelled controls, 44px touch
+  targets, visible focus rings, skip-to-content.
+- **Performance** — route-loader prefetch, 30s query `staleTime`, code-split
+  routes, lazy charts, indexed tenant queries.
+- **Reliability** — root error and 404 boundaries, toast-based error surfacing,
+  server errors reported through `lovable-error-reporting`.
+- **SEO** — per-route metadata, canonical/OG tags, sitemap, robots, JSON-LD.
+
+---
+
+## 9. Future Scalability
+
+1. **Roles & teams** — extend `user_roles` with per-branch scoping; policies
+   already route through `has_role()`.
+2. **Channels** — the message pipeline is channel-agnostic; Instagram, Messenger,
+   web chat and email plug in behind the same `conversations`/`messages` tables.
+3. **Autonomous jobs** — `followup_jobs` is a durable queue; a scheduled
+   `/api/public/*` endpoint can drain it for cron-driven outreach.
+4. **Payments** — `bookings` is the anchor point for deposits and invoicing.
+5. **Multi-language** — `agency_settings.language` already steers the AI prompt;
+   UI strings can be extracted to a locale layer without schema change.
+6. **Analytics depth** — `activity_log` is append-only and can back cohort,
+   attribution and agent-performance reporting.
+7. **Vector search** — `knowledge_articles` can gain an embedding column and
+   switch `search_knowledge` from keyword to semantic retrieval.
