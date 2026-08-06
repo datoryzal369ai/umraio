@@ -21,6 +21,7 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
+import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
 import { Route as AuthenticatedKnowledgeIndexRouteImport } from './routes/_authenticated/knowledge/index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads/index'
 import { Route as AuthenticatedLeadsLeadIdRouteImport } from './routes/_authenticated/leads/$leadId'
@@ -93,6 +94,12 @@ const AuthenticatedConversationsConversationIdRoute =
   AuthenticatedConversationsConversationIdRouteImport.update({
     id: '/conversations/$conversationId',
     path: '/conversations/$conversationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedExecutiveIndexRoute =
+  AuthenticatedExecutiveIndexRouteImport.update({
+    id: '/executive/',
+    path: '/executive/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedKnowledgeIndexRoute =
@@ -179,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
+  '/executive/': typeof AuthenticatedExecutiveIndexRoute
   '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -202,6 +210,7 @@ export interface FileRoutesByTo {
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
+  '/executive': typeof AuthenticatedExecutiveIndexRoute
   '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
+  '/_authenticated/executive/': typeof AuthenticatedExecutiveIndexRoute
   '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations/'
+    | '/executive/'
     | '/knowledge/'
     | '/leads/'
     | '/settings/'
@@ -277,6 +288,7 @@ export interface FileRouteTypes {
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations'
+    | '/executive'
     | '/knowledge'
     | '/leads'
     | '/settings'
@@ -302,6 +314,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
+    | '/_authenticated/executive/'
     | '/_authenticated/knowledge/'
     | '/_authenticated/leads/'
     | '/_authenticated/settings/'
@@ -400,6 +413,13 @@ declare module '@tanstack/react-router' {
       path: '/conversations/$conversationId'
       fullPath: '/conversations/$conversationId'
       preLoaderRoute: typeof AuthenticatedConversationsConversationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/executive/': {
+      id: '/_authenticated/executive/'
+      path: '/executive'
+      fullPath: '/executive/'
+      preLoaderRoute: typeof AuthenticatedExecutiveIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/knowledge/': {
@@ -519,6 +539,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
   AuthenticatedLeadsLeadIdRoute: typeof AuthenticatedLeadsLeadIdRoute
   AuthenticatedConversationsIndexRoute: typeof AuthenticatedConversationsIndexRoute
+  AuthenticatedExecutiveIndexRoute: typeof AuthenticatedExecutiveIndexRoute
   AuthenticatedKnowledgeIndexRoute: typeof AuthenticatedKnowledgeIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
 }
@@ -533,6 +554,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedConversationsConversationIdRoute,
   AuthenticatedLeadsLeadIdRoute: AuthenticatedLeadsLeadIdRoute,
   AuthenticatedConversationsIndexRoute: AuthenticatedConversationsIndexRoute,
+  AuthenticatedExecutiveIndexRoute: AuthenticatedExecutiveIndexRoute,
   AuthenticatedKnowledgeIndexRoute: AuthenticatedKnowledgeIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
 }
