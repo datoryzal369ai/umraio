@@ -52,7 +52,7 @@ const futureModules = [
   { label: "AI Quotation Executive", icon: FileText },
   { label: "AI Follow-up Executive", icon: Repeat },
   { label: "AI Customer Success Executive", icon: HeartHandshake },
-  { label: "AI Business Insights", icon: Sparkles },
+  { label: "AI Business Insights", icon: LineChart },
 ] as const;
 
 /** Highlights the nav entry that owns the current pathname, including nested routes. */
