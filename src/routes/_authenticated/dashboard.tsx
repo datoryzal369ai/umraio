@@ -201,7 +201,10 @@ function DashboardBody({ data }: { data: DashboardData }) {
         />
       </section>
 
+      <WhatsappExecutiveCard />
+
       <section className="grid gap-4 lg:grid-cols-3">
+
         <div className="panel p-5 lg:col-span-2">
           <PanelHeader
             icon={TrendingUp}
