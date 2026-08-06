@@ -22,6 +22,7 @@ import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authen
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
 import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
+import { Route as AuthenticatedExecutiveWorkerKeyRouteImport } from './routes/_authenticated/executive/$workerKey'
 import { Route as AuthenticatedKnowledgeIndexRouteImport } from './routes/_authenticated/knowledge/index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads/index'
 import { Route as AuthenticatedLeadsLeadIdRouteImport } from './routes/_authenticated/leads/$leadId'
@@ -102,6 +103,12 @@ const AuthenticatedExecutiveIndexRoute =
     path: '/executive/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedExecutiveWorkerKeyRoute =
+  AuthenticatedExecutiveWorkerKeyRouteImport.update({
+    id: '/executive/$workerKey',
+    path: '/executive/$workerKey',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedKnowledgeIndexRoute =
   AuthenticatedKnowledgeIndexRouteImport.update({
     id: '/knowledge/',
@@ -177,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -201,6 +209,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -228,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/_authenticated/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/_authenticated/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -255,6 +265,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/conversations/$conversationId'
+    | '/executive/$workerKey'
     | '/leads/$leadId'
     | '/settings/agency'
     | '/settings/ai'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/conversations/$conversationId'
+    | '/executive/$workerKey'
     | '/leads/$leadId'
     | '/settings/agency'
     | '/settings/ai'
@@ -305,6 +317,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/_authenticated/conversations/$conversationId'
+    | '/_authenticated/executive/$workerKey'
     | '/_authenticated/leads/$leadId'
     | '/_authenticated/settings/agency'
     | '/_authenticated/settings/ai'
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExecutiveIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/executive/$workerKey': {
+      id: '/_authenticated/executive/$workerKey'
+      path: '/executive/$workerKey'
+      fullPath: '/executive/$workerKey'
+      preLoaderRoute: typeof AuthenticatedExecutiveWorkerKeyRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/knowledge/': {
       id: '/_authenticated/knowledge/'
       path: '/knowledge'
@@ -537,6 +557,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
+  AuthenticatedExecutiveWorkerKeyRoute: typeof AuthenticatedExecutiveWorkerKeyRoute
   AuthenticatedLeadsLeadIdRoute: typeof AuthenticatedLeadsLeadIdRoute
   AuthenticatedConversationsIndexRoute: typeof AuthenticatedConversationsIndexRoute
   AuthenticatedExecutiveIndexRoute: typeof AuthenticatedExecutiveIndexRoute
@@ -552,6 +573,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedConversationsConversationIdRoute:
     AuthenticatedConversationsConversationIdRoute,
+  AuthenticatedExecutiveWorkerKeyRoute: AuthenticatedExecutiveWorkerKeyRoute,
   AuthenticatedLeadsLeadIdRoute: AuthenticatedLeadsLeadIdRoute,
   AuthenticatedConversationsIndexRoute: AuthenticatedConversationsIndexRoute,
   AuthenticatedExecutiveIndexRoute: AuthenticatedExecutiveIndexRoute,
