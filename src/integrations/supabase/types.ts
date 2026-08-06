@@ -204,6 +204,137 @@ export type Database = {
           },
         ]
       }
+      ai_tasks: {
+        Row: {
+          agency_id: string
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error: string | null
+          id: string
+          input: Json
+          kind: string
+          lead_id: string | null
+          minutes_saved: number
+          output: Json | null
+          requires_approval: boolean
+          status: Database["public"]["Enums"]["ai_task_status"]
+          summary: string | null
+          title: string
+          updated_at: string
+          worker_key: string
+        }
+        Insert: {
+          agency_id: string
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          kind: string
+          lead_id?: string | null
+          minutes_saved?: number
+          output?: Json | null
+          requires_approval?: boolean
+          status?: Database["public"]["Enums"]["ai_task_status"]
+          summary?: string | null
+          title: string
+          updated_at?: string
+          worker_key: string
+        }
+        Update: {
+          agency_id?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error?: string | null
+          id?: string
+          input?: Json
+          kind?: string
+          lead_id?: string | null
+          minutes_saved?: number
+          output?: Json | null
+          requires_approval?: boolean
+          status?: Database["public"]["Enums"]["ai_task_status"]
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          worker_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_tasks_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_workers: {
+        Row: {
+          agency_id: string
+          autonomy: string
+          created_at: string
+          description: string
+          id: string
+          is_enabled: boolean
+          last_run_at: string | null
+          name: string
+          status: Database["public"]["Enums"]["ai_worker_status"]
+          updated_at: string
+          worker_key: string
+        }
+        Insert: {
+          agency_id: string
+          autonomy?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_enabled?: boolean
+          last_run_at?: string | null
+          name: string
+          status?: Database["public"]["Enums"]["ai_worker_status"]
+          updated_at?: string
+          worker_key: string
+        }
+        Update: {
+          agency_id?: string
+          autonomy?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_enabled?: boolean
+          last_run_at?: string | null
+          name?: string
+          status?: Database["public"]["Enums"]["ai_worker_status"]
+          updated_at?: string
+          worker_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_workers_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           agency_id: string
@@ -827,6 +958,19 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      ai_task_status:
+        | "queued"
+        | "processing"
+        | "waiting_approval"
+        | "completed"
+        | "failed"
+        | "rejected"
+      ai_worker_status:
+        | "active"
+        | "idle"
+        | "processing"
+        | "completed"
+        | "waiting_approval"
       app_role: "owner" | "admin" | "agent"
       channel: "whatsapp" | "web" | "manual"
       followup_status: "pending" | "sent" | "skipped" | "failed"
@@ -975,6 +1119,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ai_task_status: [
+        "queued",
+        "processing",
+        "waiting_approval",
+        "completed",
+        "failed",
+        "rejected",
+      ],
+      ai_worker_status: [
+        "active",
+        "idle",
+        "processing",
+        "completed",
+        "waiting_approval",
+      ],
       app_role: ["owner", "admin", "agent"],
       channel: ["whatsapp", "web", "manual"],
       followup_status: ["pending", "sent", "skipped", "failed"],
