@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import logoAsset from "@/assets/umraio-logo.png.asset.json";
+import robotAsset from "@/assets/umraio-robot.png.asset.json";
 import { cn } from "@/lib/utils";
 
 export function BrandLogo({
@@ -41,7 +42,7 @@ export function AssistantAvatar({
 }) {
   return (
     <img
-      src={new URL("@/assets/umraio-robot.png.asset.json", import.meta.url) ? robotUrl : robotUrl}
+      src={robotAsset.url}
       alt="UMRAIO AI Executive"
       width={size}
       height={size}
