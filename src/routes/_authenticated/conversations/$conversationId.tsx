@@ -24,13 +24,13 @@ import { aiReplyToConversation, conversationInsights } from "@/lib/sales-ai.func
 export const Route = createFileRoute("/_authenticated/conversations/$conversationId")({
   head: () => ({
     meta: [
-      { title: "Conversation — UMRAIO AI Business Executive" },
+      { title: "Conversation — UMRAIO Autonomous AI Business Executive" },
       {
         name: "description",
         content:
-          "WhatsApp-style conversation handled by the UMRAIO AI Business Executive with live qualification, package recommendations and booking suggestions.",
+          "WhatsApp-style conversation handled by the UMRAIO Autonomous AI Business Executive with live qualification, package recommendations and booking suggestions.",
       },
-      { property: "og:title", content: "Conversation — UMRAIO AI Business Executive" },
+      { property: "og:title", content: "Conversation — UMRAIO Autonomous AI Business Executive" },
       {
         property: "og:description",
         content: "AI replies, conversation summary, follow-up drafts and booking suggestions.",
@@ -150,7 +150,7 @@ function ConversationPage() {
             <p className="text-sm text-muted-foreground">Loading messages…</p>
           ) : messages.length === 0 ? (
             <p className="mx-auto max-w-sm rounded-xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
-              No messages yet. Send the customer&apos;s first enquiry and the AI Business Executive
+              No messages yet. Send the customer&apos;s first enquiry and the Autonomous AI Business Executive
               will reply.
             </p>
           ) : (
@@ -169,7 +169,7 @@ function ConversationPage() {
           )}
           {send.isPending && !asHuman && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> AI Business Executive is typing…
+              <Loader2 className="size-3.5 animate-spin" /> Autonomous AI Business Executive is typing…
             </div>
           )}
         </div>
@@ -217,7 +217,7 @@ function ConversationPage() {
         <div className="panel p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              AI Sales Brief
+              AI Executive Brief
             </h2>
             <Button
               size="sm"
@@ -326,7 +326,7 @@ function Bubble({ message }: { message: ChatMessage }) {
           >
             {message.sender === "ai" ? (
               <>
-                <AssistantAvatar size={14} /> AI Business Executive
+                <AssistantAvatar size={14} /> Autonomous AI Business Executive
               </>
             ) : (
               <>

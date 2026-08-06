@@ -3,12 +3,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   BookOpen,
+  FileText,
+  HeartHandshake,
   KanbanSquare,
   LayoutDashboard,
+  LineChart,
   LogOut,
+  Megaphone,
   Menu,
   MessageCircle,
   MessagesSquare,
+  PenLine,
+  Radar,
+  Repeat,
   Settings,
   UserRound,
   Users,
@@ -34,6 +41,18 @@ const navItems = [
   { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { to: "/settings/agency", label: "Settings", icon: Settings },
   { to: "/profile", label: "Profile", icon: UserRound },
+] as const;
+
+/** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
+const futureModules = [
+  { label: "AI WhatsApp Executive", icon: MessageCircle },
+  { label: "AI Marketing Executive", icon: Megaphone },
+  { label: "AI Content Executive", icon: PenLine },
+  { label: "AI Lead Intelligence", icon: Radar },
+  { label: "AI Quotation Executive", icon: FileText },
+  { label: "AI Follow-up Executive", icon: Repeat },
+  { label: "AI Customer Success Executive", icon: HeartHandshake },
+  { label: "AI Business Insights", icon: LineChart },
 ] as const;
 
 /** Highlights the nav entry that owns the current pathname, including nested routes. */
@@ -82,6 +101,25 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
         );
       })}
+
+      <p className="mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+        AI Workforce
+      </p>
+      <ul className="mt-1 flex flex-col gap-1">
+        {futureModules.map((module) => (
+          <li
+            key={module.label}
+            className="flex min-h-11 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/60"
+            aria-disabled="true"
+          >
+            <module.icon aria-hidden="true" className="size-4 shrink-0" />
+            <span className="truncate">{module.label}</span>
+            <span className="ml-auto shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider">
+              Soon
+            </span>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 

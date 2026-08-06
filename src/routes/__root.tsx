@@ -122,7 +122,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "UMRAIO",
           url: "https://umraio.com",
           description:
-            "UMRAIO is an AI Business Executive for Umrah agencies: it answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically.",
+            "UMRAIO is an Autonomous AI Business Executive for Umrah agencies: it answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically.",
           parentOrganization: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
         }),
       },
@@ -131,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "UMRAIO — AI Business Executive for Umrah Agencies",
+          name: "UMRAIO — Autonomous AI Business Executive for Umrah Agencies",
           url: "https://umraio.com",
           publisher: { "@type": "Organization", name: "UMRAIO" },
         }),

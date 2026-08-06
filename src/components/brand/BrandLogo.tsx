@@ -24,7 +24,7 @@ export function BrandLogo({
         <span className="font-display text-lg font-bold tracking-tight">UMRAIO®</span>
         {showTagline ? (
           <span className="mt-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            AI Autonomous Business Executive
+            Autonomous AI Business Executive
           </span>
         ) : null}
       </span>
