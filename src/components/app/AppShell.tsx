@@ -7,6 +7,7 @@ import {
   FileText,
   HeartHandshake,
   KanbanSquare,
+  ListChecks,
   LayoutDashboard,
   LineChart,
   LogOut,
