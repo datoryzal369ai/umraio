@@ -21,6 +21,8 @@ import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
+import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
+import { Route as AuthenticatedExecutiveWorkerKeyRouteImport } from './routes/_authenticated/executive/$workerKey'
 import { Route as AuthenticatedKnowledgeIndexRouteImport } from './routes/_authenticated/knowledge/index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads/index'
 import { Route as AuthenticatedLeadsLeadIdRouteImport } from './routes/_authenticated/leads/$leadId'
@@ -93,6 +95,18 @@ const AuthenticatedConversationsConversationIdRoute =
   AuthenticatedConversationsConversationIdRouteImport.update({
     id: '/conversations/$conversationId',
     path: '/conversations/$conversationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedExecutiveIndexRoute =
+  AuthenticatedExecutiveIndexRouteImport.update({
+    id: '/executive/',
+    path: '/executive/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedExecutiveWorkerKeyRoute =
+  AuthenticatedExecutiveWorkerKeyRouteImport.update({
+    id: '/executive/$workerKey',
+    path: '/executive/$workerKey',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedKnowledgeIndexRoute =
@@ -170,6 +184,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -179,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
+  '/executive/': typeof AuthenticatedExecutiveIndexRoute
   '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -193,6 +209,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -202,6 +219,7 @@ export interface FileRoutesByTo {
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
+  '/executive': typeof AuthenticatedExecutiveIndexRoute
   '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -219,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
+  '/_authenticated/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
   '/_authenticated/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute
@@ -228,6 +247,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
+  '/_authenticated/executive/': typeof AuthenticatedExecutiveIndexRoute
   '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -245,6 +265,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/conversations/$conversationId'
+    | '/executive/$workerKey'
     | '/leads/$leadId'
     | '/settings/agency'
     | '/settings/ai'
@@ -254,6 +275,7 @@ export interface FileRouteTypes {
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations/'
+    | '/executive/'
     | '/knowledge/'
     | '/leads/'
     | '/settings/'
@@ -268,6 +290,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/conversations/$conversationId'
+    | '/executive/$workerKey'
     | '/leads/$leadId'
     | '/settings/agency'
     | '/settings/ai'
@@ -277,6 +300,7 @@ export interface FileRouteTypes {
     | '/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/conversations'
+    | '/executive'
     | '/knowledge'
     | '/leads'
     | '/settings'
@@ -293,6 +317,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/_authenticated/conversations/$conversationId'
+    | '/_authenticated/executive/$workerKey'
     | '/_authenticated/leads/$leadId'
     | '/_authenticated/settings/agency'
     | '/_authenticated/settings/ai'
@@ -302,6 +327,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/whatsapp'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
+    | '/_authenticated/executive/'
     | '/_authenticated/knowledge/'
     | '/_authenticated/leads/'
     | '/_authenticated/settings/'
@@ -400,6 +426,20 @@ declare module '@tanstack/react-router' {
       path: '/conversations/$conversationId'
       fullPath: '/conversations/$conversationId'
       preLoaderRoute: typeof AuthenticatedConversationsConversationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/executive/': {
+      id: '/_authenticated/executive/'
+      path: '/executive'
+      fullPath: '/executive/'
+      preLoaderRoute: typeof AuthenticatedExecutiveIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/executive/$workerKey': {
+      id: '/_authenticated/executive/$workerKey'
+      path: '/executive/$workerKey'
+      fullPath: '/executive/$workerKey'
+      preLoaderRoute: typeof AuthenticatedExecutiveWorkerKeyRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/knowledge/': {
@@ -517,8 +557,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
+  AuthenticatedExecutiveWorkerKeyRoute: typeof AuthenticatedExecutiveWorkerKeyRoute
   AuthenticatedLeadsLeadIdRoute: typeof AuthenticatedLeadsLeadIdRoute
   AuthenticatedConversationsIndexRoute: typeof AuthenticatedConversationsIndexRoute
+  AuthenticatedExecutiveIndexRoute: typeof AuthenticatedExecutiveIndexRoute
   AuthenticatedKnowledgeIndexRoute: typeof AuthenticatedKnowledgeIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
 }
@@ -531,8 +573,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedConversationsConversationIdRoute:
     AuthenticatedConversationsConversationIdRoute,
+  AuthenticatedExecutiveWorkerKeyRoute: AuthenticatedExecutiveWorkerKeyRoute,
   AuthenticatedLeadsLeadIdRoute: AuthenticatedLeadsLeadIdRoute,
   AuthenticatedConversationsIndexRoute: AuthenticatedConversationsIndexRoute,
+  AuthenticatedExecutiveIndexRoute: AuthenticatedExecutiveIndexRoute,
   AuthenticatedKnowledgeIndexRoute: AuthenticatedKnowledgeIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
 }

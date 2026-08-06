@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   BookOpen,
+  BrainCircuit,
   FileText,
   HeartHandshake,
   KanbanSquare,
@@ -33,6 +34,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/executive", label: "AI Executive Center", icon: BrainCircuit },
   { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
@@ -43,12 +45,16 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
+/** Live AI workers, managed from the AI Executive Center. */
+const activeWorkers = [
+  { key: "whatsapp", label: "AI WhatsApp Executive", icon: MessageCircle },
+  { key: "marketing", label: "AI Marketing Executive", icon: Megaphone },
+  { key: "content", label: "AI Content Executive", icon: PenLine },
+  { key: "lead_intel", label: "AI Lead Intelligence", icon: Radar },
+] as const;
+
 /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
 const futureModules = [
-  { label: "AI WhatsApp Executive", icon: MessageCircle },
-  { label: "AI Marketing Executive", icon: Megaphone },
-  { label: "AI Content Executive", icon: PenLine },
-  { label: "AI Lead Intelligence", icon: Radar },
   { label: "AI Quotation Executive", icon: FileText },
   { label: "AI Follow-up Executive", icon: Repeat },
   { label: "AI Customer Success Executive", icon: HeartHandshake },
@@ -105,6 +111,29 @@ export function AppShell({ children }: { children: ReactNode }) {
       <p className="mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
         AI Workforce
       </p>
+      <ul className="mt-1 flex flex-col gap-1">
+        {activeWorkers.map((worker) => (
+          <li key={worker.key}>
+            <Link
+              to="/executive/$workerKey"
+              params={{ workerKey: worker.key }}
+              onClick={() => setOpen(false)}
+              className={cn(
+                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                pathname === `/executive/${worker.key}`
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                  : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+              )}
+            >
+              <worker.icon aria-hidden="true" className="size-4 shrink-0" />
+              <span className="truncate">{worker.label}</span>
+              <span className="ml-auto size-1.5 shrink-0 rounded-full bg-primary" />
+            </Link>
+          </li>
+        ))}
+      </ul>
+
       <ul className="mt-1 flex flex-col gap-1">
         {futureModules.map((module) => (
           <li
