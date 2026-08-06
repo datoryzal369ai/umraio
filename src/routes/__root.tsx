@@ -87,6 +87,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "UMRAIO is an AI Sales Executive for Umrah agencies: qualify leads, recommend packages and follow up automatically.",
       },
       { name: "author", content: "Digital Renaissance Metaverse" },
+      {
+        name: "google-site-verification",
+        content: "N14_yClvXF3gWN0Iy9tBniKq3sLrkErDwmSFzy6alqc",
+      },
       { property: "og:title", content: "UMRAIO — AI Sales Executive for Umrah Agencies" },
       {
         property: "og:description",
