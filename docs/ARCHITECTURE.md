@@ -208,3 +208,13 @@ disabled per conversation so a human agent takes over.
    attribution and agent-performance reporting.
 7. **Vector search** — `knowledge_articles` can gain an embedding column and
    switch `search_knowledge` from keyword to semantic retrieval.
+
+---
+
+## 10. Reserved AI Workforce Modules (not implemented)
+
+Navigation slots only, rendered as "Soon" in `AppShell` under the **AI Workforce**
+group. No routes, tables or logic exist for them yet:
+AI WhatsApp Executive · AI Marketing Executive · AI Content Executive ·
+AI Lead Intelligence · AI Quotation Executive · AI Follow-up Executive ·
+AI Customer Success Executive · AI Business Insights.
