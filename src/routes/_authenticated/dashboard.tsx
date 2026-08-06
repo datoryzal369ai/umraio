@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { MonthlyAnalyticsChart, SalesPerformanceChart } from "@/components/dashboard/Charts";
+import { WhatsappExecutiveCard } from "@/components/dashboard/WhatsappExecutiveCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
