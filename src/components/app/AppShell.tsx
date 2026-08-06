@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/executive", label: "AI Executive Center", icon: BrainCircuit },
+  { to: "/tasks", label: "AI Task Center", icon: ListChecks },
   { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
