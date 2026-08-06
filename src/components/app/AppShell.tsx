@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   BarChart3,
   BookOpen,
+  BrainCircuit,
   FileText,
   HeartHandshake,
   KanbanSquare,
