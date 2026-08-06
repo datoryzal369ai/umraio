@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/executive", label: "AI Executive Center", icon: BrainCircuit },
   { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
@@ -43,12 +44,16 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
+/** Live AI workers, managed from the AI Executive Center. */
+const activeWorkers = [
+  { key: "whatsapp", label: "AI WhatsApp Executive", icon: MessageCircle },
+  { key: "marketing", label: "AI Marketing Executive", icon: Megaphone },
+  { key: "content", label: "AI Content Executive", icon: PenLine },
+  { key: "lead_intel", label: "AI Lead Intelligence", icon: Radar },
+] as const;
+
 /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
 const futureModules = [
-  { label: "AI WhatsApp Executive", icon: MessageCircle },
-  { label: "AI Marketing Executive", icon: Megaphone },
-  { label: "AI Content Executive", icon: PenLine },
-  { label: "AI Lead Intelligence", icon: Radar },
   { label: "AI Quotation Executive", icon: FileText },
   { label: "AI Follow-up Executive", icon: Repeat },
   { label: "AI Customer Success Executive", icon: HeartHandshake },
