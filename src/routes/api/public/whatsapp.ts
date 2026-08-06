@@ -145,6 +145,7 @@ export const Route = createFileRoute("/api/public/whatsapp")({
         }
         if (!conversationId) return new Response("ok");
 
+        const inboundAt = new Date();
         await supabaseAdmin.from("messages").insert({
           agency_id: agencyId,
           conversation_id: conversationId,
@@ -153,8 +154,16 @@ export const Route = createFileRoute("/api/public/whatsapp")({
         });
         await supabaseAdmin
           .from("whatsapp_configs")
-          .update({ last_inbound_at: new Date().toISOString() })
+          .update({ last_inbound_at: inboundAt.toISOString() })
           .eq("id", config.id);
+        await supabaseAdmin.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "customer",
+          action: "Inbound WhatsApp message received",
+          entity: "conversation",
+          entity_id: conversationId,
+          meta: { from, preview: text.slice(0, 160) },
+        });
 
         if (aiEnabled && config.auto_reply && config.access_token) {
           try {
@@ -162,6 +171,28 @@ export const Route = createFileRoute("/api/public/whatsapp")({
             const reply = await generateAgentReply(supabaseAdmin as never, conversationId);
             if (reply) {
               await sendWhatsappText(phoneNumberId, config.access_token, from, reply);
+              await supabaseAdmin.from("messages").insert({
+                agency_id: agencyId,
+                conversation_id: conversationId,
+                sender: "ai",
+                body: reply,
+              });
+              const responseMs = Date.now() - inboundAt.getTime();
+              await supabaseAdmin
+                .from("conversations")
+                .update({
+                  last_message_at: new Date().toISOString(),
+                  first_response_ms: responseMs,
+                })
+                .eq("id", conversationId);
+              await supabaseAdmin.from("activity_log").insert({
+                agency_id: agencyId,
+                actor: "ai",
+                action: "AI WhatsApp Executive replied to customer",
+                entity: "conversation",
+                entity_id: conversationId,
+                meta: { response_ms: responseMs, preview: reply.slice(0, 160) },
+              });
             }
           } catch (error) {
             console.error("WhatsApp AI reply failed", error);
