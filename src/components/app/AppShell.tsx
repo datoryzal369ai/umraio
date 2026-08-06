@@ -36,6 +36,18 @@ const navItems = [
   { to: "/profile", label: "Profile", icon: UserRound },
 ] as const;
 
+/** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
+const futureModules = [
+  { label: "AI WhatsApp Executive", icon: MessageCircle },
+  { label: "AI Marketing Executive", icon: Megaphone },
+  { label: "AI Content Executive", icon: PenLine },
+  { label: "AI Lead Intelligence", icon: Radar },
+  { label: "AI Quotation Executive", icon: FileText },
+  { label: "AI Follow-up Executive", icon: Repeat },
+  { label: "AI Customer Success Executive", icon: HeartHandshake },
+  { label: "AI Business Insights", icon: Sparkles },
+] as const;
+
 /** Highlights the nav entry that owns the current pathname, including nested routes. */
 function isActive(pathname: string, to: string) {
   if (to === "/settings/whatsapp") return pathname === to;
