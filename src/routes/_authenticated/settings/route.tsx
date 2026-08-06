@@ -24,7 +24,7 @@ function SettingsLayout() {
       <PageHeader
         eyebrow="Workspace"
         title="Settings"
-        description="Configure your agency profile, AI Sales Executive, channels and plan."
+        description="Configure your agency profile, AI Business Executive, channels and plan."
       />
 
       <nav

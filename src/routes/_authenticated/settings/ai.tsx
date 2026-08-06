@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/settings/ai")({
       {
         name: "description",
         content:
-          "Tune the UMRAIO AI Sales Executive: personality, tone, reply length, language and how it uses your knowledge base.",
+          "Tune the UMRAIO AI Business Executive: personality, tone, reply length, language and how it uses your knowledge base.",
       },
       { property: "og:title", content: "AI Personality & Knowledge — UMRAIO" },
       {
@@ -162,7 +162,7 @@ function AiSettingsPage() {
       <Panel
         icon={Bot}
         title="AI personality"
-        description="How your AI Sales Executive sounds to customers."
+        description="How your AI Business Executive sounds to customers."
       >
         <div className="space-y-1.5">
           <Label htmlFor="ai-name">Assistant name</Label>
