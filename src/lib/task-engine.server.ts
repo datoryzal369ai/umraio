@@ -35,7 +35,9 @@ export const APPROVAL_REQUIRED_KINDS = new Set([
   "data_deletion",
 ]);
 
-export { WORKER_LABELS } from "./worker-labels";
+import { WORKER_LABELS } from "./worker-labels";
+
+export { WORKER_LABELS };
 
 const TASK_PLANS: Record<string, string[]> = {
   lead_scoring: [
