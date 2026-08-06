@@ -19,6 +19,7 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
+import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
 import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
@@ -85,6 +86,11 @@ const AuthenticatedSettingsRouteRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
+  id: '/tasks',
+  path: '/tasks',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedConversationsIndexRoute =
   AuthenticatedConversationsIndexRouteImport.update({
     id: '/conversations/',
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -208,6 +215,7 @@ export interface FileRoutesByTo {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/tasks': typeof AuthenticatedTasksRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -236,6 +244,7 @@ export interface FileRoutesById {
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/_authenticated/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/tasks'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -289,6 +299,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/tasks'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -316,6 +327,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
+    | '/_authenticated/tasks'
     | '/_authenticated/conversations/$conversationId'
     | '/_authenticated/executive/$workerKey'
     | '/_authenticated/leads/$leadId'
@@ -412,6 +424,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks': {
+      id: '/_authenticated/tasks'
+      path: '/tasks'
+      fullPath: '/tasks'
+      preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/conversations/': {
@@ -556,6 +575,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
   AuthenticatedExecutiveWorkerKeyRoute: typeof AuthenticatedExecutiveWorkerKeyRoute
   AuthenticatedLeadsLeadIdRoute: typeof AuthenticatedLeadsLeadIdRoute
@@ -571,6 +591,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedConversationsConversationIdRoute:
     AuthenticatedConversationsConversationIdRoute,
   AuthenticatedExecutiveWorkerKeyRoute: AuthenticatedExecutiveWorkerKeyRoute,
