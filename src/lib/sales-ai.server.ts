@@ -290,14 +290,17 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
       },
     }),
     update_lead_profile: tool({
-      description: "Save customer information collected during the conversation onto the lead.",
+      description:
+        "Save qualification details collected during the conversation onto the CRM lead (name, phone, city, pax, preferred month, budget, package interest).",
       inputSchema: z.object({
         full_name: z.string().nullable(),
         phone: z.string().nullable(),
         email: z.string().nullable(),
+        city: z.string().nullable(),
         budget_myr: z.number().nullable(),
         pax: z.number().nullable(),
         preferred_month: z.string().nullable(),
+        package_interest: z.string().nullable(),
         temperature: z.enum(["hot", "warm", "cold"]).nullable(),
         stage: z.enum(["new", "contacted", "qualified", "proposal", "booked", "lost"]).nullable(),
       }),
@@ -305,17 +308,26 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         if (!leadId) return { saved: false, reason: "No lead linked to this conversation." };
         const patch: Record<string, unknown> = { last_contact_at: new Date().toISOString() };
         for (const [k, v] of Object.entries(input)) if (v !== null && v !== "") patch[k] = v;
+
+        const merged = { ...(ctx.lead ?? {}), ...patch } as LeadSignals;
+        const score = computeLeadScore(merged);
+        patch["score"] = score;
+        if (!patch["temperature"]) patch["temperature"] = temperatureForScore(score);
+        if (!patch["stage"] && (merged.pax || merged.budget_myr || merged.preferred_month)) {
+          patch["stage"] = "qualified";
+        }
+
         const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
         if (error) return { saved: false, reason: error.message };
         await supabase.from("activity_log").insert({
           agency_id: agencyId,
           actor: "ai",
-          action: "Updated lead profile from conversation",
+          action: `AI WhatsApp Executive qualified lead (score ${score}, ${patch["temperature"]})`,
           entity: "lead",
           entity_id: leadId,
           meta: patch,
         });
-        return { saved: true, fields: Object.keys(patch) };
+        return { saved: true, score, temperature: patch["temperature"], fields: Object.keys(patch) };
       },
     }),
     schedule_followup: tool({
@@ -335,7 +347,56 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           status: "pending",
         });
         if (error) return { scheduled: false, reason: error.message };
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: `Scheduled follow-up: ${title}`,
+          entity: "lead",
+          entity_id: leadId,
+          meta: { run_at: runAt.toISOString(), channel: "whatsapp" },
+        });
         return { scheduled: true, run_at: runAt.toISOString() };
+      },
+    }),
+    escalate_to_human: tool({
+      description:
+        "Hand this conversation over to a human colleague. Use when the customer asks for a human, complains, negotiates outside your authority, or when you are not confident about the answer.",
+      inputSchema: z.object({
+        reason: z.string(),
+        urgency: z.enum(["low", "normal", "high"]),
+      }),
+      execute: async ({ reason, urgency }) => {
+        const now = new Date().toISOString();
+        await supabase
+          .from("conversations")
+          .update({
+            ai_enabled: false,
+            status: "open",
+            escalated_at: now,
+            escalation_reason: reason,
+          })
+          .eq("id", ctx.conversation.id);
+        await supabase.from("followup_jobs").insert({
+          agency_id: agencyId,
+          lead_id: leadId,
+          title: `Human takeover needed: ${reason}`,
+          channel: "whatsapp",
+          run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
+          status: "pending",
+        });
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: `Escalated WhatsApp conversation to a human (${urgency})`,
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: { reason, urgency },
+        });
+        return {
+          escalated: true,
+          instruction:
+            "Tell the customer politely that a human colleague will continue shortly, then stop.",
+        };
       },
     }),
   };
