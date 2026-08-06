@@ -1,12 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-import {
-  TASK_KINDS,
-  runDocumentTask,
-  runFollowupSweep,
-  runLeadIntelligence,
-} from "./executive-ai.server";
+import { TASK_KINDS } from "./executive-ai.server";
+import { createTask, executeTask } from "./task-engine.server";
 
 export const runExecutiveTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -16,7 +12,6 @@ export const runExecutiveTask = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
-    const spec = TASK_KINDS[data.kind]!;
 
     const { data: profile } = await supabase
       .from("profiles")
@@ -26,88 +21,16 @@ export const runExecutiveTask = createServerFn({ method: "POST" })
     const agencyId = profile?.agency_id as string | undefined;
     if (!agencyId) throw new Error("No agency found for this account");
 
-    const { data: task, error: insertError } = await supabase
-      .from("ai_tasks")
-      .insert({
-        agency_id: agencyId,
-        worker_key: spec.worker,
-        title: spec.label,
-        kind: data.kind,
-        status: "processing",
-        input: { brief: data.brief },
-        minutes_saved: spec.minutes,
-        requires_approval: spec.worker === "marketing" || spec.worker === "content",
-        created_by: userId,
-      })
-      .select("id")
-      .single();
-    if (insertError) throw insertError;
-
-    await supabase
-      .from("ai_workers")
-      .update({ status: "processing", last_run_at: new Date().toISOString() })
-      .eq("agency_id", agencyId)
-      .eq("worker_key", spec.worker);
-
-    try {
-      let document;
-      let summarySuffix = "";
-
-      if (data.kind === "lead_scoring") {
-        const res = await runLeadIntelligence(supabase, agencyId, data.brief);
-        document = res.document;
-        summarySuffix = ` · ${res.updated} leads rescored`;
-      } else if (data.kind === "followup_sweep") {
-        const res = await runFollowupSweep(supabase, agencyId, data.brief);
-        document = res.document;
-        summarySuffix = ` · ${res.scheduled} follow-ups scheduled`;
-      } else {
-        document = await runDocumentTask(supabase, agencyId, data.kind, data.brief);
-      }
-
-      const requiresApproval = spec.worker === "marketing" || spec.worker === "content";
-      const status = requiresApproval ? "waiting_approval" : "completed";
-
-      await supabase
-        .from("ai_tasks")
-        .update({
-          status,
-          output: document,
-          summary: `${document.summary}${summarySuffix}`,
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", task.id);
-
-      await supabase
-        .from("ai_workers")
-        .update({ status: requiresApproval ? "waiting_approval" : "completed" })
-        .eq("agency_id", agencyId)
-        .eq("worker_key", spec.worker);
-
-      await supabase.from("activity_log").insert({
-        agency_id: agencyId,
-        actor: "ai",
-        action: `${spec.worker === "whatsapp" ? "AI WhatsApp Executive" : spec.worker === "marketing" ? "AI Marketing Executive" : spec.worker === "content" ? "AI Content Executive" : "AI Lead Intelligence"} completed: ${spec.label}`,
-        entity: "ai_task",
-        entity_id: task.id,
-        meta: { kind: data.kind, status },
-      });
-
-      return { taskId: task.id as string, status };
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Task failed";
-      await supabase
-        .from("ai_tasks")
-        .update({ status: "failed", error: message, completed_at: new Date().toISOString() })
-        .eq("id", task.id);
-      await supabase
-        .from("ai_workers")
-        .update({ status: "idle" })
-        .eq("agency_id", agencyId)
-        .eq("worker_key", spec.worker);
-      throw new Error(message);
-    }
+    const taskId = await createTask(supabase, agencyId, {
+      kind: data.kind,
+      brief: data.brief,
+      origin: "manual",
+      createdBy: userId,
+    });
+    const status = await executeTask(supabase, agencyId, taskId);
+    return { taskId, status };
   });
+
 
 export const decideExecutiveTask = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
