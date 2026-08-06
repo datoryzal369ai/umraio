@@ -27,13 +27,13 @@ import {
 export const Route = createFileRoute("/_authenticated/conversations/")({
   head: () => ({
     meta: [
-      { title: "AI Sales Inbox — UMRAIO" },
+      { title: "AI Inbox — UMRAIO" },
       {
         name: "description",
         content:
           "WhatsApp-style inbox where the UMRAIO Autonomous AI Business Executive answers Umrah enquiries, qualifies leads and recommends packages.",
       },
-      { property: "og:title", content: "AI Sales Inbox — UMRAIO" },
+      { property: "og:title", content: "AI Inbox — UMRAIO" },
       {
         property: "og:description",
         content: "AI-handled Umrah enquiries, qualification and package recommendations.",
@@ -88,7 +88,7 @@ function ConversationsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Inbox"
-        title="AI Sales Inbox"
+        title="AI Inbox"
         description="Every WhatsApp enquiry, answered and qualified by your Autonomous AI Business Executive."
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
