@@ -32,13 +32,13 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/analytics")({
   head: () => ({
     meta: [
-      { title: "AI Analytics — UMRAIO AI Sales Executive" },
+      { title: "AI Analytics — UMRAIO AI Business Executive" },
       {
         name: "description",
         content:
           "Conversion rate, top Umrah packages, lead sources, booking trends, sales and follow-up performance in one AI analytics dashboard.",
       },
-      { property: "og:title", content: "AI Analytics — UMRAIO AI Sales Executive" },
+      { property: "og:title", content: "AI Analytics — UMRAIO AI Business Executive" },
       {
         property: "og:description",
         content: "Measure AI-driven Umrah sales: conversion, packages, sources and follow-ups.",
@@ -85,7 +85,7 @@ function AnalyticsPage() {
       <PageHeader
         eyebrow="Insights"
         title="AI Analytics"
-        description="How your AI Sales Executive turns Umrah enquiries into confirmed pilgrims."
+        description="How your AI Business Executive turns Umrah enquiries into confirmed pilgrims."
         actions={
           <div
             role="group"

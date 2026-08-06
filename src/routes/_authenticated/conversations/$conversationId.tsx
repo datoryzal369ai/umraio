@@ -1,18 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import {
-  ArrowLeft,
-  Bot,
-  CalendarCheck,
-  Loader2,
-  Send,
-  Sparkle,
-  User,
-  UserRound,
-} from "lucide-react";
+import { ArrowLeft, CalendarCheck, Loader2, Send, Sparkle, User, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
+import { AssistantAvatar } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -32,13 +24,13 @@ import { aiReplyToConversation, conversationInsights } from "@/lib/sales-ai.func
 export const Route = createFileRoute("/_authenticated/conversations/$conversationId")({
   head: () => ({
     meta: [
-      { title: "Conversation — UMRAIO AI Sales Executive" },
+      { title: "Conversation — UMRAIO AI Business Executive" },
       {
         name: "description",
         content:
-          "WhatsApp-style conversation handled by the UMRAIO AI Sales Executive with live qualification, package recommendations and booking suggestions.",
+          "WhatsApp-style conversation handled by the UMRAIO AI Business Executive with live qualification, package recommendations and booking suggestions.",
       },
-      { property: "og:title", content: "Conversation — UMRAIO AI Sales Executive" },
+      { property: "og:title", content: "Conversation — UMRAIO AI Business Executive" },
       {
         property: "og:description",
         content: "AI replies, conversation summary, follow-up drafts and booking suggestions.",
@@ -158,7 +150,7 @@ function ConversationPage() {
             <p className="text-sm text-muted-foreground">Loading messages…</p>
           ) : messages.length === 0 ? (
             <p className="mx-auto max-w-sm rounded-xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
-              No messages yet. Send the customer&apos;s first enquiry and the AI Sales Executive
+              No messages yet. Send the customer&apos;s first enquiry and the AI Business Executive
               will reply.
             </p>
           ) : (
@@ -177,7 +169,7 @@ function ConversationPage() {
           )}
           {send.isPending && !asHuman && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> AI Sales Executive is typing…
+              <Loader2 className="size-3.5 animate-spin" /> AI Business Executive is typing…
             </div>
           )}
         </div>
@@ -334,7 +326,7 @@ function Bubble({ message }: { message: ChatMessage }) {
           >
             {message.sender === "ai" ? (
               <>
-                <Bot className="size-3" /> AI Sales Executive
+                <AssistantAvatar size={14} /> AI Business Executive
               </>
             ) : (
               <>

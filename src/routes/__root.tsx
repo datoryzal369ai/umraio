@@ -80,22 +80,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "UMRAIO — AI Sales Executive for Umrah Agencies" },
+      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO is an AI Sales Executive for Umrah agencies: qualify leads, recommend packages and follow up automatically.",
+          "UMRAIO® is the Autonomous AI Business Executive for Umrah agencies: qualify leads, recommend packages and follow up automatically.",
       },
       { name: "author", content: "Digital Renaissance Metaverse" },
       {
         name: "google-site-verification",
         content: "N14_yClvXF3gWN0Iy9tBniKq3sLrkErDwmSFzy6alqc",
       },
-      { property: "og:title", content: "UMRAIO — AI Sales Executive for Umrah Agencies" },
+      {
+        property: "og:title",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
+      },
       {
         property: "og:description",
         content:
-          "AI Sales Executive for Umrah agencies. Qualify prospects, recommend packages and close more bookings.",
+          "The Autonomous AI Business Executive for Umrah agencies. Qualify prospects, recommend packages and close more bookings.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -108,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Manrope:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
     scripts: [
       {
@@ -119,7 +122,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           name: "UMRAIO",
           url: "https://umraio.com",
           description:
-            "UMRAIO is an AI Sales Executive for Umrah agencies: it answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically.",
+            "UMRAIO is an AI Business Executive for Umrah agencies: it answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically.",
           parentOrganization: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
         }),
       },
@@ -128,7 +131,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "WebSite",
-          name: "UMRAIO — AI Sales Executive for Umrah Agencies",
+          name: "UMRAIO — AI Business Executive for Umrah Agencies",
           url: "https://umraio.com",
           publisher: { "@type": "Organization", name: "UMRAIO" },
         }),

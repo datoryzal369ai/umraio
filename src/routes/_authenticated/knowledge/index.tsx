@@ -60,7 +60,7 @@ export const Route = createFileRoute("/_authenticated/knowledge/")({
       {
         name: "description",
         content:
-          "Feed your AI Sales Executive with FAQs, travel guides, package, visa and hotel information, plus uploaded PDF documents.",
+          "Feed your AI Business Executive with FAQs, travel guides, package, visa and hotel information, plus uploaded PDF documents.",
       },
       { property: "og:title", content: "Knowledge Base — UMRAIO" },
       {
@@ -237,7 +237,7 @@ function KnowledgePage() {
       <PageHeader
         eyebrow="AI Brain"
         title="Knowledge Base"
-        description="Articles, FAQs and PDF documents your AI Sales Executive reads before answering any enquiry."
+        description="Articles, FAQs and PDF documents your AI Business Executive reads before answering any enquiry."
         actions={
           <Button onClick={startCreate}>
             <Plus aria-hidden="true" className="size-4" />

@@ -102,7 +102,7 @@ function SubscriptionPage() {
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
             <p className="text-xs text-muted-foreground">
-              Scale your AI Sales Executive as your agency grows.
+              Scale your AI Business Executive as your agency grows.
             </p>
           </div>
         </header>

@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/conversations/")({
       {
         name: "description",
         content:
-          "WhatsApp-style inbox where the UMRAIO AI Sales Executive answers Umrah enquiries, qualifies leads and recommends packages.",
+          "WhatsApp-style inbox where the UMRAIO AI Business Executive answers Umrah enquiries, qualifies leads and recommends packages.",
       },
       { property: "og:title", content: "AI Sales Inbox — UMRAIO" },
       {
@@ -89,7 +89,7 @@ function ConversationsPage() {
       <PageHeader
         eyebrow="Inbox"
         title="AI Sales Inbox"
-        description="Every WhatsApp enquiry, answered and qualified by your AI Sales Executive."
+        description="Every WhatsApp enquiry, answered and qualified by your AI Business Executive."
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -146,7 +146,7 @@ function ConversationsPage() {
           <div className="p-8 text-sm text-muted-foreground">Loading conversations…</div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-sm text-muted-foreground">
-            No conversations yet. Start one to see the AI Sales Executive in action.
+            No conversations yet. Start one to see the AI Business Executive in action.
           </div>
         ) : (
           filtered.map((c) => (
