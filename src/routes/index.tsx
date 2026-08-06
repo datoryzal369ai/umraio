@@ -51,28 +51,35 @@ const capabilities = [
   },
 ];
 
+const trust = [
+  { label: "Always working", value: "24/7" },
+  { label: "More leads", value: "3×" },
+  { label: "Time saved", value: "85%" },
+  { label: "AI-powered", value: "100%" },
+];
+
 function Index() {
   const { user, loading } = useAuth();
 
   return (
     <div className="min-h-dvh bg-aurora">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-7 sm:px-10">
         <BrandLogo showTagline />
         <nav className="flex items-center gap-2">
           {loading ? null : user ? (
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="rounded-full">
               <Link to="/dashboard">Dashboard</Link>
             </Button>
           ) : (
             <>
-              <Button asChild variant="ghost" size="sm">
+              <Button asChild variant="ghost" size="sm" className="rounded-full">
                 <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
                   Sign in
                 </Link>
               </Button>
-              <Button asChild size="sm">
+              <Button asChild size="sm" className="rounded-full shadow-elevated">
                 <Link to="/auth" search={{ mode: "register", redirect: undefined }}>
-                  Get started
+                  Start Free Trial
                 </Link>
               </Button>
             </>
@@ -80,39 +87,93 @@ function Index() {
         </nav>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl px-6 pb-24">
-        <section className="pt-14 sm:pt-24">
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+      <main className="mx-auto w-full max-w-7xl px-6 pb-28 sm:px-10">
+        <section className="flex flex-col items-center pt-16 text-center sm:pt-28">
+          <span className="animate-rise inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-4 py-1.5 text-[11px] uppercase tracking-[0.28em] text-muted-foreground backdrop-blur">
+            <Sparkles className="size-3.5 text-primary" />
             Powered by Digital Renaissance Metaverse
           </span>
-          <h1 className="mt-6 max-w-3xl text-4xl font-extrabold leading-[1.05] sm:text-6xl">
-            The <span className="text-gradient-brand">Autonomous AI Business Executive</span> for
-            Umrah agencies
+
+          <h1
+            className="animate-rise brand-wordmark mt-10 text-6xl leading-none sm:text-8xl lg:text-9xl"
+            style={{ animationDelay: "60ms" }}
+          >
+            UMRAIO<sup className="align-super text-[0.3em] tracking-normal">®</sup>
           </h1>
-          <p className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Not a chatbot. A trained sales executive that works every enquiry, qualifies every
-            prospect and follows up until the booking is confirmed.
+          <p
+            className="animate-rise mt-5 text-[11px] uppercase tracking-[0.42em] text-primary/90 sm:text-sm"
+            style={{ animationDelay: "120ms" }}
+          >
+            Autonomous AI Business Executive
           </p>
-          <div className="mt-9 flex flex-wrap gap-3">
-            <Button asChild size="lg">
+
+          <h2
+            className="animate-rise mt-12 max-w-4xl text-3xl font-extrabold leading-[1.1] sm:text-5xl"
+            style={{ animationDelay: "180ms" }}
+          >
+            The Autonomous AI Executive for{" "}
+            <span className="text-gradient-brand">Modern Umrah Agencies</span>
+          </h2>
+          <p
+            className="animate-rise mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg"
+            style={{ animationDelay: "240ms" }}
+          >
+            Acquire more leads. Convert more bookings. Automate marketing. Respond instantly. Scale
+            your agency with intelligent AI workers.
+          </p>
+
+          <div
+            className="animate-rise mt-11 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row"
+            style={{ animationDelay: "300ms" }}
+          >
+            <Button
+              asChild
+              size="lg"
+              className="glow-ring h-12 w-full rounded-full px-8 text-base font-semibold transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+            >
               <Link to="/auth" search={{ mode: "register", redirect: undefined }}>
-                Create your agency account
+                Start Free Trial
                 <ArrowRight className="ml-1 size-4" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="h-12 w-full rounded-full border-border bg-surface/50 px-8 text-base font-medium backdrop-blur transition-all duration-300 hover:border-primary/40 hover:bg-surface sm:w-auto"
+            >
               <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
-                Sign in
+                Book Live Demo
               </Link>
             </Button>
           </div>
+
+          <dl
+            className="animate-rise panel mt-16 grid w-full grid-cols-2 gap-px overflow-hidden p-0 sm:grid-cols-4"
+            style={{ animationDelay: "360ms" }}
+          >
+            {trust.map((item) => (
+              <div key={item.label} className="px-6 py-7">
+                <dt className="text-3xl font-extrabold text-primary sm:text-4xl">{item.value}</dt>
+                <dd className="mt-1 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                  {item.label}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </section>
 
-        <section className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {capabilities.map((item) => (
-            <article key={item.title} className="panel p-6">
-              <item.icon className="size-5 text-primary" />
-              <h2 className="mt-4 text-base font-semibold">{item.title}</h2>
+        <section className="mt-24 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {capabilities.map((item, i) => (
+            <article
+              key={item.title}
+              className="animate-rise panel panel-hover p-7"
+              style={{ animationDelay: `${420 + i * 70}ms` }}
+            >
+              <span className="inline-flex size-11 items-center justify-center rounded-2xl border border-border bg-primary/10">
+                <item.icon className="size-5 text-primary" />
+              </span>
+              <h3 className="mt-5 text-base font-semibold tracking-tight">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
             </article>
           ))}
@@ -121,3 +182,4 @@ function Index() {
     </div>
   );
 }
+
