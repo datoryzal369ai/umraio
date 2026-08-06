@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BotMessageSquare, CalendarClock, Sparkles, Users } from "lucide-react";
 
-import wordmarkAsset from "@/assets/umraio-wordmark-official.png.asset.json";
+import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -119,7 +119,7 @@ function Index() {
               <img
                 src={wordmarkAsset.url}
                 alt="UMRAIO® — Autonomous AI Business Executive"
-                className="mx-auto w-full max-w-2xl object-contain mix-blend-screen"
+                className="mx-auto w-full max-w-2xl object-contain"
               />
             </div>
             <p

@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import logoAsset from "@/assets/umraio-logo.png.asset.json";
-import wordmarkAsset from "@/assets/umraio-wordmark-official.png.asset.json";
+import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 import robotAsset from "@/assets/umraio-robot.png.asset.json";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +31,7 @@ export function BrandLogo({
         <img
           src={wordmarkAsset.url}
           alt="UMRAIO®"
-          className="h-7 w-auto object-contain mix-blend-screen sm:h-8"
+          className="h-7 w-auto object-contain sm:h-8"
         />
         {showTagline ? (
           <span className="mt-2 text-[9px] font-light uppercase tracking-[0.3em] text-muted-foreground sm:text-[10px]">
