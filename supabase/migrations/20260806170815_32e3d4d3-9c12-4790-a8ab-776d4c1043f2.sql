@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.seed_ai_workers() FROM PUBLIC, anon, authenticated;
