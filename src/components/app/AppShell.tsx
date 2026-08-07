@@ -52,7 +52,7 @@ const activeWorkers = [
   { key: "whatsapp", label: "AI WhatsApp Executive", icon: MessageCircle },
   { key: "marketing", label: "AI Marketing Executive", icon: Megaphone },
   { key: "content", label: "AI Content Executive", icon: PenLine },
-  { key: "lead_intel", label: "AI Lead Intelligence", icon: Radar },
+  { key: "lead_intel", label: "AI Sales Executive", icon: Radar },
 ] as const;
 
 /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
