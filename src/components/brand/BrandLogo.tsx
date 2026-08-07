@@ -16,30 +16,31 @@ export function BrandLogo({
     <Link
       to="/"
       className={cn(
-        "group flex items-center gap-3.5 transition-opacity duration-300 hover:opacity-90 sm:gap-4",
+        "group flex items-center gap-3 transition-opacity duration-300 hover:opacity-90 sm:gap-3.5",
         className,
       )}
     >
       <img
         src={logoAsset.url}
         alt="UMRAIO® logo"
-        className="size-14 shrink-0 rounded-2xl object-cover ring-1 ring-border transition-shadow duration-300 group-hover:glow-ring"
-        width={55}
-        height={55}
+        className="size-12 shrink-0 rounded-2xl object-cover ring-1 ring-border transition-shadow duration-300 group-hover:glow-ring"
+        width={48}
+        height={48}
       />
       <span className="flex min-w-0 flex-col">
         <img
           src={wordmarkAsset.url}
           alt="UMRAIO®"
-          className="h-7 w-auto object-contain sm:h-8"
+          className="h-8 w-auto object-contain [image-rendering:auto] sm:h-9"
         />
         {showTagline ? (
-          <span className="mt-2 text-[9px] font-light uppercase tracking-[0.3em] text-muted-foreground sm:text-[10px]">
+          <span className="mt-1.5 text-[9px] font-light uppercase leading-[1.5] tracking-[0.24em] text-muted-foreground/90">
             Autonomous AI Business Executive
           </span>
         ) : null}
       </span>
     </Link>
+
   );
 }
 
