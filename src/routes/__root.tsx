@@ -80,28 +80,38 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
+      { title: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive for Umrah agencies: qualify leads, recommend packages and follow up automatically.",
+          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns and grow bookings.",
       },
       { name: "author", content: "Digital Renaissance Metaverse" },
       {
         name: "google-site-verification",
         content: "N14_yClvXF3gWN0Iy9tBniKq3sLrkErDwmSFzy6alqc",
       },
+      { property: "og:site_name", content: "UMRAIO®" },
       {
         property: "og:title",
-        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         property: "og:description",
         content:
-          "The Autonomous AI Business Executive for Umrah agencies. Qualify prospects, recommend packages and close more bookings.",
+          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads and increase bookings.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:title",
+        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
