@@ -164,9 +164,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         Skip to content
       </a>
 
-      <aside className="hidden w-64 shrink-0 flex-col justify-between border-r border-sidebar-border bg-sidebar p-5 lg:flex">
-        <div>
-          <BrandLogo showTagline className="mb-8" />
+      <aside className="hidden w-64 shrink-0 flex-col justify-between gap-4 border-r border-sidebar-border bg-sidebar px-4 py-5 lg:flex">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <BrandLogo showTagline className="mb-5 px-1" />
           {nav}
         </div>
         <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} />
