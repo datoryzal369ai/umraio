@@ -87,7 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const nav = (
-    <nav aria-label="Main" className="flex flex-col gap-1">
+    <nav aria-label="Main" className="flex flex-col gap-0.5">
       {navItems.map((item) => {
         const active = isActive(pathname, item.to);
         return (
@@ -97,7 +97,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             aria-current={active ? "page" : undefined}
             onClick={() => setOpen(false)}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+              "flex min-h-10 items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
               active
                 ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -110,10 +110,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         );
       })}
 
-      <p className="mt-6 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
+      <p className="mb-1 mt-5 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
         AI Workforce
       </p>
-      <ul className="mt-1 flex flex-col gap-1">
+      <ul className="flex flex-col gap-0.5">
         {activeWorkers.map((worker) => (
           <li key={worker.key}>
             <Link
@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               params={{ workerKey: worker.key }}
               onClick={() => setOpen(false)}
               className={cn(
-                "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex min-h-10 items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 transition-colors",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
                 pathname === `/executive/${worker.key}`
                   ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -136,11 +136,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         ))}
       </ul>
 
-      <ul className="mt-1 flex flex-col gap-1">
+      <ul className="mt-3 flex flex-col gap-0.5">
         {futureModules.map((module) => (
           <li
             key={module.label}
-            className="flex min-h-11 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground/60"
+            className="flex min-h-10 cursor-not-allowed items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 text-muted-foreground/60"
             aria-disabled="true"
           >
             <module.icon aria-hidden="true" className="size-4 shrink-0" />
@@ -153,6 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </ul>
     </nav>
   );
+
 
   return (
     <div className="flex min-h-dvh bg-background">
