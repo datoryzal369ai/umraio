@@ -21,6 +21,7 @@ import {
   Settings,
   UserRound,
   Users,
+  X,
 } from "lucide-react";
 
 import { useState, type ReactNode } from "react";
@@ -28,7 +29,7 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -188,11 +189,25 @@ export function AppShell({ children }: { children: ReactNode }) {
             </SheetTrigger>
             <SheetContent
               side="left"
-              className="flex w-72 flex-col justify-between gap-4 bg-sidebar px-4 py-5"
+              showCloseButton={false}
+              className="flex w-[min(22rem,100vw)] flex-col justify-between gap-4 bg-sidebar px-5 pb-5 pt-[max(16px,env(safe-area-inset-top))]"
             >
               <SheetTitle className="sr-only">Navigation</SheetTitle>
               <div className="min-h-0 flex-1 overflow-y-auto">
-                <BrandLogo showTagline className="mb-5 px-1" />
+                <div className="mb-5 flex items-start justify-between gap-6">
+                  <BrandLogo showTagline className="min-w-0" />
+                  <SheetClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="relative z-10 size-11 shrink-0 rounded-xl"
+                      aria-label="Close navigation menu"
+                    >
+                      <X aria-hidden="true" className="size-5" />
+                    </Button>
+                  </SheetClose>
+                </div>
                 {nav}
               </div>
               <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} />
