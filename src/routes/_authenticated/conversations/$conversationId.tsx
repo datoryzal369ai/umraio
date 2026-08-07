@@ -81,7 +81,13 @@ function ConversationPage() {
       );
       await queryClient.invalidateQueries({ queryKey: ["messages", conversationId] });
       if (asHuman || !conversation.ai_enabled) return;
-      const { reply } = await aiReplyToConversation({ data: { conversationId } });
+      const { reply, errorCode } = await aiReplyToConversation({ data: { conversationId } });
+      if (errorCode === "AI_CREDITS_EXHAUSTED") {
+        throw new Error(
+          "AI replies are temporarily unavailable because the workspace has no AI credits remaining. Add credits in Settings → Plans & credits, then try again.",
+        );
+      }
+      if (!reply) throw new Error("The AI Executive did not return a reply. Please try again.");
       await insertMessage(conversationId, conversation.agency_id, "ai", reply);
     },
     onSuccess: () => {

@@ -9,8 +9,22 @@ export const aiReplyToConversation = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const reply = await generateAgentReply(context.supabase, data.conversationId);
-    return { reply };
+    try {
+      const reply = await generateAgentReply(context.supabase, data.conversationId);
+      return { reply, errorCode: null };
+    } catch (error) {
+      const statusCode =
+        typeof error === "object" && error !== null && "statusCode" in error
+          ? Number(error.statusCode)
+          : undefined;
+      const message = error instanceof Error ? error.message : "";
+
+      if (statusCode === 402 || message.includes("Payment Required")) {
+        return { reply: null, errorCode: "AI_CREDITS_EXHAUSTED" as const };
+      }
+
+      throw error;
+    }
   });
 
 export const conversationInsights = createServerFn({ method: "POST" })
