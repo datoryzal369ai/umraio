@@ -9,22 +9,34 @@ import { useAuth } from "@/hooks/useAuth";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
+      { title: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO answers WhatsApp enquiries, qualifies prospects, recommends packages and follows up automatically for Malaysian Umrah agencies.",
+          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns, increase bookings and grow your business with intelligent AI executives.",
       },
       {
         property: "og:title",
-        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         property: "og:description",
         content:
-          "Answer enquiries, qualify prospects and close more Umrah bookings with an AI sales executive.",
+          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns and increase bookings.",
+      },
+      { property: "og:url", content: "https://umraio.com/" },
+      { property: "og:type", content: "website" },
+      {
+        name: "twitter:title",
+        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
       },
     ],
+    links: [{ rel: "canonical", href: "https://umraio.com/" }],
   }),
   component: Index,
 });
