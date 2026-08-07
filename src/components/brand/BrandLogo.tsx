@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
 import logoAsset from "@/assets/umraio-logo.png.asset.json";
-import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
+import wordmarkAsset from "@/assets/umraio-wordmark-tm.png.asset.json";
 import robotAsset from "@/assets/umraio-robot.png.asset.json";
 import { cn } from "@/lib/utils";
 
