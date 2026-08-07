@@ -186,10 +186,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex w-72 flex-col justify-between bg-sidebar p-5">
+            <SheetContent
+              side="left"
+              className="flex w-72 flex-col justify-between gap-4 bg-sidebar px-4 py-5"
+            >
               <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <div>
-                <BrandLogo showTagline className="mb-8" />
+              <div className="min-h-0 flex-1 overflow-y-auto">
+                <BrandLogo showTagline className="mb-5 px-1" />
                 {nav}
               </div>
               <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} />
