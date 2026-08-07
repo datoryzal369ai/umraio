@@ -25,18 +25,23 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in — UMRAIO Autonomous AI Business Executive" },
+      { title: "Sign in — UMRAIO® Autonomous AI Business Executive" },
       {
         name: "description",
         content:
-          "Sign in or create your UMRAIO agency account to manage AI-powered Umrah sales conversations.",
+          "Sign in or create your UMRAIO® agency account to manage the Autonomous AI Business Executive for licensed Umrah agencies.",
       },
-      { property: "og:title", content: "Sign in — UMRAIO Autonomous AI Business Executive" },
+      { property: "og:title", content: "Sign in — UMRAIO® Autonomous AI Business Executive" },
       {
         property: "og:description",
-        content: "Access your UMRAIO agency workspace.",
+        content: "Access your UMRAIO® agency workspace.",
       },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://umraio.com/auth" },
+      { name: "twitter:title", content: "Sign in — UMRAIO® Autonomous AI Business Executive" },
+      { name: "twitter:description", content: "Access your UMRAIO® agency workspace." },
     ],
+    links: [{ rel: "canonical", href: "https://umraio.com/auth" }],
   }),
   component: AuthPage,
 });
