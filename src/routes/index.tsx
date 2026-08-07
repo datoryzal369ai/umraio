@@ -99,10 +99,17 @@ function Index() {
 
         <main className="mx-auto w-full max-w-7xl px-6 pb-28 sm:px-10">
           <section className="flex flex-col items-center pt-14 text-center sm:pt-24">
-            <span className="animate-rise inline-flex items-center gap-2 rounded-full border border-border bg-surface/60 px-4 py-1.5 text-[10px] font-light uppercase tracking-[0.28em] text-muted-foreground backdrop-blur sm:text-[11px]">
+            <span className="animate-rise inline-flex items-center gap-2 rounded-full border border-primary/30 bg-surface/60 px-4 py-1.5 text-[10px] font-light uppercase tracking-[0.28em] text-muted-foreground shadow-[0_0_24px_-12px_var(--color-primary)] backdrop-blur sm:text-[11px]">
               <Sparkles className="size-3.5 text-primary" />
-              Powered by Digital Renaissance Metaverse
+              <span className="whitespace-nowrap">
+                Powered by{" "}
+                <span className="font-medium text-primary">
+                  UMRAVERSE
+                  <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">®</sup>
+                </span>
+              </span>
             </span>
+
 
             <div
               className="animate-rise relative mt-12 w-full max-w-3xl"
@@ -203,7 +210,24 @@ function Index() {
             ))}
           </section>
         </main>
+
+        <footer className="border-t border-border/60 px-6 py-10 sm:px-10">
+          <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-2 text-center">
+            <p className="text-[11px] font-light uppercase tracking-[0.24em] text-muted-foreground">
+              Powered by{" "}
+              <span className="font-medium text-primary">
+                UMRAVERSE
+                <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">®</sup>
+              </span>
+            </p>
+            <p className="text-xs font-light leading-relaxed text-muted-foreground/80">
+              UMRAVERSE<sup className="align-super text-[0.62em] leading-none">®</sup> is developed
+              and owned by Digital Renaissance Metaverse.
+            </p>
+          </div>
+        </footer>
       </div>
+
     </div>
   );
 }
