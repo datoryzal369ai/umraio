@@ -43,11 +43,9 @@ export function BrandArchitecture({ className }: { className?: string }) {
           src={renaiAsset.url}
           alt="RÉNAI.CORE™ — The Autonomous Intelligence Core"
           loading="lazy"
-          className="mt-5 h-auto w-full max-w-[300px] object-contain mix-blend-screen sm:max-w-[420px]"
+          className="mt-6 h-auto w-full max-w-[280px] object-contain mix-blend-screen sm:max-w-[400px]"
         />
-        <p className="mt-1 text-[10px] font-light uppercase leading-[1.6] tracking-[0.3em] text-muted-foreground sm:text-[11px]">
-          The Autonomous Intelligence Core
-        </p>
+
 
         <Connector />
 
