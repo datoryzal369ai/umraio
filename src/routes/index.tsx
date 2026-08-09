@@ -288,7 +288,32 @@ function Index() {
               ))}
             </div>
           </section>
+
+          <section className="mt-20" aria-label="Technology architecture">
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">
+              <p className="text-[10px] font-light uppercase tracking-[0.32em] text-muted-foreground">
+                Powered by{" "}
+                <span className="font-medium text-primary">
+                  RÉNAI.CORE
+                  <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">™</sup>
+                </span>{" "}
+                — The Autonomous Intelligence Core
+              </p>
+              <div className="flex flex-col items-center gap-2">
+                <p className="text-[10px] font-light uppercase tracking-[0.32em] text-muted-foreground">
+                  Part of
+                </p>
+                <img
+                  src={umraverseAsset.url}
+                  alt="UMRAVERSE® — Your Umrah Universe"
+                  className="h-16 w-auto object-contain opacity-90 sm:h-20"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          </section>
         </main>
+
 
 
         <footer className="border-t border-border/60 px-6 py-10 sm:px-10">
