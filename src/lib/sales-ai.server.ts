@@ -299,7 +299,7 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
   return {
     search_knowledge: tool({
       description:
-        "Search the agency knowledge base (FAQ, travel guide, package info, visa info, hotel info, uploaded PDFs). Call this before answering any factual question.",
+        "Search knowledge. Returns `agency` results (this agency's verified FAQ, travel guide, package/visa/hotel info, uploaded PDFs) and `global` results (official facts about the UMRAIO platform itself). Call this before answering any factual question.",
       inputSchema: z.object({
         query: z.string(),
         category: z
@@ -307,15 +307,35 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           .nullable(),
       }),
       execute: async ({ query, category }) => {
-        const results = searchKnowledge(
-          ctx.knowledge,
-          query,
-          category,
-          ctx.settings?.kb_max_articles ?? 4,
-        );
-        return results.length ? { results } : { results: [], note: "No matching knowledge found." };
+        const limit = ctx.settings?.kb_max_articles ?? 4;
+        const agencyResults = searchKnowledge(ctx.knowledge, query, category, limit);
+        const globalResults = searchGlobalKnowledge(query, limit);
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: "AI knowledge lookup",
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: {
+            knowledge_source: agencyResults.length
+              ? "agency"
+              : globalResults.length
+                ? "global"
+                : "none",
+            agency_hits: agencyResults.length,
+            global_hits: globalResults.length,
+          },
+        });
+        return {
+          agency: agencyResults,
+          global: globalResults,
+          note: agencyResults.length
+            ? undefined
+            : "No agency-specific knowledge matched. Global UMRAIO knowledge may still answer questions about the platform. Do not fabricate agency facts.",
+        };
       },
     }),
+
 
     recommend_packages: tool({
       description: "Look up the agency's active Umrah packages to recommend accurate options.",
