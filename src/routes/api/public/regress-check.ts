@@ -1,7 +1,7 @@
 // TEMPORARY regression harness — deleted after the run.
 import { createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/api/public/_regress")({
+export const Route = createFileRoute("/api/public/regress-check")({
   server: {
     handlers: {
       POST: async ({ request }) => {
