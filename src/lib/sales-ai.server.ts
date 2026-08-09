@@ -477,19 +477,23 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
       }),
       execute: async ({ reason, urgency, human_takeover }) => {
         const now = new Date().toISOString();
+        // Deterministic guard: the model may only pause the AI when the customer
+        // explicitly asked for a person. Booking intent / verification never pauses it.
+        const requested = customerAskedForHuman(ctx);
+        const takeover = human_takeover && requested;
         const patch: Record<string, unknown> = {
           status: "open",
           escalated_at: now,
           escalation_reason: reason,
           human_attention_required: true,
         };
-        // Non-destructive by default: a knowledge gap must never silence the AI.
-        if (human_takeover) patch["ai_enabled"] = false;
+        // Non-destructive by default: knowledge gaps and booking intent never silence the AI.
+        if (takeover) patch["ai_enabled"] = false;
         await supabase.from("conversations").update(patch).eq("id", ctx.conversation.id);
         await supabase.from("followup_jobs").insert({
           agency_id: agencyId,
           lead_id: leadId,
-          title: human_takeover
+          title: takeover
             ? `Human takeover needed: ${reason}`
             : `Human attention requested: ${reason}`,
           channel: "whatsapp",
@@ -499,7 +503,7 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         await supabase.from("activity_log").insert({
           agency_id: agencyId,
           actor: "ai",
-          action: human_takeover
+          action: takeover
             ? `Human takeover activated on WhatsApp conversation (${urgency})`
             : `Human attention requested on WhatsApp conversation (${urgency})`,
           entity: "conversation",
@@ -507,20 +511,24 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           meta: {
             reason,
             urgency,
-            human_takeover,
-            ai_remains_enabled: !human_takeover,
-            decision: human_takeover ? "human_takeover" : "human_attention_required",
+            human_takeover: takeover,
+            requested_takeover: human_takeover,
+            explicit_human_request: requested,
+            ai_remains_enabled: !takeover,
+            decision: takeover ? "human_takeover" : "human_attention_required",
           },
         });
         return {
           escalated: true,
-          human_takeover,
-          ai_still_enabled: !human_takeover,
-          instruction: human_takeover
+          human_takeover: takeover,
+          ai_still_enabled: !takeover,
+          downgraded: human_takeover && !takeover,
+          instruction: takeover
             ? "Tell the customer politely that a human colleague will continue shortly, then stop."
-            : "A colleague has been notified. Keep helping the customer normally: acknowledge that you will confirm the official agency details, and continue qualifying (preferred month, number of pilgrims, budget).",
+            : "AI stays active. A colleague has been notified. Keep helping the customer normally: say truthfully that final booking details (availability, deposit, terms) need agency confirmation, and continue qualifying (preferred month, number of pilgrims, budget).",
         };
       },
+
     }),
 
     request_human_handoff: tool({
