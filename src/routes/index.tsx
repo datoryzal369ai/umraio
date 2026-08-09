@@ -320,19 +320,32 @@ function Index() {
 
         <footer className="border-t border-border/60 px-6 py-10 sm:px-10">
           <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-2 text-center">
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-foreground">
+              UMRAIO<sup className="align-super text-[0.62em] leading-none">®</sup> — Autonomous AI
+              Business Executive
+            </p>
             <p className="text-[11px] font-light uppercase tracking-[0.24em] text-muted-foreground">
               Powered by{" "}
               <span className="font-medium text-primary">
+                RÉNAI.CORE
+                <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">™</sup>
+              </span>{" "}
+              — The Autonomous Intelligence Core
+            </p>
+            <p className="text-[11px] font-light uppercase tracking-[0.24em] text-muted-foreground">
+              Part of{" "}
+              <span className="font-medium text-primary">
                 UMRAVERSE
                 <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">®</sup>
-              </span>
+              </span>{" "}
+              — Your Umrah Universe
             </p>
-            <p className="text-xs font-light leading-relaxed text-muted-foreground/80">
-              UMRAVERSE<sup className="align-super text-[0.62em] leading-none">®</sup> is developed
-              and owned by Digital Renaissance Metaverse.
+            <p className="text-xs font-light leading-relaxed text-muted-foreground/70">
+              Developed and owned by Digital Renaissance Metaverse.
             </p>
           </div>
         </footer>
+
       </div>
 
     </div>
