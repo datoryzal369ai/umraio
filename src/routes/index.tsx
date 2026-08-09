@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BotMessageSquare, CalendarClock, Sparkles, Users } from "lucide-react";
 
+import umraverseAsset from "@/assets/umraverse-logo.png.asset.json";
 import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
+
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
