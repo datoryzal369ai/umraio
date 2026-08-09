@@ -10,7 +10,7 @@ const STEPS = [
   "Heloooo",
 ];
 
-export const Route = createFileRoute("/api/public/_regress")({
+export const Route = createFileRoute("/api/public/regress-tmp")({
   server: {
     handlers: {
       POST: async () => {
