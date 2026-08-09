@@ -160,6 +160,20 @@ export function searchKnowledge(
   }));
 }
 
+/** Search the tenant-agnostic global UMRAIO knowledge (platform facts only). */
+export function searchGlobalKnowledge(query: string, limit = 4) {
+  const rows: KnowledgeRow[] = GLOBAL_UMRAIO_KNOWLEDGE.map((a) => ({
+    id: a.id,
+    title: a.title,
+    category: a.category,
+    summary: a.summary,
+    content: a.content,
+    tags: a.tags,
+    file_name: null,
+  }));
+  return searchKnowledge(rows, query, null, limit).map((r) => ({ ...r, source: "global" as const }));
+}
+
 const PERSONALITY_HINTS: Record<string, string> = {
   professional: "Corporate, precise and credible. No filler, no slang.",
   friendly: "Warm, conversational and approachable, like a trusted travel consultant.",
