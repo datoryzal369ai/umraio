@@ -311,6 +311,30 @@ export function temperatureForScore(score: number): "hot" | "warm" | "cold" {
   return "cold";
 }
 
+/**
+ * Deterministic guard: only an EXPLICIT request to speak with a person may pause
+ * the AI. Booking intent, knowledge gaps and verification needs must never do so.
+ */
+const EXPLICIT_HUMAN_PATTERNS: RegExp[] = [
+  /\b(cakap|bercakap|bincang|berbual|contact|hubungi|sambung(kan)?|talk|speak|chat)\b[^.?!]{0,40}\b(manusia|human|staff|staf|agent|ejen|orang(\s+sebenar)?|person|admin|pegawai|manager|pengurus|customer service|cs)\b/i,
+  /\b(staff|staf|agent|ejen|admin|manusia|human|orang)\b[^.?!]{0,30}\b(call|telefon|hubungi|whatsapp|contact)\b[^.?!]{0,20}\b(saya|aku|me|i)\b/i,
+  /\b(real|live)\s+(person|agent|human)\b/i,
+  /\bnak\s+(cakap|bercakap)\s+dengan\b/i,
+  /\btransfer\s+(me\s+)?to\s+(a\s+)?(human|agent|staff|person)\b/i,
+];
+
+export function isExplicitHumanRequest(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return EXPLICIT_HUMAN_PATTERNS.some((re) => re.test(text));
+}
+
+function customerAskedForHuman(ctx: Awaited<ReturnType<typeof loadContext>>): boolean {
+  const recentCustomer = ctx.messages
+    .filter((m) => m.sender === "customer")
+    .slice(-3)
+    .map((m) => m.body);
+  return recentCustomer.some(isExplicitHumanRequest);
+}
 
 function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
   const agencyId = ctx.conversation.agency_id as string;
