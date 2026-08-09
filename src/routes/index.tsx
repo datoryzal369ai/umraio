@@ -29,7 +29,12 @@ const faqs = [
     q: "Does UMRAIO® replace human sales consultants?",
     a: "No. UMRAIO® handles first response, qualification and follow-up around the clock, and hands over to your consultants whenever a human touch is needed.",
   },
+  {
+    q: "What powers UMRAIO®?",
+    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®. UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
+  },
 ];
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
