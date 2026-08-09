@@ -499,7 +499,84 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
       },
     }),
 
+    request_human_handoff: tool({
+      description:
+        "Really send a verification/booking request to the agency team. Persists a notification, a follow-up task and an activity record. Only after this returns handoff_recorded=true may you tell the customer that the request has been sent. Never claim a handoff without calling this.",
+      inputSchema: z.object({
+        request: z.string().describe("What the team must verify or action, in one sentence"),
+        topic: z.enum([
+          "availability",
+          "pricing",
+          "deposit",
+          "mutawwif",
+          "booking",
+          "documents",
+          "other",
+        ]),
+        urgency: z.enum(["low", "normal", "high"]),
+      }),
+      execute: async ({ request, topic, urgency }) => {
+        const now = new Date();
+        const reference = `HO-${now.getTime().toString(36).toUpperCase()}`;
+        const { error: notifyError } = await supabase.from("notifications").insert({
+          agency_id: agencyId,
+          kind: "human_handoff",
+          severity: urgency === "high" ? "warning" : "info",
+          title: `Customer request needs agency verification (${topic})`,
+          body: request,
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: { reference, topic, urgency, lead_id: leadId },
+        });
+        if (notifyError) {
+          return {
+            handoff_recorded: false,
+            reason: notifyError.message,
+            instruction:
+              "The handoff was NOT recorded. Do not tell the customer that anything was sent. Say truthfully that you cannot confirm agency-specific details yet, and continue helping.",
+          };
+        }
+        await supabase.from("followup_jobs").insert({
+          agency_id: agencyId,
+          lead_id: leadId,
+          title: `[${reference}] ${topic}: ${request}`,
+          channel: "whatsapp",
+          run_at: new Date(now.getTime() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
+          status: "pending",
+        });
+        await supabase
+          .from("conversations")
+          .update({ human_attention_required: true })
+          .eq("id", ctx.conversation.id);
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: `Handoff request sent to agency team (${topic})`,
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: {
+            reference,
+            topic,
+            urgency,
+            request,
+            conversation_id: ctx.conversation.id,
+            destination: "agency team inbox",
+            recorded_at: now.toISOString(),
+          },
+        });
+        return {
+          handoff_recorded: true,
+          reference,
+          recorded_at: now.toISOString(),
+          destination: "agency team inbox",
+          ai_still_enabled: true,
+          instruction:
+            "You may now truthfully tell the customer the request was forwarded to the agency team for confirmation (mention the reference if useful). Do not invent a staff reply or a response time. Continue qualifying the lead.",
+        };
+      },
+    }),
   };
+
 }
 
 export async function generateAgentReply(supabase: Db, conversationId: string): Promise<string> {
