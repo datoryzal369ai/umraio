@@ -6,6 +6,29 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
+const faqs = [
+  {
+    q: "What is UMRAIO®?",
+    a: "UMRAIO® is an Autonomous AI Business Executive built for Umrah agencies. It answers enquiries, qualifies prospects, recommends packages and follows up so your team can focus on closing bookings.",
+  },
+  {
+    q: "Who is UMRAIO® for?",
+    a: "Licensed Umrah and travel agencies that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+  },
+  {
+    q: "How does UMRAIO® work with WhatsApp?",
+    a: "You connect your WhatsApp Business number in settings. UMRAIO® then replies to incoming messages in Bahasa Malaysia or English, using your agency's packages and knowledge base.",
+  },
+  {
+    q: "Can UMRAIO® capture and follow up with leads?",
+    a: "Yes. Every conversation is captured as a lead with budget, pax, travel window and intent, then scored and placed in your CRM pipeline with scheduled follow-ups.",
+  },
+  {
+    q: "Does UMRAIO® replace human sales consultants?",
+    a: "No. UMRAIO® handles first response, qualification and follow-up around the clock, and hands over to your consultants whenever a human touch is needed.",
+  },
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
