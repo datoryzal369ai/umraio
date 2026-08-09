@@ -437,26 +437,31 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
     }),
     escalate_to_human: tool({
       description:
-        "Hand this conversation over to a human colleague. Use when the customer asks for a human, complains, negotiates outside your authority, or when you are not confident about the answer.",
+        "Flag that a human colleague should look at this conversation. Set human_takeover=true ONLY for an explicit request for a human, an upset customer, or a sensitive transaction (payment, refund, contract, discount approval) — that pauses the AI. For a simple knowledge gap use human_takeover=false: the team is notified but you keep helping the customer.",
       inputSchema: z.object({
         reason: z.string(),
         urgency: z.enum(["low", "normal", "high"]),
+        human_takeover: z
+          .boolean()
+          .describe("true only for an explicit human takeover or a sensitive transaction"),
       }),
-      execute: async ({ reason, urgency }) => {
+      execute: async ({ reason, urgency, human_takeover }) => {
         const now = new Date().toISOString();
-        await supabase
-          .from("conversations")
-          .update({
-            ai_enabled: false,
-            status: "open",
-            escalated_at: now,
-            escalation_reason: reason,
-          })
-          .eq("id", ctx.conversation.id);
+        const patch: Record<string, unknown> = {
+          status: "open",
+          escalated_at: now,
+          escalation_reason: reason,
+          human_attention_required: true,
+        };
+        // Non-destructive by default: a knowledge gap must never silence the AI.
+        if (human_takeover) patch["ai_enabled"] = false;
+        await supabase.from("conversations").update(patch).eq("id", ctx.conversation.id);
         await supabase.from("followup_jobs").insert({
           agency_id: agencyId,
           lead_id: leadId,
-          title: `Human takeover needed: ${reason}`,
+          title: human_takeover
+            ? `Human takeover needed: ${reason}`
+            : `Human attention requested: ${reason}`,
           channel: "whatsapp",
           run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
@@ -464,18 +469,30 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         await supabase.from("activity_log").insert({
           agency_id: agencyId,
           actor: "ai",
-          action: `Escalated WhatsApp conversation to a human (${urgency})`,
+          action: human_takeover
+            ? `Human takeover activated on WhatsApp conversation (${urgency})`
+            : `Human attention requested on WhatsApp conversation (${urgency})`,
           entity: "conversation",
           entity_id: ctx.conversation.id,
-          meta: { reason, urgency },
+          meta: {
+            reason,
+            urgency,
+            human_takeover,
+            ai_remains_enabled: !human_takeover,
+            decision: human_takeover ? "human_takeover" : "human_attention_required",
+          },
         });
         return {
           escalated: true,
-          instruction:
-            "Tell the customer politely that a human colleague will continue shortly, then stop.",
+          human_takeover,
+          ai_still_enabled: !human_takeover,
+          instruction: human_takeover
+            ? "Tell the customer politely that a human colleague will continue shortly, then stop."
+            : "A colleague has been notified. Keep helping the customer normally: acknowledge that you will confirm the official agency details, and continue qualifying (preferred month, number of pilgrims, budget).",
         };
       },
     }),
+
   };
 }
 
