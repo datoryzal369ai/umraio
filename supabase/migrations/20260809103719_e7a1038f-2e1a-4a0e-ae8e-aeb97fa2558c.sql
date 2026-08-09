@@ -1,0 +1,1 @@
+ALTER TABLE public.conversations ADD COLUMN IF NOT EXISTS human_attention_required boolean NOT NULL DEFAULT false;
