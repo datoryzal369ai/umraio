@@ -197,8 +197,9 @@ export const Route = createFileRoute("/api/public/whatsapp")({
           try {
             const { generateAgentReply } = await import("@/lib/sales-ai.server");
             const reply = await generateAgentReply(supabaseAdmin as never, conversationId);
+            console.log(`[whatsapp] ai reply generated=${Boolean(reply)}`);
             if (reply) {
-              await sendWhatsappText(phoneNumberId, config.access_token, from, reply);
+              const sent = await sendWhatsappText(phoneNumberId, config.access_token, from, reply);
               await supabaseAdmin.from("messages").insert({
                 agency_id: agencyId,
                 conversation_id: conversationId,
@@ -219,12 +220,16 @@ export const Route = createFileRoute("/api/public/whatsapp")({
                 action: "AI WhatsApp Executive replied to customer",
                 entity: "conversation",
                 entity_id: conversationId,
-                meta: { response_ms: responseMs, preview: reply.slice(0, 160) },
+                meta: { response_ms: responseMs, delivered: sent, preview: reply.slice(0, 160) },
               });
             }
           } catch (error) {
-            console.error("WhatsApp AI reply failed", error);
+            console.error("[whatsapp] AI reply failed", error);
           }
+        } else {
+          console.log(
+            `[whatsapp] auto-reply skipped ai_enabled=${aiEnabled} auto_reply=${config.auto_reply} has_token=${Boolean(config.access_token)}`,
+          );
         }
 
         return new Response("ok");
