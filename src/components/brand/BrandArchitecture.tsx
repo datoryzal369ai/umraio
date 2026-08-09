@@ -1,3 +1,4 @@
+import umraioAsset from "@/assets/umraio-official-wordmark.png.asset.json";
 import umraverseAsset from "@/assets/umraverse-logo.png.asset.json";
 import renaiAsset from "@/assets/renai-core-logo.png.asset.json";
 import { cn } from "@/lib/utils";
@@ -28,9 +29,12 @@ export function BrandArchitecture({ className }: { className?: string }) {
     >
       <div className="mx-auto flex w-full max-w-2xl flex-col items-center text-center">
         {/* PRIMARY — UMRAIO */}
-        <p className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-          UMRAIO<sup className="ml-0.5 align-super text-[0.5em] leading-none">®</sup>
-        </p>
+        <img
+          src={umraioAsset.url}
+          alt="UMRAIO® — Autonomous AI Business Executive"
+          loading="lazy"
+          className="h-auto w-full max-w-[260px] object-contain mix-blend-screen sm:max-w-[340px]"
+        />
         <p className="mt-3 text-[10px] font-light uppercase leading-[1.6] tracking-[0.3em] text-muted-foreground sm:text-[11px]">
           Autonomous AI Business Executive
         </p>
