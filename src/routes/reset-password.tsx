@@ -15,6 +15,7 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       { title: "Set a new password — UMRAIO" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content: "Choose a new password for your UMRAIO Autonomous AI Business Executive account.",

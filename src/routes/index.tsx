@@ -6,6 +6,29 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
+const faqs = [
+  {
+    q: "What is UMRAIO®?",
+    a: "UMRAIO® is an Autonomous AI Business Executive built for Umrah agencies. It answers enquiries, qualifies prospects, recommends packages and follows up so your team can focus on closing bookings.",
+  },
+  {
+    q: "Who is UMRAIO® for?",
+    a: "Licensed Umrah and travel agencies that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+  },
+  {
+    q: "How does UMRAIO® work with WhatsApp?",
+    a: "You connect your WhatsApp Business number in settings. UMRAIO® then replies to incoming messages in Bahasa Malaysia or English, using your agency's packages and knowledge base.",
+  },
+  {
+    q: "Can UMRAIO® capture and follow up with leads?",
+    a: "Yes. Every conversation is captured as a lead with budget, pax, travel window and intent, then scored and placed in your CRM pipeline with scheduled follow-ups.",
+  },
+  {
+    q: "Does UMRAIO® replace human sales consultants?",
+    a: "No. UMRAIO® handles first response, qualification and follow-up around the clock, and hands over to your consultants whenever a human touch is needed.",
+  },
+];
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -35,8 +58,24 @@ export const Route = createFileRoute("/")({
         content:
           "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
       },
+      { property: "og:image", content: `https://umraio.com${wordmarkAsset.url}` },
+      { name: "twitter:image", content: `https://umraio.com${wordmarkAsset.url}` },
     ],
     links: [{ rel: "canonical", href: "https://umraio.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
+    ],
   }),
   component: Index,
 });
@@ -204,24 +243,52 @@ function Index() {
             </dl>
           </section>
 
-          <section className="mt-24 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {capabilities.map((item, i) => (
-              <article
-                key={item.title}
-                className="animate-rise panel panel-hover p-8"
-                style={{ animationDelay: `${420 + i * 70}ms` }}
-              >
-                <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-primary/10">
-                  <item.icon className="size-5 text-primary" />
-                </span>
-                <h3 className="mt-6 text-base font-semibold tracking-tight">{item.title}</h3>
-                <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
-                  {item.body}
-                </p>
-              </article>
-            ))}
+          <section className="mt-24" aria-labelledby="automates-heading">
+            <h2
+              id="automates-heading"
+              className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            >
+              What UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> Automates
+            </h2>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {capabilities.map((item, i) => (
+                <article
+                  key={item.title}
+                  className="animate-rise panel panel-hover p-8"
+                  style={{ animationDelay: `${420 + i * 70}ms` }}
+                >
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-primary/10">
+                    <item.icon className="size-5 text-primary" />
+                  </span>
+                  <h3 className="mt-6 text-base font-semibold tracking-tight">{item.title}</h3>
+                  <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
+                    {item.body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="mt-24" aria-labelledby="faq-heading">
+            <h2
+              id="faq-heading"
+              className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            >
+              Frequently Asked Questions
+            </h2>
+            <div className="mx-auto mt-10 grid max-w-3xl gap-4">
+              {faqs.map((item) => (
+                <article key={item.q} className="panel p-6 text-left">
+                  <h3 className="text-base font-semibold tracking-tight">{item.q}</h3>
+                  <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
+                    {item.a}
+                  </p>
+                </article>
+              ))}
+            </div>
           </section>
         </main>
+
 
         <footer className="border-t border-border/60 px-6 py-10 sm:px-10">
           <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-2 text-center">

@@ -26,6 +26,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — UMRAIO® Autonomous AI Business Executive" },
+      { name: "robots", content: "noindex, follow" },
       {
         name: "description",
         content:
