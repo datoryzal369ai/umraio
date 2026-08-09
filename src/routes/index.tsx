@@ -155,11 +155,12 @@ function Index() {
               <span className="whitespace-nowrap">
                 Powered by{" "}
                 <span className="font-medium text-primary">
-                  UMRAVERSE
-                  <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">®</sup>
+                  RÉNAI.CORE
+                  <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">™</sup>
                 </span>
               </span>
             </span>
+
 
 
             <div
