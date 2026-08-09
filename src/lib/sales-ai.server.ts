@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createLovableAiGatewayProvider, SALES_MODEL } from "./ai-gateway.server";
+import { GLOBAL_UMRAIO_KNOWLEDGE } from "./global-knowledge.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
@@ -159,6 +160,20 @@ export function searchKnowledge(
   }));
 }
 
+/** Search the tenant-agnostic global UMRAIO knowledge (platform facts only). */
+export function searchGlobalKnowledge(query: string, limit = 4) {
+  const rows: KnowledgeRow[] = GLOBAL_UMRAIO_KNOWLEDGE.map((a) => ({
+    id: a.id,
+    title: a.title,
+    category: a.category,
+    summary: a.summary,
+    content: a.content,
+    tags: a.tags,
+    file_name: null,
+  }));
+  return searchKnowledge(rows, query, null, limit).map((r) => ({ ...r, source: "global" as const }));
+}
+
 const PERSONALITY_HINTS: Record<string, string> = {
   professional: "Corporate, precise and credible. No filler, no slang.",
   friendly: "Warm, conversational and approachable, like a trusted travel consultant.",
@@ -224,25 +239,31 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
       : "Use search_knowledge when the customer asks something the package catalogue cannot answer.",
     s?.kb_strict_mode === false
       ? "You may add general Umrah guidance beyond the knowledge base, but never invent agency-specific facts, prices or dates."
-      : "STRICT MODE: state agency facts only when they appear in the knowledge base or package catalogue. Never improvise.",
+      : "STRICT MODE: state agency facts only when they appear in the agency knowledge base or package catalogue. Never improvise. This restriction applies to AGENCY facts only — questions about UMRAIO® itself are always answerable from global UMRAIO knowledge.",
+    "KNOWLEDGE PRIORITY (in order): 1) verified agency knowledge, 2) global UMRAIO knowledge, 3) the current conversation context, 4) safe general information, 5) ask a clarifying question, 6) human escalation as the last resort.",
+    "search_knowledge returns two sources: `agency` results (this agency's verified data) and `global` results (official facts about the UMRAIO platform). Use agency results for agency-specific questions and global results for questions about UMRAIO itself.",
+    "An empty agency knowledge base is NEVER a reason to go silent or escalate. If the customer asks what UMRAIO is or what it can do, answer confidently from global UMRAIO knowledge.",
     s?.kb_escalate_when_unknown === false
       ? "If nothing relevant is found, answer generally and invite the customer to ask for details."
-      : "If search_knowledge returns nothing relevant, say you will confirm with a human colleague instead of guessing.",
+      : "If nothing relevant is found for an AGENCY-specific question (price, date, hotel, Mutawwif, availability), do not fabricate: say you need to confirm the official agency information, and keep the conversation moving by asking for their preferred travel date and number of pilgrims.",
     "Always use the recommend_packages tool before quoting any package, and never invent packages, prices or departure dates.",
     "Whenever the customer reveals their name, phone, budget, pax count or travel month, call update_lead_profile to save it.",
     "When the customer is not ready yet, call schedule_followup to book a polite follow-up.",
     "Qualification checklist you must complete naturally over the conversation (never as a form, one or two questions at a time): name, phone, city, number of pilgrims (pax), preferred travel month, budget per person and package interest. Save each detail with update_lead_profile as soon as you learn it.",
-    "Call escalate_to_human whenever the customer asks for a human/staff/manager, is upset, negotiates a discount, or when you are not confident the knowledge base and package catalogue answer their question. After escalating, send one short reassuring message and stop selling.",
+    "ESCALATION RULES: call escalate_to_human only when a human is genuinely needed. Set human_takeover=true ONLY when the customer explicitly asks for a human/staff/manager, is upset, or a sensitive transaction (payment, refund, contract, discount approval) requires a person — that pauses the AI. For a simple knowledge gap use human_takeover=false: a colleague is notified while you continue to help the customer normally. Never stop replying to the customer.",
+    "Every customer message must receive a reply: an answer, a clarifying question, a safe fallback, or an explicit human-handoff message. Silence is never acceptable.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
     businessHoursLine(s),
     s?.ai_custom_instructions?.trim()
       ? `Agency custom instructions (highest priority, never break platform safety rules):\n${s.ai_custom_instructions.trim()}`
       : null,
     ctx.knowledge.length
-      ? `Knowledge base index (use search_knowledge to read the full text):\n${ctx.knowledge
+      ? `Agency knowledge base index (use search_knowledge to read the full text):\n${ctx.knowledge
           .map((a) => `- [${a.category}] ${a.title}${a.summary ? ` — ${a.summary}` : ""}`)
           .join("\n")}`
-      : "The knowledge base is empty; rely only on the package catalogue and escalate anything else.",
+      : "The agency knowledge base is empty. You can still answer questions about UMRAIO itself from global UMRAIO knowledge, and you can still qualify the lead. Only agency-specific facts need confirmation from the agency.",
+    `Global UMRAIO knowledge index (platform facts, always available via search_knowledge):\n${GLOBAL_UMRAIO_KNOWLEDGE.map((a) => `- ${a.title} — ${a.summary}`).join("\n")}`,
+
     ctx.lead
       ? `Known lead profile: ${JSON.stringify(ctx.lead)}`
       : "No lead profile linked yet to this conversation.",
@@ -292,7 +313,7 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
   return {
     search_knowledge: tool({
       description:
-        "Search the agency knowledge base (FAQ, travel guide, package info, visa info, hotel info, uploaded PDFs). Call this before answering any factual question.",
+        "Search knowledge. Returns `agency` results (this agency's verified FAQ, travel guide, package/visa/hotel info, uploaded PDFs) and `global` results (official facts about the UMRAIO platform itself). Call this before answering any factual question.",
       inputSchema: z.object({
         query: z.string(),
         category: z
@@ -300,15 +321,35 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           .nullable(),
       }),
       execute: async ({ query, category }) => {
-        const results = searchKnowledge(
-          ctx.knowledge,
-          query,
-          category,
-          ctx.settings?.kb_max_articles ?? 4,
-        );
-        return results.length ? { results } : { results: [], note: "No matching knowledge found." };
+        const limit = ctx.settings?.kb_max_articles ?? 4;
+        const agencyResults = searchKnowledge(ctx.knowledge, query, category, limit);
+        const globalResults = searchGlobalKnowledge(query, limit);
+        await supabase.from("activity_log").insert({
+          agency_id: agencyId,
+          actor: "ai",
+          action: "AI knowledge lookup",
+          entity: "conversation",
+          entity_id: ctx.conversation.id,
+          meta: {
+            knowledge_source: agencyResults.length
+              ? "agency"
+              : globalResults.length
+                ? "global"
+                : "none",
+            agency_hits: agencyResults.length,
+            global_hits: globalResults.length,
+          },
+        });
+        return {
+          agency: agencyResults,
+          global: globalResults,
+          note: agencyResults.length
+            ? undefined
+            : "No agency-specific knowledge matched. Global UMRAIO knowledge may still answer questions about the platform. Do not fabricate agency facts.",
+        };
       },
     }),
+
 
     recommend_packages: tool({
       description: "Look up the agency's active Umrah packages to recommend accurate options.",
@@ -396,26 +437,31 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
     }),
     escalate_to_human: tool({
       description:
-        "Hand this conversation over to a human colleague. Use when the customer asks for a human, complains, negotiates outside your authority, or when you are not confident about the answer.",
+        "Flag that a human colleague should look at this conversation. Set human_takeover=true ONLY for an explicit request for a human, an upset customer, or a sensitive transaction (payment, refund, contract, discount approval) — that pauses the AI. For a simple knowledge gap use human_takeover=false: the team is notified but you keep helping the customer.",
       inputSchema: z.object({
         reason: z.string(),
         urgency: z.enum(["low", "normal", "high"]),
+        human_takeover: z
+          .boolean()
+          .describe("true only for an explicit human takeover or a sensitive transaction"),
       }),
-      execute: async ({ reason, urgency }) => {
+      execute: async ({ reason, urgency, human_takeover }) => {
         const now = new Date().toISOString();
-        await supabase
-          .from("conversations")
-          .update({
-            ai_enabled: false,
-            status: "open",
-            escalated_at: now,
-            escalation_reason: reason,
-          })
-          .eq("id", ctx.conversation.id);
+        const patch: Record<string, unknown> = {
+          status: "open",
+          escalated_at: now,
+          escalation_reason: reason,
+          human_attention_required: true,
+        };
+        // Non-destructive by default: a knowledge gap must never silence the AI.
+        if (human_takeover) patch["ai_enabled"] = false;
+        await supabase.from("conversations").update(patch).eq("id", ctx.conversation.id);
         await supabase.from("followup_jobs").insert({
           agency_id: agencyId,
           lead_id: leadId,
-          title: `Human takeover needed: ${reason}`,
+          title: human_takeover
+            ? `Human takeover needed: ${reason}`
+            : `Human attention requested: ${reason}`,
           channel: "whatsapp",
           run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
@@ -423,18 +469,30 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         await supabase.from("activity_log").insert({
           agency_id: agencyId,
           actor: "ai",
-          action: `Escalated WhatsApp conversation to a human (${urgency})`,
+          action: human_takeover
+            ? `Human takeover activated on WhatsApp conversation (${urgency})`
+            : `Human attention requested on WhatsApp conversation (${urgency})`,
           entity: "conversation",
           entity_id: ctx.conversation.id,
-          meta: { reason, urgency },
+          meta: {
+            reason,
+            urgency,
+            human_takeover,
+            ai_remains_enabled: !human_takeover,
+            decision: human_takeover ? "human_takeover" : "human_attention_required",
+          },
         });
         return {
           escalated: true,
-          instruction:
-            "Tell the customer politely that a human colleague will continue shortly, then stop.",
+          human_takeover,
+          ai_still_enabled: !human_takeover,
+          instruction: human_takeover
+            ? "Tell the customer politely that a human colleague will continue shortly, then stop."
+            : "A colleague has been notified. Keep helping the customer normally: acknowledge that you will confirm the official agency details, and continue qualifying (preferred month, number of pilgrims, budget).",
         };
       },
     }),
+
   };
 }
 

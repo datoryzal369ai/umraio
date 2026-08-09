@@ -471,6 +471,7 @@ export type Database = {
           escalation_reason: string | null
           external_id: string | null
           first_response_ms: number | null
+          human_attention_required: boolean
           id: string
           last_message_at: string
           lead_id: string | null
@@ -485,6 +486,7 @@ export type Database = {
           escalation_reason?: string | null
           external_id?: string | null
           first_response_ms?: number | null
+          human_attention_required?: boolean
           id?: string
           last_message_at?: string
           lead_id?: string | null
@@ -499,6 +501,7 @@ export type Database = {
           escalation_reason?: string | null
           external_id?: string | null
           first_response_ms?: number | null
+          human_attention_required?: boolean
           id?: string
           last_message_at?: string
           lead_id?: string | null
