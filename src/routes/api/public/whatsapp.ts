@@ -30,8 +30,12 @@ async function sendWhatsappText(
     }),
   });
   if (!res.ok) {
-    console.error(`WhatsApp send failed [${res.status}]: ${await res.text()}`);
+    // Meta error bodies never contain the token; safe to log verbatim.
+    console.error(`[whatsapp] outbound send failed status=${res.status} body=${await res.text()}`);
+    return false;
   }
+  console.log(`[whatsapp] outbound send ok status=${res.status}`);
+  return true;
 }
 
 export const Route = createFileRoute("/api/public/whatsapp")({
@@ -66,7 +70,10 @@ export const Route = createFileRoute("/api/public/whatsapp")({
 
         const value = payload.entry?.[0]?.changes?.[0]?.value;
         const message = value?.messages?.[0];
-        const phoneNumberId = value?.metadata?.phone_number_id;
+        const phoneNumberId = value?.metadata?.phone_number_id?.trim();
+        console.log(
+          `[whatsapp] webhook received phone_number_id=${phoneNumberId ?? "none"} type=${message?.type ?? "none"} messages=${value?.messages?.length ?? 0}`,
+        );
         if (!message || !phoneNumberId) return new Response("ok");
 
         const from = message.from ?? "";
