@@ -55,11 +55,9 @@ export function BrandArchitecture({ className }: { className?: string }) {
           src={umraverseAsset.url}
           alt="UMRAVERSE® — Your Umrah Universe"
           loading="lazy"
-          className="mt-5 h-auto w-full max-w-[220px] object-contain mix-blend-screen sm:max-w-[300px]"
+          className="mt-6 h-auto w-full max-w-[200px] object-contain mix-blend-screen sm:max-w-[260px]"
         />
-        <p className="mt-1 text-[10px] font-light uppercase leading-[1.6] tracking-[0.3em] text-muted-foreground sm:text-[11px]">
-          Your Umrah Universe
-        </p>
+
 
         <Connector />
 
