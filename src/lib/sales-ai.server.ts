@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createLovableAiGatewayProvider, SALES_MODEL } from "./ai-gateway.server";
+import { GLOBAL_UMRAIO_KNOWLEDGE } from "./global-knowledge.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
