@@ -35,8 +35,24 @@ export const Route = createFileRoute("/")({
         content:
           "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
       },
+      { property: "og:image", content: `https://umraio.com${wordmarkAsset.url}` },
+      { name: "twitter:image", content: `https://umraio.com${wordmarkAsset.url}` },
     ],
     links: [{ rel: "canonical", href: "https://umraio.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
+    ],
   }),
   component: Index,
 });
