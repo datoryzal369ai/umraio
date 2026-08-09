@@ -1,0 +1,4 @@
+DELETE FROM public.messages WHERE conversation_id IN ('b08ff50b-e580-4a34-8104-13226ae3bf46','f0faa644-66c7-4d2d-8fa1-8b02413acd33','c9dde702-ab0e-474f-a613-5cff81dcbbc5');
+DELETE FROM public.notifications WHERE entity = 'conversation' AND entity_id IN ('b08ff50b-e580-4a34-8104-13226ae3bf46','f0faa644-66c7-4d2d-8fa1-8b02413acd33','c9dde702-ab0e-474f-a613-5cff81dcbbc5');
+DELETE FROM public.activity_log WHERE entity = 'conversation' AND entity_id IN ('b08ff50b-e580-4a34-8104-13226ae3bf46','f0faa644-66c7-4d2d-8fa1-8b02413acd33','c9dde702-ab0e-474f-a613-5cff81dcbbc5');
+DELETE FROM public.conversations WHERE id IN ('b08ff50b-e580-4a34-8104-13226ae3bf46','f0faa644-66c7-4d2d-8fa1-8b02413acd33','c9dde702-ab0e-474f-a613-5cff81dcbbc5');
