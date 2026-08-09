@@ -243,24 +243,52 @@ function Index() {
             </dl>
           </section>
 
-          <section className="mt-24 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {capabilities.map((item, i) => (
-              <article
-                key={item.title}
-                className="animate-rise panel panel-hover p-8"
-                style={{ animationDelay: `${420 + i * 70}ms` }}
-              >
-                <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-primary/10">
-                  <item.icon className="size-5 text-primary" />
-                </span>
-                <h3 className="mt-6 text-base font-semibold tracking-tight">{item.title}</h3>
-                <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
-                  {item.body}
-                </p>
-              </article>
-            ))}
+          <section className="mt-24" aria-labelledby="automates-heading">
+            <h2
+              id="automates-heading"
+              className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            >
+              What UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> Automates
+            </h2>
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {capabilities.map((item, i) => (
+                <article
+                  key={item.title}
+                  className="animate-rise panel panel-hover p-8"
+                  style={{ animationDelay: `${420 + i * 70}ms` }}
+                >
+                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-primary/10">
+                    <item.icon className="size-5 text-primary" />
+                  </span>
+                  <h3 className="mt-6 text-base font-semibold tracking-tight">{item.title}</h3>
+                  <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
+                    {item.body}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="mt-24" aria-labelledby="faq-heading">
+            <h2
+              id="faq-heading"
+              className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
+            >
+              Frequently Asked Questions
+            </h2>
+            <div className="mx-auto mt-10 grid max-w-3xl gap-4">
+              {faqs.map((item) => (
+                <article key={item.q} className="panel p-6 text-left">
+                  <h3 className="text-base font-semibold tracking-tight">{item.q}</h3>
+                  <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
+                    {item.a}
+                  </p>
+                </article>
+              ))}
+            </div>
           </section>
         </main>
+
 
         <footer className="border-t border-border/60 px-6 py-10 sm:px-10">
           <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-2 text-center">
