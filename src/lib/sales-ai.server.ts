@@ -467,7 +467,7 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
     }),
     escalate_to_human: tool({
       description:
-        "Flag that a human colleague should look at this conversation. Set human_takeover=true ONLY for an explicit request for a human, an upset customer, or a sensitive transaction (payment, refund, contract, discount approval) — that pauses the AI. For a simple knowledge gap use human_takeover=false: the team is notified but you keep helping the customer.",
+        "Flag that a human colleague should look at this conversation. Set human_takeover=true ONLY when the customer explicitly asked to speak with a person — that pauses the AI. Booking intent, knowledge gaps and verification needs use human_takeover=false: the team is notified but you keep helping the customer.",
       inputSchema: z.object({
         reason: z.string(),
         urgency: z.enum(["low", "normal", "high"]),
