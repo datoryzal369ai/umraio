@@ -86,7 +86,14 @@ export const Route = createFileRoute("/api/public/whatsapp")({
           .select("id, agency_id, access_token, auto_reply")
           .eq("phone_number_id", phoneNumberId)
           .maybeSingle();
-        if (!config) return new Response("Unknown number", { status: 404 });
+        if (!config) {
+          // Return 200 so Meta does not disable/retry-storm the subscription.
+          console.error(
+            `[whatsapp] no agency connection matches phone_number_id=${phoneNumberId} — check Settings → WhatsApp`,
+          );
+          return new Response("ok");
+        }
+        console.log(`[whatsapp] agency identified agency_id=${config.agency_id}`);
 
         const agencyId = config.agency_id;
         const profileName = value?.contacts?.[0]?.profile?.name ?? from;
