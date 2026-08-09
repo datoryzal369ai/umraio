@@ -34,7 +34,6 @@ import { Route as AuthenticatedSettingsApiKeysRouteImport } from './routes/_auth
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
-import { Route as ApiPublicRegressCheckRouteImport } from './routes/api/public/regress-check'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
 import { Route as ApiPublicHooksTaskEngineRouteImport } from './routes/api/public/hooks/task-engine'
 
@@ -175,11 +174,6 @@ const AuthenticatedSettingsWhatsappRoute =
     path: '/whatsapp',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
-const ApiPublicRegressCheckRoute = ApiPublicRegressCheckRouteImport.update({
-  id: '/api/public/regress-check',
-  path: '/api/public/regress-check',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicWhatsappRoute = ApiPublicWhatsappRouteImport.update({
   id: '/api/public/whatsapp',
   path: '/api/public/whatsapp',
@@ -212,7 +206,6 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
-  '/api/public/regress-check': typeof ApiPublicRegressCheckRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -240,7 +233,6 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
-  '/api/public/regress-check': typeof ApiPublicRegressCheckRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
   '/executive': typeof AuthenticatedExecutiveIndexRoute
@@ -271,7 +263,6 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
-  '/api/public/regress-check': typeof ApiPublicRegressCheckRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/_authenticated/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -302,7 +293,6 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
-    | '/api/public/regress-check'
     | '/api/public/whatsapp'
     | '/conversations/'
     | '/executive/'
@@ -330,7 +320,6 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
-    | '/api/public/regress-check'
     | '/api/public/whatsapp'
     | '/conversations'
     | '/executive'
@@ -360,7 +349,6 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/whatsapp'
-    | '/api/public/regress-check'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
     | '/_authenticated/executive/'
@@ -376,7 +364,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  ApiPublicRegressCheckRoute: typeof ApiPublicRegressCheckRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
   ApiPublicHooksTaskEngineRoute: typeof ApiPublicHooksTaskEngineRoute
 }
@@ -558,13 +545,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsWhatsappRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
-    '/api/public/regress-check': {
-      id: '/api/public/regress-check'
-      path: '/api/public/regress-check'
-      fullPath: '/api/public/regress-check'
-      preLoaderRoute: typeof ApiPublicRegressCheckRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/whatsapp': {
       id: '/api/public/whatsapp'
       path: '/api/public/whatsapp'
@@ -652,7 +632,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
-  ApiPublicRegressCheckRoute: ApiPublicRegressCheckRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
   ApiPublicHooksTaskEngineRoute: ApiPublicHooksTaskEngineRoute,
 }
