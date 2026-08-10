@@ -66,7 +66,18 @@ export const Route = createFileRoute("/")({
           "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
       },
       { property: "og:image", content: `https://umraio.com${wordmarkAsset.url}` },
+      {
+        property: "og:image:alt",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah agencies",
+      },
+      { property: "og:locale", content: "en_MY" },
+      { property: "og:site_name", content: "UMRAIO®" },
       { name: "twitter:image", content: `https://umraio.com${wordmarkAsset.url}` },
+      {
+        name: "twitter:image:alt",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah agencies",
+      },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
     ],
     links: [{ rel: "canonical", href: "https://umraio.com/" }],
     scripts: [
@@ -185,6 +196,8 @@ function Index() {
               <img
                 src={wordmarkAsset.url}
                 alt="UMRAIO® — Autonomous AI Business Executive"
+                fetchPriority="high"
+                decoding="async"
                 className="mx-auto w-full max-w-2xl object-contain"
               />
             </div>
