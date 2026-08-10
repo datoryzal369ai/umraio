@@ -335,3 +335,78 @@
   .umr-bar { width: var(--umr-w); }
   .umr-score { stroke-dashoffset: var(--umr-dash) !important; }
 }
+
+/* --- Workforce intelligence panel + premium CTA (visual only) --- */
+.umr-hub {
+  animation: umr-hub-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes umr-hub-pulse {
+  0%, 100% { box-shadow: 0 0 26px -8px var(--color-primary); }
+  50% { box-shadow: 0 0 44px -4px var(--color-primary); }
+}
+
+.umr-metric-ring {
+  box-shadow: inset 0 0 0 1px rgba(0, 215, 255, 0.12);
+}
+
+.umr-signal-line {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 215, 255, 0.35),
+    rgba(0, 215, 255, 0.05)
+  );
+  background-size: 200% 100%;
+  animation: umr-signal-travel 6s linear infinite;
+}
+
+@keyframes umr-signal-travel {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@utility btn-premium {
+  position: relative;
+  background-image: linear-gradient(135deg, #12cfff 0%, #00d7ff 45%, #7ef7ff 100%);
+  border: 1px solid rgba(126, 247, 255, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(0, 215, 255, 0.12),
+    0 18px 40px -22px rgba(0, 215, 255, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition:
+    box-shadow 0.35s ease,
+    transform 0.35s ease,
+    filter 0.35s ease;
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow:
+      0 0 0 1px rgba(0, 215, 255, 0.25),
+      0 24px 52px -20px rgba(0, 215, 255, 1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+  & .umr-arrow {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  &:hover .umr-arrow {
+    transform: translateX(3px);
+  }
+}
+
+@utility umr-divider {
+  height: 1px;
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 215, 255, 0.45),
+    transparent
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .umr-hub,
+  .umr-signal-line {
+    animation: none !important;
+  }
+}
