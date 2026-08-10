@@ -111,9 +111,7 @@ export type ExecuteArgs = {
   signal: AbortSignal;
 };
 
-export function createIntelligenceGateway(
-  audit?: GatewayAuditBinding,
-): IntelligenceGateway {
+export function createIntelligenceGateway(audit?: GatewayAuditBinding): IntelligenceGateway {
   async function emit(
     request: AiRequest,
     event: "AI_REQUEST" | "AI_RESPONSE" | "AI_FAILURE",

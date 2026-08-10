@@ -51,12 +51,7 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
 };
 
 export type ToolRejectionStage =
-  | "registration"
-  | "allowed_tools"
-  | "schema"
-  | "permission"
-  | "business_rule"
-  | "safety";
+  "registration" | "allowed_tools" | "schema" | "permission" | "business_rule" | "safety";
 
 export type ToolOutcome<TOutput = any> =
   | { status: "executed"; result: TOutput }

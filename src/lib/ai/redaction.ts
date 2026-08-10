@@ -10,19 +10,32 @@ type Rule = { name: string; pattern: RegExp; token: string };
 
 const RULES: Rule[] = [
   // Credentials / tokens first (most specific).
-  { name: "jwt", pattern: /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g, token: "[redacted:token]" },
+  {
+    name: "jwt",
+    pattern: /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\b/g,
+    token: "[redacted:token]",
+  },
   { name: "bearer", pattern: /\bBearer\s+[A-Za-z0-9._~+/-]{8,}=*/gi, token: "[redacted:token]" },
   { name: "openai_key", pattern: /\bsk-[A-Za-z0-9_-]{12,}\b/g, token: "[redacted:key]" },
-  { name: "supabase_key", pattern: /\bsb_(?:secret|publishable)_[A-Za-z0-9_-]{8,}\b/g, token: "[redacted:key]" },
+  {
+    name: "supabase_key",
+    pattern: /\bsb_(?:secret|publishable)_[A-Za-z0-9_-]{8,}\b/g,
+    token: "[redacted:key]",
+  },
   // Meta / WhatsApp Cloud API access tokens (EAA... long opaque strings).
   { name: "meta_token", pattern: /\bEAA[A-Za-z0-9]{20,}\b/g, token: "[redacted:token]" },
   {
     name: "labelled_key",
-    pattern: /\b(?:api[_-]?key|access[_-]?token|auth[_-]?token|secret|password)\b\s*[:=]\s*["']?[A-Za-z0-9._~+/-]{6,}["']?/gi,
+    pattern:
+      /\b(?:api[_-]?key|access[_-]?token|auth[_-]?token|secret|password)\b\s*[:=]\s*["']?[A-Za-z0-9._~+/-]{6,}["']?/gi,
     token: "[redacted:key]",
   },
   // PII.
-  { name: "email", pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g, token: "[redacted:email]" },
+  {
+    name: "email",
+    pattern: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,
+    token: "[redacted:email]",
+  },
   {
     name: "phone",
     pattern: /(?:\+|\b00)\d[\d\s().-]{6,}\d|\b0\d{1,2}[-\s]?\d{3,4}[-\s]?\d{4}\b/g,
