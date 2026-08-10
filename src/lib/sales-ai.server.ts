@@ -336,26 +336,38 @@ function customerAskedForHuman(ctx: Awaited<ReturnType<typeof loadContext>>): bo
   return recentCustomer.some(isExplicitHumanRequest);
 }
 
-function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) {
-  const agencyId = ctx.conversation.agency_id as string;
+type SalesCtx = Awaited<ReturnType<typeof loadContext>>;
+
+/**
+ * Sales AI tool definitions.
+ *
+ * These are registry definitions — never native SDK tools. Exposure to the
+ * model always happens through `createSdkTools()`, so every call passes the
+ * decision gate: allowedTools → schema → permission → business rule →
+ * execution → audit.
+ */
+function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
   const leadId = ctx.conversation.lead_id as string | null;
 
-  return {
-    search_knowledge: tool({
+  return createToolRegistry([
+    {
+      name: "search_knowledge",
       description:
         "Search knowledge. Returns `agency` results (this agency's verified FAQ, travel guide, package/visa/hotel info, uploaded PDFs) and `global` results (official facts about the UMRAIO platform itself). Call this before answering any factual question.",
+      permission: "read",
+      deterministicSafe: true,
       inputSchema: z.object({
         query: z.string(),
         category: z
           .enum(["faq", "travel_guide", "package_info", "visa_info", "hotel_info", "general"])
           .nullable(),
       }),
-      execute: async ({ query, category }) => {
+      execute: async ({ query, category }, tctx) => {
         const limit = ctx.settings?.kb_max_articles ?? 4;
         const agencyResults = searchKnowledge(ctx.knowledge, query, category, limit);
         const globalResults = searchGlobalKnowledge(query, limit);
-        await supabase.from("activity_log").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("activity_log").insert({
+          agency_id: tctx.agencyId,
           actor: "ai",
           action: "AI knowledge lookup",
           entity: "conversation",
@@ -378,11 +390,13 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
             : "No agency-specific knowledge matched. Global UMRAIO knowledge may still answer questions about the platform. Do not fabricate agency facts.",
         };
       },
-    }),
+    },
 
-
-    recommend_packages: tool({
+    {
+      name: "recommend_packages",
       description: "Look up the agency's active Umrah packages to recommend accurate options.",
+      permission: "read",
+      deterministicSafe: true,
       inputSchema: z.object({
         max_price_myr: z.number().nullable(),
         pax: z.number().nullable(),
@@ -390,15 +404,20 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
       }),
       execute: async ({ max_price_myr }) => {
         const list = ctx.packages as Array<Record<string, unknown>>;
+        // Deterministic filtering stays in application code.
         const filtered = max_price_myr
           ? list.filter((p) => Number(p["price_myr"]) <= max_price_myr * 1.15)
           : list;
         return { packages: (filtered.length ? filtered : list).slice(0, 6) };
       },
-    }),
-    update_lead_profile: tool({
+    },
+
+    {
+      name: "update_lead_profile",
       description:
         "Save qualification details collected during the conversation onto the CRM lead (name, phone, city, pax, preferred month, budget, package interest).",
+      permission: "write",
+      deterministicSafe: true,
       inputSchema: z.object({
         full_name: z.string().nullable(),
         phone: z.string().nullable(),
@@ -411,12 +430,18 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         temperature: z.enum(["hot", "warm", "cold"]).nullable(),
         stage: z.enum(["new", "contacted", "qualified", "proposal", "booked", "lost"]).nullable(),
       }),
-      execute: async (input) => {
-        if (!leadId) return { saved: false, reason: "No lead linked to this conversation." };
+      validate: (input) => {
+        if (!leadId) return "No lead linked to this conversation.";
+        if (input.pax !== null && (input.pax < 1 || input.pax > 200)) return "pax out of range.";
+        if (input.budget_myr !== null && input.budget_myr < 0) return "budget_myr must be positive.";
+        return null;
+      },
+      execute: async (input, tctx) => {
         const patch: Record<string, unknown> = { last_contact_at: new Date().toISOString() };
         for (const [k, v] of Object.entries(input)) if (v !== null && v !== "") patch[k] = v;
 
         const merged = { ...(ctx.lead ?? {}), ...patch } as LeadSignals;
+        // Deterministic scoring — never delegated to the model.
         const score = computeLeadScore(merged);
         patch["score"] = score;
         if (!patch["temperature"]) patch["temperature"] = temperatureForScore(score);
@@ -424,10 +449,10 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           patch["stage"] = "qualified";
         }
 
-        const { error } = await supabase.from("leads").update(patch).eq("id", leadId);
+        const { error } = await tctx.supabase.from("leads").update(patch).eq("id", leadId);
         if (error) return { saved: false, reason: error.message };
-        await supabase.from("activity_log").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("activity_log").insert({
+          agency_id: tctx.agencyId,
           actor: "ai",
           action: `AI WhatsApp Executive qualified lead (score ${score}, ${patch["temperature"]})`,
           entity: "lead",
@@ -436,17 +461,22 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         });
         return { saved: true, score, temperature: patch["temperature"], fields: Object.keys(patch) };
       },
-    }),
-    schedule_followup: tool({
+    },
+
+    {
+      name: "schedule_followup",
       description: "Schedule a follow-up task for this prospect.",
+      permission: "write",
+      deterministicSafe: true,
       inputSchema: z.object({
         title: z.string(),
         hours_from_now: z.number(),
       }),
-      execute: async ({ title, hours_from_now }) => {
+      validate: (input) => (input.title.trim() ? null : "A follow-up title is required."),
+      execute: async ({ title, hours_from_now }, tctx) => {
         const runAt = new Date(Date.now() + Math.max(1, hours_from_now) * 3600_000);
-        const { error } = await supabase.from("followup_jobs").insert({
-          agency_id: agencyId,
+        const { error } = await tctx.supabase.from("followup_jobs").insert({
+          agency_id: tctx.agencyId,
           lead_id: leadId,
           title,
           channel: "whatsapp",
@@ -454,8 +484,8 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           status: "pending",
         });
         if (error) return { scheduled: false, reason: error.message };
-        await supabase.from("activity_log").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("activity_log").insert({
+          agency_id: tctx.agencyId,
           actor: "ai",
           action: `Scheduled follow-up: ${title}`,
           entity: "lead",
@@ -464,10 +494,14 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         });
         return { scheduled: true, run_at: runAt.toISOString() };
       },
-    }),
-    escalate_to_human: tool({
+    },
+
+    {
+      name: "escalate_to_human",
       description:
         "Flag that a human colleague should look at this conversation. Set human_takeover=true ONLY when the customer explicitly asked to speak with a person — that pauses the AI. Booking intent, knowledge gaps and verification needs use human_takeover=false: the team is notified but you keep helping the customer.",
+      permission: "write",
+      deterministicSafe: true,
       inputSchema: z.object({
         reason: z.string(),
         urgency: z.enum(["low", "normal", "high"]),
@@ -475,7 +509,8 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           .boolean()
           .describe("true only for an explicit human takeover or a sensitive transaction"),
       }),
-      execute: async ({ reason, urgency, human_takeover }) => {
+      validate: (input) => (input.reason.trim() ? null : "An escalation reason is required."),
+      execute: async ({ reason, urgency, human_takeover }, tctx) => {
         const now = new Date().toISOString();
         // Deterministic guard: the model may only pause the AI when the customer
         // explicitly asked for a person. Booking intent / verification never pauses it.
@@ -489,9 +524,9 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         };
         // Non-destructive by default: knowledge gaps and booking intent never silence the AI.
         if (takeover) patch["ai_enabled"] = false;
-        await supabase.from("conversations").update(patch).eq("id", ctx.conversation.id);
-        await supabase.from("followup_jobs").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("conversations").update(patch).eq("id", ctx.conversation.id);
+        await tctx.supabase.from("followup_jobs").insert({
+          agency_id: tctx.agencyId,
           lead_id: leadId,
           title: takeover
             ? `Human takeover needed: ${reason}`
@@ -500,8 +535,8 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
           run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
         });
-        await supabase.from("activity_log").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("activity_log").insert({
+          agency_id: tctx.agencyId,
           actor: "ai",
           action: takeover
             ? `Human takeover activated on WhatsApp conversation (${urgency})`
@@ -528,12 +563,14 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
             : "AI stays active. A colleague has been notified. Keep helping the customer normally: say truthfully that final booking details (availability, deposit, terms) need agency confirmation, and continue qualifying (preferred month, number of pilgrims, budget).",
         };
       },
+    },
 
-    }),
-
-    request_human_handoff: tool({
+    {
+      name: "request_human_handoff",
       description:
         "Really send a verification/booking request to the agency team. Persists a notification, a follow-up task and an activity record. Only after this returns handoff_recorded=true may you tell the customer that the request has been sent. Never claim a handoff without calling this.",
+      permission: "external",
+      deterministicSafe: true,
       inputSchema: z.object({
         request: z.string().describe("What the team must verify or action, in one sentence"),
         topic: z.enum([
@@ -547,11 +584,13 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
         ]),
         urgency: z.enum(["low", "normal", "high"]),
       }),
-      execute: async ({ request, topic, urgency }) => {
+      validate: (input) =>
+        input.request.trim() ? null : "A concrete request description is required.",
+      execute: async ({ request, topic, urgency }, tctx) => {
         const now = new Date();
         const reference = `HO-${now.getTime().toString(36).toUpperCase()}`;
-        const { error: notifyError } = await supabase.from("notifications").insert({
-          agency_id: agencyId,
+        const { error: notifyError } = await tctx.supabase.from("notifications").insert({
+          agency_id: tctx.agencyId,
           kind: "human_handoff",
           severity: urgency === "high" ? "warning" : "info",
           title: `Customer request needs agency verification (${topic})`,
@@ -568,20 +607,20 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
               "The handoff was NOT recorded. Do not tell the customer that anything was sent. Say truthfully that you cannot confirm agency-specific details yet, and continue helping.",
           };
         }
-        await supabase.from("followup_jobs").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("followup_jobs").insert({
+          agency_id: tctx.agencyId,
           lead_id: leadId,
           title: `[${reference}] ${topic}: ${request}`,
           channel: "whatsapp",
           run_at: new Date(now.getTime() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
         });
-        await supabase
+        await tctx.supabase
           .from("conversations")
           .update({ human_attention_required: true })
           .eq("id", ctx.conversation.id);
-        await supabase.from("activity_log").insert({
-          agency_id: agencyId,
+        await tctx.supabase.from("activity_log").insert({
+          agency_id: tctx.agencyId,
           actor: "ai",
           action: `Handoff request sent to agency team (${topic})`,
           entity: "conversation",
@@ -606,29 +645,86 @@ function buildTools(supabase: Db, ctx: Awaited<ReturnType<typeof loadContext>>) 
             "You may now truthfully tell the customer the request was forwarded to the agency team for confirmation (mention the reference if useful). Do not invent a staff reply or a response time. Continue qualifying the lead.",
         };
       },
-    }),
-  };
-
+    },
+  ]);
 }
 
 export async function generateAgentReply(supabase: Db, conversationId: string): Promise<string> {
   const ctx = await loadContext(supabase, conversationId);
+  const agencyId = ctx.conversation.agency_id as string;
 
   const history = ctx.messages.slice(-40).map((m) => ({
     role: (m.sender === "customer" ? "user" : "assistant") as "user" | "assistant",
     content: m.sender === "human" ? `[Human agent]: ${m.body}` : m.body,
   }));
 
-  const { text } = await generateText({
-    model: getModel(),
+  // Tools are exposed to the model ONLY through the registry adapter, so every
+  // call runs the decision gate before it can touch the database.
+  const registry = buildSalesToolRegistry(ctx);
+  const correlationId = newCorrelationId();
+  const allowedTools = registry.names();
+  const toolCtx: ToolExecutionContext = {
+    supabase,
+    agencyId,
+    correlationId,
+    grantedPermissions: ["read", "write", "external"],
+    allowedTools,
+  };
+
+  const gateway = createIntelligenceGateway({ supabase, agencyId });
+  const result = await gateway.generate({
+    taskType: "customer_reply",
     system: systemPrompt(ctx),
+    prompt: "",
     messages: history.length ? history : [{ role: "user", content: "Assalamualaikum" }],
-    tools: buildTools(supabase, ctx),
-    stopWhen: stepCountIs(50),
-    providerOptions: { lovable: { reasoningEffort: "none" } },
+    tools: createSdkTools({ registry, ctx: toolCtx }),
+    maxSteps: 50,
+    context: {
+      agencyId,
+      correlationId,
+      now: new Date().toISOString(),
+      facts: {
+        conversation_id: ctx.conversation.id,
+        lead_linked: Boolean(ctx.conversation.lead_id),
+        channel: ctx.conversation.channel,
+      },
+      allowedTools,
+    },
   });
 
-  return text.trim() || "Maaf, boleh ulang semula soalan tuan/puan?";
+  if (!result.ok) {
+    // Never fabricate a reply. The gateway already logged AI_FAILURE with the
+    // correlation id; the caller keeps its existing failure/escalation path.
+    await recordExperience(supabase, agencyId, {
+      interaction_id: correlationId,
+      task_type: "customer_reply",
+      model: result.usage?.model ?? null,
+      input_context_hash: hashContext({ facts: { conversation_id: ctx.conversation.id } }),
+      action_taken: "no reply generated",
+      outcome: "gateway_failure",
+      success: false,
+      confidence: null,
+      evaluation_score: null,
+      failure_reason: result.error?.message ?? "AI provider unavailable",
+    });
+    throw new Error(result.error?.message ?? "AI provider unavailable");
+  }
+
+  const text = (result.data ?? "").trim();
+  await recordExperience(supabase, agencyId, {
+    interaction_id: correlationId,
+    task_type: "customer_reply",
+    model: result.usage?.model ?? null,
+    input_context_hash: hashContext({ facts: { conversation_id: ctx.conversation.id } }),
+    action_taken: "customer reply generated",
+    outcome: text ? "reply_returned" : "empty_reply_fallback",
+    success: Boolean(text),
+    confidence: null,
+    evaluation_score: null,
+    failure_reason: null,
+  });
+
+  return text || "Maaf, boleh ulang semula soalan tuan/puan?";
 }
 
 export type ConversationInsights = {
@@ -656,6 +752,7 @@ export async function generateInsights(
   conversationId: string,
 ): Promise<ConversationInsights> {
   const ctx = await loadContext(supabase, conversationId);
+  const agencyId = ctx.conversation.agency_id as string;
   const transcript = ctx.messages
     .map((m) => `${m.sender === "customer" ? "Customer" : "Agency"}: ${m.body}`)
     .join("\n");
@@ -673,22 +770,23 @@ export async function generateInsights(
     transcript || "(no messages yet)",
   ].join("\n");
 
-  try {
-    const { output } = await generateText({
-      model: getModel(),
-      output: Output.object({ schema: insightsSchema }),
-      prompt,
-      providerOptions: { lovable: { reasoningEffort: "none" } },
-    });
-    return output as ConversationInsights;
-  } catch (error) {
-    if (NoObjectGeneratedError.isInstance(error)) {
-      try {
-        return insightsSchema.parse(JSON.parse(error.text ?? "{}")) as ConversationInsights;
-      } catch {
-        throw new Error("Could not generate insights. Please try again.");
-      }
-    }
-    throw error;
+  const correlationId = newCorrelationId();
+  const gateway = createIntelligenceGateway({ supabase, agencyId });
+  const result = await gateway.extract<ConversationInsights>({
+    taskType: "conversation_analysis",
+    prompt,
+    schema: insightsSchema,
+    context: {
+      agencyId,
+      correlationId,
+      now: new Date().toISOString(),
+      facts: { conversation_id: ctx.conversation.id },
+      allowedTools: [],
+    },
+  });
+
+  if (!result.ok || !result.data) {
+    throw new Error(result.error?.message ?? "Could not generate insights. Please try again.");
   }
+  return result.data;
 }
