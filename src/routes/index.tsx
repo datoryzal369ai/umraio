@@ -102,13 +102,6 @@ export const Route = createFileRoute("/")({
 });
 
 
-const trust = [
-  { label: "Always working", value: "24/7" },
-  { label: "More leads", value: "3×" },
-  { label: "Time saved", value: "85%" },
-  { label: "AI-powered", value: "100%" },
-];
-
 function Index() {
   const { user, loading } = useAuth();
 
