@@ -252,3 +252,86 @@
     radial-gradient(circle at 80% 80%, color-mix(in oklch, var(--primary) 5%, transparent), transparent 55%);
   background-color: color-mix(in oklch, var(--background) 92%, black);
 }
+
+/* ── "What UMRAIO® Automates" showcase (visual-only) ───────────────── */
+.umr-reveal {
+  animation: umr-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.umr-dot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  animation: umr-typing 1.3s ease-in-out infinite;
+}
+
+@keyframes umr-typing {
+  0%, 60%, 100% { opacity: 0.3; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+
+.umr-score {
+  animation: umr-score-fill 1.8s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+
+@keyframes umr-score-fill {
+  to { stroke-dashoffset: var(--umr-dash); }
+}
+
+.umr-bar {
+  width: 0;
+  animation: umr-bar-fill 1.6s cubic-bezier(0.22, 1, 0.36, 1) 0.4s forwards;
+}
+
+@keyframes umr-bar-fill {
+  to { width: var(--umr-w); }
+}
+
+.umr-pulse {
+  animation: umr-pulse-dot 2.8s ease-in-out infinite;
+}
+
+@keyframes umr-pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 215, 255, 0.35); opacity: 0.75; }
+  50% { box-shadow: 0 0 0 5px rgba(0, 215, 255, 0); opacity: 1; }
+}
+
+.umr-halo {
+  animation: umr-halo-glow 4s ease-in-out infinite;
+}
+
+@keyframes umr-halo-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 215, 255, 0.18); }
+  50% { box-shadow: 0 0 34px -6px rgba(0, 215, 255, 0.45); }
+}
+
+.umr-signal {
+  background-image:
+    radial-gradient(40% 60% at 50% 20%, rgba(0, 215, 255, 0.14), transparent 70%),
+    linear-gradient(to right, rgba(0, 215, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 215, 255, 0.07) 1px, transparent 1px);
+  background-size: 100% 100%, 56px 56px, 56px 56px;
+  mask-image: radial-gradient(60% 80% at 50% 30%, black, transparent 80%);
+  animation: umr-drift 22s linear infinite;
+}
+
+@keyframes umr-drift {
+  from { background-position: 0 0, 0 0, 0 0; }
+  to { background-position: 0 0, 56px 0, 0 56px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .umr-reveal,
+  .umr-dot,
+  .umr-score,
+  .umr-bar,
+  .umr-pulse,
+  .umr-halo,
+  .umr-signal {
+    animation: none !important;
+  }
+  .umr-bar { width: var(--umr-w); }
+  .umr-score { stroke-dashoffset: var(--umr-dash) !important; }
+}
