@@ -353,7 +353,7 @@ type SalesCtx = Awaited<ReturnType<typeof loadContext>>;
 function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
   const leadId = ctx.conversation.lead_id as string | null;
 
-  return createToolRegistry([
+  const tools: ToolDefinition[] = [
     {
       name: "search_knowledge",
       description:
