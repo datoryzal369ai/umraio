@@ -1,9 +1,18 @@
-import { generateText, stepCountIs, tool, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { createLovableAiGatewayProvider, SALES_MODEL } from "./ai-gateway.server";
 import { GLOBAL_UMRAIO_KNOWLEDGE } from "./global-knowledge.server";
+// Provider-agnostic: sales AI talks to the Intelligence Gateway only.
+import { createIntelligenceGateway } from "./ai/gateway.server";
+import { newCorrelationId } from "./ai/context.server";
+import { createSdkTools } from "./ai/sdk-tools.server";
+import {
+  createToolRegistry,
+  type ToolDefinition,
+  type ToolExecutionContext,
+  type ToolRegistry,
+} from "./ai/tool-registry.server";
+import { hashContext, recordExperience } from "./ai/evaluation.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
@@ -16,11 +25,6 @@ export type ChatMessageRow = {
   created_at: string;
 };
 
-function getModel() {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
-  return createLovableAiGatewayProvider(key)(SALES_MODEL);
-}
 
 export async function loadContext(supabase: Db, conversationId: string) {
   const { data: conversation, error } = await supabase
