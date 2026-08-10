@@ -39,7 +39,11 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
 
 export type ToolOutcome<TOutput = any> =
   | { status: "executed"; result: TOutput }
-  | { status: "rejected"; stage: "schema" | "permission" | "business_rule" | "safety"; reason: string }
+  | {
+      status: "rejected";
+      stage: "schema" | "permission" | "business_rule" | "safety";
+      reason: string;
+    }
   | { status: "failed"; reason: string };
 
 export class ToolRegistry {
@@ -70,14 +74,14 @@ export class ToolRegistry {
   }
 
   /** Decision gate: nothing executes without passing every stage. */
-  async invoke(
-    name: string,
-    rawInput: unknown,
-    ctx: ToolExecutionContext,
-  ): Promise<ToolOutcome> {
+  async invoke(name: string, rawInput: unknown, ctx: ToolExecutionContext): Promise<ToolOutcome> {
     const tool = this.tools.get(name);
     if (!tool) {
-      return { status: "rejected", stage: "permission", reason: `Tool "${name}" is not registered.` };
+      return {
+        status: "rejected",
+        stage: "permission",
+        reason: `Tool "${name}" is not registered.`,
+      };
     }
 
     await logAiEvent(ctx.supabase, {
