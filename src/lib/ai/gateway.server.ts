@@ -1,21 +1,26 @@
-import { generateText, Output, NoObjectGeneratedError } from "ai";
+import { generateText, streamText, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { createLovableAiGatewayProvider } from "../ai-gateway.server";
-import { getAiConfig, getProviderApiKey, type AiConfig } from "./config.server";
+import { logAiEvent } from "./audit.server";
+import { getAiConfig, type AiConfig } from "./config.server";
+import { getProviderAdapter, type ProviderTransport } from "./providers.server";
 import { classifyTask } from "./routing";
 import type { AiDecision, AiRequest, AiResult, IntelligenceGateway } from "./types";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Db = SupabaseClient<any, any, any>;
 
 /**
  * UMRAIO® AI Intelligence Layer — model-agnostic gateway.
  *
- * Application code calls this surface instead of a provider SDK. Swapping the
- * foundation model is a configuration change (AI_PROVIDER / AI_MODEL /
- * AI_FAST_MODEL). A future RÉNAI.CORE™ engine can implement the same
- * IntelligenceGateway interface and be dropped in without app changes.
+ * Application code calls this surface instead of a provider SDK. The gateway
+ * depends only on the provider adapter interface (see providers.server.ts), so
+ * swapping the foundation model — or dropping in a future RÉNAI.CORE™ engine —
+ * is a configuration change.
  *
- * This layer never fabricates a response: a provider failure returns
- * `{ ok: false }` so callers can fall back to human workflows.
+ * This layer never fabricates a response: a provider failure, timeout or
+ * invalid output returns `{ ok: false }` so callers can fall back to humans.
  */
 
 const decisionSchema = z.object({
@@ -29,14 +34,23 @@ const decisionSchema = z.object({
   escalation_required: z.boolean(),
 });
 
-function resolveModelId(config: AiConfig, request: AiRequest): string {
-  const cls = request.taskClass ?? classifyTask(request.taskType);
-  return cls === "fast" ? config.fastModel : config.model;
+export type GatewayAuditBinding = {
+  supabase: Db;
+  agencyId: string;
+  userId?: string | undefined;
+};
+
+function transportFor(request: AiRequest): ProviderTransport {
+  return (request.taskClass ?? classifyTask(request.taskType)) === "fast" ? "fast" : "reasoning";
 }
 
-function buildModel(config: AiConfig, modelId: string) {
-  const key = getProviderApiKey(config.provider);
-  return createLovableAiGatewayProvider(key)(modelId);
+function timeoutFor(config: AiConfig, request: AiRequest, transport: ProviderTransport): number {
+  if (request.taskType === "conversation_evaluation") return config.timeouts.evaluation;
+  return transport === "fast" ? config.timeouts.fast : config.timeouts.reasoning;
+}
+
+function resolveModelId(config: AiConfig, transport: ProviderTransport): string {
+  return transport === "fast" ? config.fastModel : config.model;
 }
 
 function contextBlock(request: AiRequest): string {
@@ -61,66 +75,182 @@ function systemOption(request: AiRequest) {
   return request.system ? { system: request.system } : {};
 }
 
-async function call<T>(
-  request: AiRequest,
-  execute: (modelId: string) => Promise<T>,
-): Promise<AiResult<T>> {
-  const config = getAiConfig();
-  const primary = resolveModelId(config, request);
-  const candidates = [primary, ...(config.fallbackModel ? [config.fallbackModel] : [])];
-
-  let lastError: unknown = null;
-  for (const modelId of candidates) {
-    for (let attempt = 0; attempt <= Math.max(0, config.maxRetries); attempt += 1) {
-      const startedAt = Date.now();
-      try {
-        const data = await execute(modelId);
-        return {
-          ok: true,
-          data,
-          usage: { model: modelId, provider: config.provider, latencyMs: Date.now() - startedAt },
-        };
-      } catch (error) {
-        lastError = error;
-        if (NoObjectGeneratedError.isInstance(error)) break; // schema issue: retrying won't help
-      }
-    }
+class TimeoutError extends Error {
+  constructor() {
+    super("AI request exceeded its deadline");
+    this.name = "TimeoutError";
   }
-
-  const message = lastError instanceof Error ? lastError.message : "AI provider unavailable";
-  return {
-    ok: false,
-    data: null,
-    usage: null,
-    error: {
-      code: NoObjectGeneratedError.isInstance(lastError) ? "invalid_output" : "unavailable",
-      message,
-    },
-  };
 }
 
-export function createIntelligenceGateway(): IntelligenceGateway {
-  const config = getAiConfig();
+/** Only transient provider/transport failures may be retried or failed over. */
+function isTransient(error: unknown): boolean {
+  if (error instanceof TimeoutError) return false; // a deadline must not spawn duplicates
+  if (NoObjectGeneratedError.isInstance(error)) return false;
+  const status =
+    (error as any)?.statusCode ?? (error as any)?.status ?? (error as any)?.response?.status;
+  if (typeof status === "number") return status === 429 || status >= 500;
+  const message = error instanceof Error ? error.message : String(error ?? "");
+  if (/\b(400|401|402|403|404|422)\b/.test(message)) return false;
+  return /(ECONNRESET|ETIMEDOUT|ENOTFOUND|EAI_AGAIN|fetch failed|network|socket hang up|stream closed)/i.test(
+    message,
+  );
+}
+
+function errorCode(error: unknown): "unavailable" | "invalid_output" | "configuration" {
+  if (NoObjectGeneratedError.isInstance(error)) return "invalid_output";
+  const message = error instanceof Error ? error.message : "";
+  if (message.startsWith("AI configuration error")) return "configuration";
+  return "unavailable";
+}
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export type ExecuteArgs = {
+  modelId: string;
+  transport: ProviderTransport;
+  signal: AbortSignal;
+};
+
+export function createIntelligenceGateway(
+  audit?: GatewayAuditBinding,
+): IntelligenceGateway {
+  async function emit(
+    request: AiRequest,
+    event: "AI_REQUEST" | "AI_RESPONSE" | "AI_FAILURE",
+    extra: {
+      model?: string;
+      provider?: string;
+      status?: string;
+      latencyMs?: number;
+      reasonCode?: string;
+      error?: string;
+    } = {},
+  ) {
+    if (!audit || !request.context) return;
+    await logAiEvent(audit.supabase, {
+      agencyId: audit.agencyId,
+      correlationId: request.context.correlationId,
+      event,
+      taskType: request.taskType,
+      userId: audit.userId,
+      ...extra,
+    });
+  }
+
+  async function call<T>(
+    request: AiRequest,
+    execute: (args: ExecuteArgs) => Promise<T>,
+  ): Promise<AiResult<T>> {
+    let config: AiConfig;
+    try {
+      config = getAiConfig();
+      getProviderAdapter(getAiConfig().provider); // validate provider up front
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "AI configuration error";
+      await emit(request, "AI_FAILURE", { status: "configuration", error: message });
+      return { ok: false, data: null, usage: null, error: { code: "configuration", message } };
+    }
+
+    const transport = transportFor(request);
+    const timeoutMs = timeoutFor(config, request, transport);
+    const primary = resolveModelId(config, transport);
+
+    await emit(request, "AI_REQUEST", { model: primary, provider: config.provider });
+
+    let lastError: unknown = null;
+    let failedOver = false;
+
+    for (const modelId of [primary, ...(config.fallbackModel ? [config.fallbackModel] : [])]) {
+      // The fallback model is only for transient/provider-availability failures.
+      if (failedOver && !isTransient(lastError)) break;
+
+      for (let attempt = 0; attempt <= config.maxRetries; attempt += 1) {
+        const startedAt = Date.now();
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(new TimeoutError()), timeoutMs);
+        try {
+          const data = await execute({ modelId, transport, signal: controller.signal });
+          const latencyMs = Date.now() - startedAt;
+          await emit(request, "AI_RESPONSE", {
+            model: modelId,
+            provider: config.provider,
+            status: "ok",
+            latencyMs,
+          });
+          return {
+            ok: true,
+            data,
+            usage: { model: modelId, provider: config.provider, latencyMs },
+          };
+        } catch (error) {
+          lastError = controller.signal.aborted ? new TimeoutError() : error;
+          if (!isTransient(lastError)) break; // terminal: no retry, no fallback
+          if (attempt < config.maxRetries) await sleep(500 * 2 ** attempt); // bounded backoff
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      failedOver = true;
+    }
+
+    const code = errorCode(lastError);
+    const message = lastError instanceof Error ? lastError.message : "AI provider unavailable";
+    await emit(request, "AI_FAILURE", {
+      model: primary,
+      provider: config.provider,
+      status: code,
+      error: message,
+    });
+    return { ok: false, data: null, usage: null, error: { code, message } };
+  }
+
+  function model({ modelId, transport }: ExecuteArgs) {
+    const provider = getProviderAdapter(getAiConfig().provider);
+    return {
+      model: provider.model(modelId, transport),
+      providerOptions: provider.requestOptions(transport) as any,
+    };
+  }
 
   return {
     async generate(request) {
-      return call(request, async (modelId) => {
+      return call(request, async (args) => {
+        const { model: languageModel, providerOptions } = model(args);
+        if (args.transport === "reasoning") {
+          // Reasoning workloads stream on the wire (bounded by the deadline)
+          // so long generations are never a single silent round-trip.
+          const result = streamText({
+            model: languageModel,
+            ...systemOption(request),
+            prompt: contextBlock(request),
+            providerOptions,
+            abortSignal: args.signal,
+            maxRetries: 0,
+          });
+          return (await result.text).trim();
+        }
         const { text } = await generateText({
-          model: buildModel(config, modelId),
+          model: languageModel,
           ...systemOption(request),
           prompt: contextBlock(request),
-          providerOptions: { lovable: { reasoningEffort: "none" } },
+          providerOptions,
+          abortSignal: args.signal,
+          maxRetries: 0,
         });
         return text.trim();
       });
     },
 
     async reason(request): Promise<AiResult<AiDecision>> {
-      return call(request, async (modelId) => {
+      return call(request, async (args) => {
+        const { model: languageModel, providerOptions } = model(args);
         const { output } = await generateText({
-          model: buildModel(config, modelId),
+          model: languageModel,
           output: Output.object({ schema: decisionSchema }),
           ...systemOption(request),
+          providerOptions,
+          abortSignal: args.signal,
+          maxRetries: 0,
           prompt: [
             contextBlock(request),
             "",
@@ -135,30 +265,51 @@ export function createIntelligenceGateway(): IntelligenceGateway {
     },
 
     async classify(request) {
-      return call(request, async (modelId) => {
+      const result = await call<string>(request, async (args) => {
+        const { model: languageModel, providerOptions } = model(args);
         const { output } = await generateText({
-          model: buildModel(config, modelId),
+          model: languageModel,
           output: Output.object({
             schema: z.object({ label: z.string(), confidence: z.number() }),
           }),
           ...systemOption(request),
+          providerOptions,
+          abortSignal: args.signal,
+          maxRetries: 0,
           prompt: [
             contextBlock(request),
             "",
             `Choose exactly one label from: ${request.labels.join(", ")}.`,
           ].join("\n"),
         });
-        const label = (output as { label: string }).label;
-        return request.labels.includes(label) ? label : request.labels[0]!;
+        return (output as { label: string }).label;
       });
+
+      // Never silently coerce an out-of-set label into a valid one.
+      if (result.ok && !request.labels.includes(result.data as string)) {
+        return {
+          ok: false,
+          data: null,
+          usage: result.usage,
+          error: {
+            code: "invalid_output",
+            message: "Model returned a label outside the permitted set.",
+          },
+        };
+      }
+      return result;
     },
 
     async extract<T>(request: AiRequest & { schema: unknown }) {
-      return call<T>(request, async (modelId) => {
+      return call<T>(request, async (args) => {
+        const { model: languageModel, providerOptions } = model(args);
         const { output } = await generateText({
-          model: buildModel(config, modelId),
+          model: languageModel,
           output: Output.object({ schema: request.schema as z.ZodTypeAny }),
           ...systemOption(request),
+          providerOptions,
+          abortSignal: args.signal,
+          maxRetries: 0,
           prompt: contextBlock(request),
         });
         return output as T;
@@ -166,13 +317,17 @@ export function createIntelligenceGateway(): IntelligenceGateway {
     },
 
     async evaluate(request) {
-      return call(request, async (modelId) => {
+      return call(request, async (args) => {
+        const { model: languageModel, providerOptions } = model(args);
         const { output } = await generateText({
-          model: buildModel(config, modelId),
+          model: languageModel,
           output: Output.object({
             schema: z.object({ score: z.number(), reason_code: z.string() }),
           }),
           ...systemOption(request),
+          providerOptions,
+          abortSignal: args.signal,
+          maxRetries: 0,
           prompt: [
             contextBlock(request),
             "",
@@ -184,17 +339,23 @@ export function createIntelligenceGateway(): IntelligenceGateway {
     },
 
     async healthCheck() {
+      const config = getAiConfig();
       try {
-        const { text } = await generateText({
-          model: buildModel(config, config.fastModel),
-          prompt: "Reply with OK.",
-          providerOptions: { lovable: { reasoningEffort: "none" } },
-        });
-        return {
-          ok: text.trim().length > 0,
-          provider: config.provider,
-          model: config.fastModel,
-        };
+        const provider = getProviderAdapter(config.provider);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(new TimeoutError()), config.timeouts.fast);
+        try {
+          const { text } = await generateText({
+            model: provider.model(config.fastModel, "fast"),
+            prompt: "Reply with OK.",
+            providerOptions: provider.requestOptions("fast") as any,
+            abortSignal: controller.signal,
+            maxRetries: 0,
+          });
+          return { ok: text.trim().length > 0, provider: config.provider, model: config.fastModel };
+        } finally {
+          clearTimeout(timer);
+        }
       } catch (error) {
         return {
           ok: false,
