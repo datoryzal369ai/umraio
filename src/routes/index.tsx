@@ -4,6 +4,8 @@ import { ArrowRight, BotMessageSquare, CalendarClock, Sparkles, Users } from "lu
 import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 
 import { BrandArchitecture } from "@/components/brand/BrandArchitecture";
+import { AutomationShowcase } from "@/components/marketing/AutomationShowcase";
+
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
