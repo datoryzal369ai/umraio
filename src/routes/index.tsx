@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BotMessageSquare, CalendarClock, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 
