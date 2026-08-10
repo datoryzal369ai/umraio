@@ -1,4 +1,4 @@
-import { generateText, streamText, Output, NoObjectGeneratedError } from "ai";
+import { generateText, streamText, stepCountIs, Output, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
