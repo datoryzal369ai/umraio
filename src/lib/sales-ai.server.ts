@@ -25,7 +25,6 @@ export type ChatMessageRow = {
   created_at: string;
 };
 
-
 export async function loadContext(supabase: Db, conversationId: string) {
   const { data: conversation, error } = await supabase
     .from("conversations")
@@ -175,7 +174,10 @@ export function searchGlobalKnowledge(query: string, limit = 4) {
     tags: a.tags,
     file_name: null,
   }));
-  return searchKnowledge(rows, query, null, limit).map((r) => ({ ...r, source: "global" as const }));
+  return searchKnowledge(rows, query, null, limit).map((r) => ({
+    ...r,
+    source: "global" as const,
+  }));
 }
 
 const PERSONALITY_HINTS: Record<string, string> = {
@@ -437,7 +439,8 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
       validate: (input) => {
         if (!leadId) return "No lead linked to this conversation.";
         if (input.pax !== null && (input.pax < 1 || input.pax > 200)) return "pax out of range.";
-        if (input.budget_myr !== null && input.budget_myr < 0) return "budget_myr must be positive.";
+        if (input.budget_myr !== null && input.budget_myr < 0)
+          return "budget_myr must be positive.";
         return null;
       },
       execute: async (input, tctx) => {
@@ -463,7 +466,12 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           entity_id: leadId,
           meta: patch,
         });
-        return { saved: true, score, temperature: patch["temperature"], fields: Object.keys(patch) };
+        return {
+          saved: true,
+          score,
+          temperature: patch["temperature"],
+          fields: Object.keys(patch),
+        };
       },
     },
 

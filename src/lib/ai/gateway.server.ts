@@ -247,7 +247,6 @@ export function createIntelligenceGateway(audit?: GatewayAuditBinding): Intellig
       });
     },
 
-
     async reason(request): Promise<AiResult<AiDecision>> {
       return call(request, async (args) => {
         const { model: languageModel, providerOptions } = model(args);
