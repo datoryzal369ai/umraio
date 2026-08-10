@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, BotMessageSquare, CalendarClock, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
 import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 
 import { BrandArchitecture } from "@/components/brand/BrandArchitecture";
+import { AutomationShowcase } from "@/components/marketing/AutomationShowcase";
+
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -98,28 +100,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const capabilities = [
-  {
-    icon: BotMessageSquare,
-    title: "Answers enquiries",
-    body: "Replies to WhatsApp messages instantly, in Bahasa Malaysia or English, with your agency's tone.",
-  },
-  {
-    icon: Users,
-    title: "Qualifies prospects",
-    body: "Captures budget, pax, travel window and intent — then scores every lead automatically.",
-  },
-  {
-    icon: Sparkles,
-    title: "Recommends packages",
-    body: "Matches enquiries to your live package catalogue with pricing, hotels and departure dates.",
-  },
-  {
-    icon: CalendarClock,
-    title: "Follows up",
-    body: "Runs structured follow-up sequences so no prospect goes cold while your team sleeps.",
-  },
-];
 
 const trust = [
   { label: "Always working", value: "24/7" },
@@ -264,31 +244,8 @@ function Index() {
             </dl>
           </section>
 
-          <section className="mt-24" aria-labelledby="automates-heading">
-            <h2
-              id="automates-heading"
-              className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
-            >
-              What UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> Automates
-            </h2>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {capabilities.map((item, i) => (
-                <article
-                  key={item.title}
-                  className="animate-rise panel panel-hover p-8"
-                  style={{ animationDelay: `${420 + i * 70}ms` }}
-                >
-                  <span className="inline-flex size-12 items-center justify-center rounded-2xl border border-border bg-primary/10">
-                    <item.icon className="size-5 text-primary" />
-                  </span>
-                  <h3 className="mt-6 text-base font-semibold tracking-tight">{item.title}</h3>
-                  <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
-                    {item.body}
-                  </p>
-                </article>
-              ))}
-            </div>
-          </section>
+          <AutomationShowcase />
+
 
           <section className="mt-24" aria-labelledby="faq-heading">
             <h2
