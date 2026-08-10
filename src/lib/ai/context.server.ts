@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { redactAndCap } from "./redaction";
 import type { AiContext } from "./types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -8,9 +9,10 @@ type Db = SupabaseClient<any, any, any>;
 /**
  * UMRAIO® Context Engine.
  *
- * Builds a minimum-necessary, tenant-scoped context object. All reads go
- * through the caller's RLS-scoped client, so Agency A data can never enter
- * Agency B's context. Personal data is trimmed to what the task needs.
+ * Builds a minimum-necessary, tenant-scoped context object. Every query is
+ * explicitly filtered by `agency_id` as defence-in-depth on top of RLS (which
+ * remains fully intact). Free text is PII-redacted before it can enter model
+ * reasoning context.
  */
 
 export function newCorrelationId(): string {
@@ -52,6 +54,7 @@ export async function buildContext(supabase: Db, options: ContextOptions): Promi
       .select(
         "id, stage, temperature, score, pax, budget_myr, preferred_month, package_interest, city, source, last_contact_at",
       )
+      .eq("agency_id", options.agencyId)
       .eq("id", options.leadId)
       .maybeSingle();
     // Deliberately excludes phone/email: not needed for reasoning.
@@ -62,10 +65,15 @@ export async function buildContext(supabase: Db, options: ContextOptions): Promi
     const { data: messages } = await supabase
       .from("messages")
       .select("sender, body, created_at")
+      .eq("agency_id", options.agencyId)
       .eq("conversation_id", options.conversationId)
       .order("created_at", { ascending: false })
       .limit(options.historyLimit ?? 40);
-    facts["recent_messages"] = (messages ?? []).reverse();
+    facts["recent_messages"] = (messages ?? []).reverse().map((m: any) => ({
+      sender: m.sender,
+      created_at: m.created_at,
+      body: redactAndCap(m.body, 2000) ?? "",
+    }));
   }
 
   if (options.includePackages !== false) {
@@ -74,6 +82,7 @@ export async function buildContext(supabase: Db, options: ContextOptions): Promi
       .select(
         "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions",
       )
+      .eq("agency_id", options.agencyId)
       .eq("is_active", true)
       .order("price_myr", { ascending: true })
       .limit(20);
@@ -94,16 +103,18 @@ export async function buildContext(supabase: Db, options: ContextOptions): Promi
  * Persistent business memory (structured, validated) as opposed to
  * short-term conversation context. Reuses existing tables only.
  */
-export async function loadBusinessMemory(supabase: Db, leadId: string) {
+export async function loadBusinessMemory(supabase: Db, agencyId: string, leadId: string) {
   const [{ data: lead }, { data: notes }] = await Promise.all([
     supabase
       .from("leads")
       .select("package_interest, preferred_month, budget_myr, pax, tags, temperature, stage")
+      .eq("agency_id", agencyId)
       .eq("id", leadId)
       .maybeSingle(),
     supabase
       .from("lead_notes")
       .select("body, created_at")
+      .eq("agency_id", agencyId)
       .eq("lead_id", leadId)
       .order("created_at", { ascending: false })
       .limit(5),
@@ -111,6 +122,6 @@ export async function loadBusinessMemory(supabase: Db, leadId: string) {
 
   return {
     preferences: lead ?? null,
-    recent_notes: (notes ?? []).map((n: any) => n.body),
+    recent_notes: (notes ?? []).map((n: any) => redactAndCap(n.body, 1000) ?? ""),
   };
 }
