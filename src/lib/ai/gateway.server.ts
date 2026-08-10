@@ -214,13 +214,20 @@ export function createIntelligenceGateway(audit?: GatewayAuditBinding): Intellig
     async generate(request) {
       return call(request, async (args) => {
         const { model: languageModel, providerOptions } = model(args);
+        const promptOption = request.messages?.length
+          ? { messages: request.messages }
+          : { prompt: contextBlock(request) };
+        const toolOption = request.tools
+          ? { tools: request.tools as any, stopWhen: stepCountIs(request.maxSteps ?? 50) }
+          : {};
         if (args.transport === "reasoning") {
           // Reasoning workloads stream on the wire (bounded by the deadline)
           // so long generations are never a single silent round-trip.
           const result = streamText({
             model: languageModel,
             ...systemOption(request),
-            prompt: contextBlock(request),
+            ...promptOption,
+            ...toolOption,
             providerOptions,
             abortSignal: args.signal,
             maxRetries: 0,
@@ -230,7 +237,8 @@ export function createIntelligenceGateway(audit?: GatewayAuditBinding): Intellig
         const { text } = await generateText({
           model: languageModel,
           ...systemOption(request),
-          prompt: contextBlock(request),
+          ...promptOption,
+          ...toolOption,
           providerOptions,
           abortSignal: args.signal,
           maxRetries: 0,
@@ -238,6 +246,7 @@ export function createIntelligenceGateway(audit?: GatewayAuditBinding): Intellig
         return text.trim();
       });
     },
+
 
     async reason(request): Promise<AiResult<AiDecision>> {
       return call(request, async (args) => {
