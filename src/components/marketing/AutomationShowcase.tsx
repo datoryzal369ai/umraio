@@ -377,27 +377,33 @@ const pipeline = ["Enquiry", "Qualification", "Recommendation", "Follow-up", "Co
 /** Premium autonomous-workforce showcase for the "What UMRAIO® Automates" section. */
 export function AutomationShowcase() {
   return (
-    <section className="relative mt-24" aria-labelledby="automates-heading">
+    <section className="relative mt-14 sm:mt-20" aria-labelledby="automates-heading">
       <span
         aria-hidden
         className="umr-signal pointer-events-none absolute inset-x-0 -top-10 h-64 opacity-60"
       />
 
-      <header className="relative mx-auto max-w-2xl text-center">
+      <div aria-hidden className="relative mx-auto flex max-w-md items-center justify-center">
+        <span className="umr-divider w-full" />
+        <span className="umr-pulse absolute size-1.5 rounded-full bg-primary shadow-[0_0_12px_2px_var(--color-primary)]" />
+      </div>
+
+      <header className="relative mx-auto mt-10 max-w-2xl text-center sm:mt-14">
         <p className="text-[10px] font-medium uppercase tracking-[0.36em] text-primary/80">
           The autonomous AI workforce
         </p>
         <h2
           id="automates-heading"
-          className="mt-4 text-2xl font-bold tracking-tight sm:text-4xl"
+          className="mt-5 text-balance text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl"
         >
-          What UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> Automates
+          What <span className="text-primary">UMRAIO<sup className="align-super text-[0.5em] leading-none">®</sup></span> Automates
         </h2>
-        <p className="mt-4 text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
+        <p className="mx-auto mt-4 max-w-xl text-sm font-light leading-[1.75] text-muted-foreground sm:text-base">
           From the first WhatsApp message to the next best action — UMRAIO® keeps your agency
           moving.
         </p>
       </header>
+
 
       <div className="relative mt-12 grid gap-5 lg:grid-cols-12">
         <AnswersEnquiries />

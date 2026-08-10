@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, PlayCircle, Sparkles } from "lucide-react";
 
 import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 
 import { BrandArchitecture } from "@/components/brand/BrandArchitecture";
 import { AutomationShowcase } from "@/components/marketing/AutomationShowcase";
+import { WorkforceMetrics } from "@/components/marketing/WorkforceMetrics";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -101,13 +102,6 @@ export const Route = createFileRoute("/")({
 });
 
 
-const trust = [
-  { label: "Always working", value: "24/7" },
-  { label: "More leads", value: "3×" },
-  { label: "Time saved", value: "85%" },
-  { label: "AI-powered", value: "100%" },
-];
-
 function Index() {
   const { user, loading } = useAuth();
 
@@ -196,7 +190,7 @@ function Index() {
               <span className="text-gradient-brand">Modern Umrah Agencies</span>
             </h1>
             <p
-              className="animate-rise mt-7 max-w-2xl text-base font-light leading-relaxed text-muted-foreground sm:text-lg"
+              className="animate-rise mt-6 max-w-xl text-balance text-base font-light leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-lg"
               style={{ animationDelay: "240ms" }}
             >
               Acquire more leads. Convert more bookings. Automate marketing. Reply to WhatsApp
@@ -204,17 +198,17 @@ function Index() {
             </p>
 
             <div
-              className="animate-rise mt-11 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row"
+              className="animate-rise mt-8 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:gap-4"
               style={{ animationDelay: "300ms" }}
             >
               <Button
                 asChild
                 size="lg"
-                className="h-13 w-full rounded-2xl bg-primary px-8 text-base font-semibold text-background shadow-elevated transition-transform duration-300 hover:-translate-y-0.5 hover:bg-primary sm:w-auto"
+                className="btn-premium h-13 w-full rounded-2xl px-8 text-base font-semibold text-background hover:bg-transparent sm:w-auto"
               >
                 <Link to="/auth" search={{ mode: "register", redirect: undefined }}>
                   Start Free Trial
-                  <ArrowRight className="ml-1 size-4" />
+                  <ArrowRight className="umr-arrow ml-1 size-4" />
                 </Link>
               </Button>
               <Button
@@ -224,24 +218,13 @@ function Index() {
                 className="btn-glass h-13 w-full rounded-2xl px-8 text-base font-medium sm:w-auto"
               >
                 <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
+                  <PlayCircle className="mr-1 size-4 text-primary" />
                   Book Live Demo
                 </Link>
               </Button>
             </div>
 
-            <dl
-              className="animate-rise panel mt-16 grid w-full grid-cols-2 gap-px overflow-hidden p-0 sm:grid-cols-4"
-              style={{ animationDelay: "360ms" }}
-            >
-              {trust.map((item) => (
-                <div key={item.label} className="px-6 py-8">
-                  <dt className="text-3xl font-extrabold text-primary sm:text-4xl">{item.value}</dt>
-                  <dd className="mt-1.5 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                    {item.label}
-                  </dd>
-                </div>
-              ))}
-            </dl>
+            <WorkforceMetrics className="mt-10 sm:mt-12" />
           </section>
 
           <AutomationShowcase />
