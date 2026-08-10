@@ -43,6 +43,18 @@ export type AiRequest = {
   context?: AiContext;
   /** Overrides the routing table when a caller must pin a class. */
   taskClass?: Exclude<TaskClass, "deterministic">;
+  /**
+   * Prior conversation turns. When provided they are sent as the message list
+   * instead of a single prompt string.
+   */
+  messages?: Array<{ role: "user" | "assistant"; content: string }>;
+  /**
+   * Model-callable tools. These MUST be built with `createSdkTools()` so every
+   * invocation passes through the ToolRegistry decision gate.
+   */
+  tools?: Record<string, unknown>;
+  /** Maximum tool-loop steps when `tools` is supplied. */
+  maxSteps?: number;
 };
 
 export type AiUsage = { model: string; provider: string; latencyMs: number };
