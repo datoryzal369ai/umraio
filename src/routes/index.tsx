@@ -100,28 +100,6 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const capabilities = [
-  {
-    icon: BotMessageSquare,
-    title: "Answers enquiries",
-    body: "Replies to WhatsApp messages instantly, in Bahasa Malaysia or English, with your agency's tone.",
-  },
-  {
-    icon: Users,
-    title: "Qualifies prospects",
-    body: "Captures budget, pax, travel window and intent — then scores every lead automatically.",
-  },
-  {
-    icon: Sparkles,
-    title: "Recommends packages",
-    body: "Matches enquiries to your live package catalogue with pricing, hotels and departure dates.",
-  },
-  {
-    icon: CalendarClock,
-    title: "Follows up",
-    body: "Runs structured follow-up sequences so no prospect goes cold while your team sleeps.",
-  },
-];
 
 const trust = [
   { label: "Always working", value: "24/7" },
