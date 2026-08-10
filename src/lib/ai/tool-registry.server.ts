@@ -12,8 +12,10 @@ type Db = SupabaseClient<any, any, any>;
  *
  * Only explicitly registered tools may be invoked by the intelligence layer.
  * Arbitrary database or API access is never exposed. Every invocation runs the
- * decision gate: business-rule validation → permission check → safety check →
- * execution → audit event.
+ * decision gate, in this exact order:
+ *
+ *   registration → allowedTools → schema → permission → business rule
+ *   → execution → audit
  */
 
 export type ToolPermission = "read" | "write" | "external";
@@ -25,6 +27,8 @@ export type ToolExecutionContext = {
   correlationId: string;
   /** Permissions the caller (not the model) is allowed to use. */
   grantedPermissions: ToolPermission[];
+  /** Per-request allowlist. Enforced, not advisory. */
+  allowedTools: string[];
 };
 
 export type ToolDefinition<TInput = any, TOutput = any> = {
@@ -32,18 +36,31 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
   description: string;
   inputSchema: z.ZodType<TInput>;
   permission: ToolPermission;
-  /** Deterministic business-rule validation. Return an error string to reject. */
+  /**
+   * Explicit capability classification. A tool must declare that it performs
+   * no deterministic business computation (pricing, totals, arithmetic,
+   * entitlement). Deterministic work stays in application code.
+   */
+  deterministicSafe: true;
+  /**
+   * Deterministic business-rule validation. Return an error string to reject.
+   * REQUIRED for `write` and `external` tools.
+   */
   validate?: (input: TInput, ctx: ToolExecutionContext) => Promise<string | null> | string | null;
   execute: (input: TInput, ctx: ToolExecutionContext) => Promise<TOutput>;
 };
 
+export type ToolRejectionStage =
+  | "registration"
+  | "allowed_tools"
+  | "schema"
+  | "permission"
+  | "business_rule"
+  | "safety";
+
 export type ToolOutcome<TOutput = any> =
   | { status: "executed"; result: TOutput }
-  | {
-      status: "rejected";
-      stage: "schema" | "permission" | "business_rule" | "safety";
-      reason: string;
-    }
+  | { status: "rejected"; stage: ToolRejectionStage; reason: string }
   | { status: "failed"; reason: string };
 
 export class ToolRegistry {
@@ -52,6 +69,14 @@ export class ToolRegistry {
   register(tool: ToolDefinition) {
     if (isDeterministicOperation(tool.name)) {
       throw new Error(`Deterministic operation "${tool.name}" must not be exposed as an AI tool.`);
+    }
+    if (tool.deterministicSafe !== true) {
+      throw new Error(`Tool "${tool.name}" must declare deterministicSafe: true.`);
+    }
+    if ((tool.permission === "write" || tool.permission === "external") && !tool.validate) {
+      throw new Error(
+        `Tool "${tool.name}" has "${tool.permission}" side effects and must define a business-rule validate().`,
+      );
     }
     this.tools.set(tool.name, tool);
     return this;
@@ -73,61 +98,55 @@ export class ToolRegistry {
     }));
   }
 
-  /** Decision gate: nothing executes without passing every stage. */
+  /** Decision gate: nothing executes without passing every stage, in order. */
   async invoke(name: string, rawInput: unknown, ctx: ToolExecutionContext): Promise<ToolOutcome> {
-    const tool = this.tools.get(name);
-    if (!tool) {
-      return {
+    const reject = async (stage: ToolRejectionStage, reason: string): Promise<ToolOutcome> => {
+      await logAiEvent(ctx.supabase, {
+        agencyId: ctx.agencyId,
+        correlationId: ctx.correlationId,
+        event: "ACTION_FAILED",
+        tool: name,
+        stage,
         status: "rejected",
-        stage: "permission",
-        reason: `Tool "${name}" is not registered.`,
-      };
-    }
+        error: reason,
+        userId: ctx.userId,
+      });
+      return { status: "rejected", stage, reason };
+    };
 
     await logAiEvent(ctx.supabase, {
       agencyId: ctx.agencyId,
       correlationId: ctx.correlationId,
       event: "TOOL_REQUEST",
       tool: name,
+      userId: ctx.userId,
     });
 
-    if (!ctx.grantedPermissions.includes(tool.permission)) {
-      const outcome: ToolOutcome = {
-        status: "rejected",
-        stage: "permission",
-        reason: `Missing "${tool.permission}" permission for ${name}.`,
-      };
-      await logAiEvent(ctx.supabase, {
-        agencyId: ctx.agencyId,
-        correlationId: ctx.correlationId,
-        event: "ACTION_FAILED",
-        tool: name,
-        status: "rejected",
-        error: outcome.status === "rejected" ? outcome.reason : undefined,
-      });
-      return outcome;
+    // 1. registration
+    const tool = this.tools.get(name);
+    if (!tool) return reject("registration", `Tool "${name}" is not registered.`);
+
+    // 2. per-request allowlist
+    if (!ctx.allowedTools.includes(name)) {
+      return reject("allowed_tools", `Tool "${name}" is not permitted for this request.`);
     }
 
+    // 3. schema validation
     const parsed = tool.inputSchema.safeParse(rawInput);
-    if (!parsed.success) {
-      return { status: "rejected", stage: "schema", reason: parsed.error.message };
+    if (!parsed.success) return reject("schema", parsed.error.message);
+
+    // 4. permission validation
+    if (!ctx.grantedPermissions.includes(tool.permission)) {
+      return reject("permission", `Missing "${tool.permission}" permission for ${name}.`);
     }
 
+    // 5. business-rule validation
     if (tool.validate) {
       const problem = await tool.validate(parsed.data, ctx);
-      if (problem) {
-        await logAiEvent(ctx.supabase, {
-          agencyId: ctx.agencyId,
-          correlationId: ctx.correlationId,
-          event: "ACTION_FAILED",
-          tool: name,
-          status: "rejected",
-          error: problem,
-        });
-        return { status: "rejected", stage: "business_rule", reason: problem };
-      }
+      if (problem) return reject("business_rule", problem);
     }
 
+    // 6. execution + 7. audit
     try {
       const result = await tool.execute(parsed.data, ctx);
       await logAiEvent(ctx.supabase, {
@@ -136,6 +155,7 @@ export class ToolRegistry {
         event: "ACTION_EXECUTED",
         tool: name,
         status: "ok",
+        userId: ctx.userId,
       });
       return { status: "executed", result };
     } catch (error) {
@@ -147,6 +167,7 @@ export class ToolRegistry {
         tool: name,
         status: "failed",
         error: reason,
+        userId: ctx.userId,
       });
       return { status: "failed", reason };
     }
