@@ -41,7 +41,7 @@ function MetricModule({ metric, index }: { metric: Metric; index: number }) {
   return (
     <div
       className={cn(
-        "umr-reveal group relative flex min-w-0 flex-col rounded-2xl border border-border/60 bg-surface/40 p-4 transition-colors duration-300 hover:border-primary/35 sm:p-6",
+        "umr-reveal group relative flex min-w-0 flex-col rounded-2xl text-left border border-border/60 bg-surface/40 p-4 transition-colors duration-300 hover:border-primary/35 sm:p-6",
       )}
       style={{ animationDelay: `${index * 90}ms` }}
     >
