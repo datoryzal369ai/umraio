@@ -57,14 +57,8 @@ function contextBlock(request: AiRequest): string {
     .join("\n");
 }
 
-async function withRetry<T>(config: AiConfig, run: (modelId: string) => Promise<T>) {
-  const attempts: string[] = [resolveModelIdPlaceholder(config)];
-  void attempts;
-  return run(config.model);
-}
-
-function resolveModelIdPlaceholder(config: AiConfig) {
-  return config.model;
+function systemOption(request: AiRequest) {
+  return request.system ? { system: request.system } : {};
 }
 
 async function call<T>(
@@ -113,7 +107,7 @@ export function createIntelligenceGateway(): IntelligenceGateway {
       return call(request, async (modelId) => {
         const { text } = await generateText({
           model: buildModel(config, modelId),
-          system: request.system,
+          ...systemOption(request),
           prompt: contextBlock(request),
           providerOptions: { lovable: { reasoningEffort: "none" } },
         });
@@ -126,7 +120,7 @@ export function createIntelligenceGateway(): IntelligenceGateway {
         const { output } = await generateText({
           model: buildModel(config, modelId),
           output: Output.object({ schema: decisionSchema }),
-          system: request.system,
+          ...systemOption(request),
           prompt: [
             contextBlock(request),
             "",
@@ -147,7 +141,7 @@ export function createIntelligenceGateway(): IntelligenceGateway {
           output: Output.object({
             schema: z.object({ label: z.string(), confidence: z.number() }),
           }),
-          system: request.system,
+          ...systemOption(request),
           prompt: [
             contextBlock(request),
             "",
@@ -164,7 +158,7 @@ export function createIntelligenceGateway(): IntelligenceGateway {
         const { output } = await generateText({
           model: buildModel(config, modelId),
           output: Output.object({ schema: request.schema as z.ZodTypeAny }),
-          system: request.system,
+          ...systemOption(request),
           prompt: contextBlock(request),
         });
         return output as T;
@@ -178,7 +172,7 @@ export function createIntelligenceGateway(): IntelligenceGateway {
           output: Output.object({
             schema: z.object({ score: z.number(), reason_code: z.string() }),
           }),
-          system: request.system,
+          ...systemOption(request),
           prompt: [
             contextBlock(request),
             "",
