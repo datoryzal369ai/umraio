@@ -67,7 +67,7 @@ function ModuleShell({
   return (
     <article
       className={cn(
-        "umr-reveal panel panel-hover relative overflow-hidden p-6 sm:p-8",
+        "umr-reveal panel panel-hover relative flex flex-col overflow-hidden p-6 sm:p-8",
         className,
       )}
       style={{ animationDelay: `${delay}ms` }}
@@ -76,7 +76,7 @@ function ModuleShell({
         aria-hidden
         className="pointer-events-none absolute -right-24 -top-24 size-56 rounded-full bg-primary/10 blur-3xl"
       />
-      <div className="relative">{children}</div>
+      <div className="relative flex flex-1 flex-col">{children}</div>
     </article>
   );
 }
@@ -327,7 +327,7 @@ function FollowsUp() {
         </SysLabel>
       </div>
 
-      <div className="mt-5 grid gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+      <div className="mt-5 grid flex-1 gap-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
         <ol className="relative min-w-0 space-y-3 pl-5">
           <span
             aria-hidden
