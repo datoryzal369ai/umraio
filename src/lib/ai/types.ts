@@ -52,7 +52,10 @@ export type AiResult<T = string> = {
   data: T | null;
   usage: AiUsage | null;
   /** Populated when ok === false. Never fabricated content. */
-  error?: { code: "unavailable" | "invalid_output" | "rejected" | "unknown"; message: string };
+  error?: {
+    code: "unavailable" | "invalid_output" | "rejected" | "configuration" | "unknown";
+    message: string;
+  };
 };
 
 /**

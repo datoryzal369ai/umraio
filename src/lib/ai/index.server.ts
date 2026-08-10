@@ -8,8 +8,15 @@
 
 export * from "./types";
 export * from "./routing";
-export { getAiConfig, getProviderApiKey } from "./config.server";
-export { createIntelligenceGateway } from "./gateway.server";
+export { getAiConfig, getProviderApiKey, type AiConfig, type AiProviderId } from "./config.server";
+export {
+  getProviderAdapter,
+  isSupportedProvider,
+  registerProviderAdapter,
+  type ProviderAdapter,
+  type ProviderTransport,
+} from "./providers.server";
+export { createIntelligenceGateway, type GatewayAuditBinding } from "./gateway.server";
 export { buildContext, loadBusinessMemory, newCorrelationId } from "./context.server";
 export {
   ToolRegistry,
@@ -18,6 +25,9 @@ export {
   type ToolExecutionContext,
   type ToolOutcome,
   type ToolPermission,
+  type ToolRejectionStage,
 } from "./tool-registry.server";
+export { createSdkTools, type SdkToolAdapterOptions } from "./sdk-tools.server";
 export { logAiEvent, type AiAuditEvent, type AiAuditPayload } from "./audit.server";
 export { recordExperience, hashContext, type ExperienceRecord } from "./evaluation.server";
+export { redactText, redactAndCap, redactDeep } from "./redaction";

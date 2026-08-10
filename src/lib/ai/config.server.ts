@@ -3,7 +3,10 @@
  * Server-only. API keys are read at call time and never leave the server.
  */
 
-export type AiProviderId = "lovable";
+import { getProviderAdapter, isSupportedProvider } from "./providers.server";
+
+/** Open by design: providers are resolved through the adapter registry. */
+export type AiProviderId = string;
 
 export type AiConfig = {
   provider: AiProviderId;
@@ -11,9 +14,11 @@ export type AiConfig = {
   model: string;
   /** Economical model for fast/classification tasks. */
   fastModel: string;
-  /** Optional fallback used when the primary model call fails. */
+  /** Optional fallback used when the primary model call fails transiently. */
   fallbackModel: string | null;
   maxRetries: number;
+  /** Task-aware request deadlines (ms). */
+  timeouts: { fast: number; reasoning: number; evaluation: number };
 };
 
 const DEFAULT_MODEL = "openai/gpt-5.6-sol";
@@ -23,24 +28,32 @@ function env(name: string): string | undefined {
   return value && value.trim() ? value.trim() : undefined;
 }
 
+function num(name: string, fallback: number): number {
+  const parsed = Number(env(name));
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 /** Read configuration inside a handler — never at module scope. */
 export function getAiConfig(): AiConfig {
-  const provider = (env("AI_PROVIDER") ?? "lovable") as AiProviderId;
+  const provider = env("AI_PROVIDER") ?? "lovable";
+  if (!isSupportedProvider(provider)) {
+    throw new Error(`AI configuration error: unsupported AI_PROVIDER "${provider}"`);
+  }
   const model = env("AI_MODEL") ?? DEFAULT_MODEL;
   return {
     provider,
     model,
     fastModel: env("AI_FAST_MODEL") ?? model,
     fallbackModel: env("AI_FALLBACK_MODEL") ?? null,
-    maxRetries: Number(env("AI_MAX_RETRIES") ?? 1),
+    maxRetries: Math.max(0, Math.min(3, Number(env("AI_MAX_RETRIES") ?? 1) || 0)),
+    timeouts: {
+      fast: num("AI_TIMEOUT_FAST_MS", 20_000),
+      reasoning: num("AI_TIMEOUT_REASONING_MS", 90_000),
+      evaluation: num("AI_TIMEOUT_EVALUATION_MS", 45_000),
+    },
   };
 }
 
 export function getProviderApiKey(provider: AiProviderId): string {
-  if (provider === "lovable") {
-    const key = env("LOVABLE_API_KEY");
-    if (!key) throw new Error("Missing LOVABLE_API_KEY");
-    return key;
-  }
-  throw new Error(`Unsupported AI provider: ${provider}`);
+  return getProviderAdapter(provider).readApiKey();
 }
