@@ -650,7 +650,8 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         };
       },
     },
-  ]);
+  ];
+  return createToolRegistry(tools);
 }
 
 export async function generateAgentReply(supabase: Db, conversationId: string): Promise<string> {
