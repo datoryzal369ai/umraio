@@ -242,6 +242,15 @@ function Index() {
 
           <AutomationShowcase />
 
+          <BuiltForUmrah />
+          <IslamicImplementationLayer />
+          <IntelligenceLoop />
+          <CustomerTrust />
+          <GovernedAutonomy />
+          <DifferentiationLadder />
+          <EcosystemRelationship />
+
+
 
           <section className="mt-24" aria-labelledby="faq-heading">
             <h2
