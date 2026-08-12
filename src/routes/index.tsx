@@ -216,8 +216,9 @@ function Index() {
               className="animate-rise mt-6 max-w-xl text-balance text-base font-light leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-lg"
               style={{ animationDelay: "240ms" }}
             >
-              Acquire more leads. Convert more bookings. Automate marketing. Reply to WhatsApp
-              instantly. Scale your agency with autonomous AI workers.
+              UMRAIO® combines autonomous AI execution, Umrah domain intelligence, customer context
+              and governed workflows — with an Islamic Implementation Layer™ designed for the
+              specific requirements of the Umrah ecosystem.
             </p>
 
             <div
