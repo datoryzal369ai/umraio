@@ -69,7 +69,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns, increase bookings and grow your business with intelligent AI executives.",
+          "UMRAIO® is an autonomous AI business executive for Umrah agencies, combining Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
       },
       {
         property: "og:title",
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns and increase bookings.",
+          "Autonomous AI business executive for Umrah agencies — Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
       },
       { property: "og:url", content: "https://umraio.com/" },
       { property: "og:type", content: "website" },
