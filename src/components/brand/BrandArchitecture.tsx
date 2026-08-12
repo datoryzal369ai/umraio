@@ -50,6 +50,16 @@ export function BrandArchitecture({ className }: { className?: string }) {
           className="mt-6 h-auto w-full max-w-[280px] object-contain mix-blend-screen sm:max-w-[400px]"
         />
 
+        <Connector />
+
+        {/* GOVERNANCE — ISLAMIC IMPLEMENTATION LAYER */}
+        <Label>Governed by</Label>
+        <p className="mt-3 text-sm font-semibold tracking-tight text-foreground/85">
+          Islamic Implementation Layer™
+        </p>
+        <p className="mt-1.5 text-[10px] font-light uppercase tracking-[0.28em] text-muted-foreground/70">
+          Principles • Halal • Ethics • Governance
+        </p>
 
         <Connector />
 
