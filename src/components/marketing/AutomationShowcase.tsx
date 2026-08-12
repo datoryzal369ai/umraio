@@ -89,7 +89,7 @@ function AnswersEnquiries() {
         index="01"
         icon={BotMessageSquare}
         title="Answers enquiries"
-        body="Replies to WhatsApp messages instantly, in Bahasa Malaysia or English, with your agency's tone."
+        body="Responds instantly using your agency knowledge base, package information, customer context and Umrah-specific intelligence."
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -150,7 +150,7 @@ function QualifiesProspects() {
         index="02"
         icon={Users}
         title="Qualifies prospects"
-        body="Captures budget, pax, travel window and intent — then scores every lead automatically."
+        body="Understands travel intent, pax, budget, timing and customer needs while operating within defined agency policies."
       />
 
       <div className="mt-6">
@@ -228,7 +228,7 @@ function RecommendsPackages() {
         index="03"
         icon={Sparkles}
         title="Recommends packages"
-        body="Matches enquiries to your live package catalogue with pricing, hotels and departure dates."
+        body="Matches customer requirements with relevant Umrah packages and available agency information."
       />
 
       <div className="mt-6">
@@ -317,7 +317,7 @@ function FollowsUp() {
         index="04"
         icon={CalendarClock}
         title="Follows up"
-        body="Runs structured follow-up sequences so no prospect goes cold while your team sleeps."
+        body="Runs structured follow-up while respecting customer preferences, agency policies and responsible communication practices."
       />
 
       <div className="mt-6">

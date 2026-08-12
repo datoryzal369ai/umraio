@@ -6,6 +6,16 @@ import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 import { BrandArchitecture } from "@/components/brand/BrandArchitecture";
 import { AutomationShowcase } from "@/components/marketing/AutomationShowcase";
 import { WorkforceMetrics } from "@/components/marketing/WorkforceMetrics";
+import {
+  BuiltForUmrah,
+  ClosingStatement,
+  CustomerTrust,
+  DifferentiationLadder,
+  EcosystemRelationship,
+  GovernedAutonomy,
+  IntelligenceLoop,
+  IslamicImplementationLayer,
+} from "@/components/marketing/PositioningSections";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
@@ -29,14 +39,27 @@ const faqs = [
     a: "Yes. Every conversation is captured as a lead with budget, pax, travel window and intent, then scored and placed in your CRM pipeline with scheduled follow-ups.",
   },
   {
+    q: "What is the Islamic Implementation Layer™?",
+    a: "It is an architectural layer designed to connect relevant Islamic principles, halal baselines, ethical business practices and governance requirements with AI-assisted workflows and operational execution.",
+  },
+  {
+    q: "Is UMRAIO® a Shariah authority?",
+    a: "No. UMRAIO® is an AI business intelligence and automation platform. It does not issue fatwa or replace qualified Islamic scholars. Relevant Shariah matters remain subject to appropriate human expertise and governance.",
+  },
+  {
+    q: "Is UMRAIO® Halal or JAKIM certified?",
+    a: "UMRAIO® should not be represented as formally Halal or JAKIM certified unless and until the appropriate authority grants such recognition. The platform is designed with Shariah-aware and halal-oriented implementation principles for relevant Umrah workflows.",
+  },
+  {
     q: "Does UMRAIO® replace human sales consultants?",
-    a: "No. UMRAIO® handles first response, qualification and follow-up around the clock, and hands over to your consultants whenever a human touch is needed.",
+    a: "No. UMRAIO® automates repetitive business workflows and assists sales teams while preserving human judgement, approval and relationship management.",
   },
   {
     q: "What powers UMRAIO®?",
-    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®. UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
+    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
   },
 ];
+
 
 
 export const Route = createFileRoute("/")({
@@ -46,7 +69,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns, increase bookings and grow your business with intelligent AI executives.",
+          "UMRAIO® is an autonomous AI business executive for Umrah agencies, combining Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
       },
       {
         property: "og:title",
@@ -55,7 +78,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns and increase bookings.",
+          "Autonomous AI business executive for Umrah agencies — Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
       },
       { property: "og:url", content: "https://umraio.com/" },
       { property: "og:type", content: "website" },
@@ -193,8 +216,9 @@ function Index() {
               className="animate-rise mt-6 max-w-xl text-balance text-base font-light leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-lg"
               style={{ animationDelay: "240ms" }}
             >
-              Acquire more leads. Convert more bookings. Automate marketing. Reply to WhatsApp
-              instantly. Scale your agency with autonomous AI workers.
+              UMRAIO® combines autonomous AI execution, Umrah domain intelligence, customer context
+              and governed workflows — with an Islamic Implementation Layer™ designed for the
+              specific requirements of the Umrah ecosystem.
             </p>
 
             <div
@@ -229,6 +253,15 @@ function Index() {
 
           <AutomationShowcase />
 
+          <BuiltForUmrah />
+          <IslamicImplementationLayer />
+          <IntelligenceLoop />
+          <CustomerTrust />
+          <GovernedAutonomy />
+          <DifferentiationLadder />
+          <EcosystemRelationship />
+
+
 
           <section className="mt-24" aria-labelledby="faq-heading">
             <h2
@@ -248,6 +281,10 @@ function Index() {
               ))}
             </div>
           </section>
+
+          <ClosingStatement />
+
+
 
         </main>
 
