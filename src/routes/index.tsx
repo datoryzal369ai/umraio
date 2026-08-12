@@ -29,14 +29,27 @@ const faqs = [
     a: "Yes. Every conversation is captured as a lead with budget, pax, travel window and intent, then scored and placed in your CRM pipeline with scheduled follow-ups.",
   },
   {
+    q: "What is the Islamic Implementation Layer™?",
+    a: "It is an architectural layer designed to connect relevant Islamic principles, halal baselines, ethical business practices and governance requirements with AI-assisted workflows and operational execution.",
+  },
+  {
+    q: "Is UMRAIO® a Shariah authority?",
+    a: "No. UMRAIO® is an AI business intelligence and automation platform. It does not issue fatwa or replace qualified Islamic scholars. Relevant Shariah matters remain subject to appropriate human expertise and governance.",
+  },
+  {
+    q: "Is UMRAIO® Halal or JAKIM certified?",
+    a: "UMRAIO® should not be represented as formally Halal or JAKIM certified unless and until the appropriate authority grants such recognition. The platform is designed with Shariah-aware and halal-oriented implementation principles for relevant Umrah workflows.",
+  },
+  {
     q: "Does UMRAIO® replace human sales consultants?",
-    a: "No. UMRAIO® handles first response, qualification and follow-up around the clock, and hands over to your consultants whenever a human touch is needed.",
+    a: "No. UMRAIO® automates repetitive business workflows and assists sales teams while preserving human judgement, approval and relationship management.",
   },
   {
     q: "What powers UMRAIO®?",
-    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®. UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
+    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
   },
 ];
+
 
 
 export const Route = createFileRoute("/")({
