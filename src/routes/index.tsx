@@ -282,6 +282,10 @@ function Index() {
             </div>
           </section>
 
+          <ClosingStatement />
+
+
+
         </main>
 
         <BrandArchitecture />
