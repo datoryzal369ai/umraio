@@ -89,7 +89,7 @@ function AnswersEnquiries() {
         index="01"
         icon={BotMessageSquare}
         title="Answers enquiries"
-        body="Replies to WhatsApp messages instantly, in Bahasa Malaysia or English, with your agency's tone."
+        body="Responds instantly using your agency knowledge base, package information, customer context and Umrah-specific intelligence."
       />
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
