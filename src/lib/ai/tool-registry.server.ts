@@ -166,6 +166,34 @@ export class ToolRegistry {
       if (problem) return reject("business_rule", problem);
     }
 
+    // 6. Islamic Implementation Layer™ policy check (scoped tools only)
+    if (tool.islamicScope) {
+      const payload = tool.islamicPayload
+        ? tool.islamicPayload(parsed.data)
+        : JSON.stringify(parsed.data ?? {});
+      if (!ctx.islamicPolicy) {
+        return reject(
+          "islamic_policy",
+          "Islamic Implementation Layer™ is not available for this request; the action is held for qualified human review.",
+        );
+      }
+      const evaluation = await ctx.islamicPolicy.check(tool.islamicScope, payload);
+      await auditPolicyDecision(ctx.supabase, {
+        agencyId: ctx.agencyId,
+        correlationId: ctx.correlationId,
+        tool: name,
+        userId: ctx.userId,
+        evaluation,
+      });
+      if (evaluation.outcome === "BLOCK" || evaluation.outcome === "REVIEW_REQUIRED") {
+        return reject(
+          "islamic_policy",
+          `${evaluation.outcome === "BLOCK" ? "Blocked" : "Held for qualified human review"} by Islamic Implementation Layer™ — ${evaluation.reason}`,
+        );
+      }
+    }
+
+
     // 6. execution + 7. audit
     try {
       const result = await tool.execute(parsed.data, ctx);
