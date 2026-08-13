@@ -73,6 +73,8 @@ export type ExecutiveCycleResult = {
   correlationId: string;
   startedAt: string;
   finishedAt: string;
+  triggerType: "manual" | "scheduled_autonomous";
+  advisoryOnly: boolean;
   opportunitiesConsidered: number;
   actionsAttempted: number;
   actionsExecuted: number;
@@ -248,7 +250,7 @@ function buildExecutiveRegistry() {
 /* Context loading (tenant-scoped)                                     */
 /* ------------------------------------------------------------------ */
 
-async function loadOpportunities(supabase: Db, agencyId: string): Promise<SalesOpportunity[]> {
+export async function loadOpportunities(supabase: Db, agencyId: string): Promise<SalesOpportunity[]> {
   const [leads, convs, followups] = await Promise.all([
     supabase
       .from("leads")
@@ -364,11 +366,21 @@ function planFor(opp: SalesOpportunity): PlannedAction {
 /* Orchestration cycle                                                 */
 /* ------------------------------------------------------------------ */
 
+export type OrchestrationOptions = {
+  /** MANUAL (user pressed run) vs SCHEDULED_AUTONOMOUS (server-side cycle). */
+  triggerType?: "manual" | "scheduled_autonomous";
+  /** ASSISTED mode: plan and record, but never perform a side effect. */
+  advisoryOnly?: boolean;
+};
+
 export async function runExecutiveOrchestration(
   supabase: Db,
   agencyId: string,
   userId?: string,
+  options: OrchestrationOptions = {},
 ): Promise<ExecutiveCycleResult> {
+  const advisoryOnly = options.advisoryOnly === true;
+  const triggerType = options.triggerType ?? "manual";
   const correlationId = newCorrelationId();
   const startedAt = new Date().toISOString();
   const registry = buildExecutiveRegistry();
@@ -434,6 +446,23 @@ export async function runExecutiveOrchestration(
       continue;
     }
 
+    if (advisoryOnly) {
+      // ASSISTED mode: recommend only. No governed side effect is performed.
+      decisions.push({
+        at: new Date().toISOString(),
+        lead_id: opp.lead.id,
+        subject: opp.lead.full_name,
+        decision: plan.decision,
+        why,
+        action: plan.tool,
+        worker: plan.worker,
+        result: "approval_required",
+        detail:
+          "Assisted autonomy mode — recommendation recorded. A human must approve before this action runs.",
+      });
+      continue;
+    }
+
     attempted += 1;
     const outcome: ToolOutcome = await registry.invoke(plan.tool, plan.input, toolCtx);
 
@@ -467,7 +496,7 @@ export async function runExecutiveOrchestration(
   // Workforce coordination: keep Lead Intelligence scoring fresh when the
   // pipeline has unattended priorities. Queued only — the existing task engine
   // executes it, so nothing here bypasses the worker path.
-  if (executed < MAX_ACTIONS_PER_CYCLE && candidates.length >= 3) {
+  if (!advisoryOnly && executed < MAX_ACTIONS_PER_CYCLE && candidates.length >= 3) {
     const coordinationKind = "lead_scoring";
     attempted += 1;
     const outcome = await registry.invoke(
@@ -517,6 +546,8 @@ export async function runExecutiveOrchestration(
     correlationId,
     startedAt,
     finishedAt,
+    triggerType,
+    advisoryOnly,
     opportunitiesConsidered: candidates.length,
     actionsAttempted: attempted,
     actionsExecuted: executed,
@@ -528,7 +559,9 @@ export async function runExecutiveOrchestration(
   await supabase.from("activity_log").insert({
     agency_id: agencyId,
     actor: "ai",
-    action: `AI Autonomous Business Executive ran an orchestration cycle — ${executed} action(s) executed`,
+    action: `AI Autonomous Business Executive ran a ${
+      triggerType === "scheduled_autonomous" ? "scheduled autonomous" : "manual"
+    } orchestration cycle — ${executed} action(s) executed`,
     entity: "executive_cycle",
     entity_id: null,
     meta: { ...cycle, user_id: userId ?? null },

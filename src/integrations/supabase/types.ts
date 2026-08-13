@@ -116,6 +116,8 @@ export type Database = {
           ai_personality: string
           ai_reply_length: string
           ai_tone: string
+          autonomy_cooldown_minutes: number
+          autonomy_mode: string
           business_hours: Json
           created_at: string
           id: string
@@ -145,6 +147,8 @@ export type Database = {
           ai_personality?: string
           ai_reply_length?: string
           ai_tone?: string
+          autonomy_cooldown_minutes?: number
+          autonomy_mode?: string
           business_hours?: Json
           created_at?: string
           id?: string
@@ -174,6 +178,8 @@ export type Database = {
           ai_personality?: string
           ai_reply_length?: string
           ai_tone?: string
+          autonomy_cooldown_minutes?: number
+          autonomy_mode?: string
           business_hours?: Json
           created_at?: string
           id?: string
@@ -520,6 +526,83 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      executive_cycles: {
+        Row: {
+          actions_attempted: number
+          actions_awaiting_approval: number
+          actions_executed: number
+          actions_failed: number
+          actions_rejected: number
+          agency_id: string
+          autonomy_mode: string
+          correlation_id: string | null
+          created_at: string
+          decisions: Json
+          error: string | null
+          finished_at: string | null
+          id: string
+          limit_reached: boolean
+          opportunities_considered: number
+          outcome: string | null
+          skipped_reason: string | null
+          started_at: string
+          status: string
+          trigger_type: string
+        }
+        Insert: {
+          actions_attempted?: number
+          actions_awaiting_approval?: number
+          actions_executed?: number
+          actions_failed?: number
+          actions_rejected?: number
+          agency_id: string
+          autonomy_mode: string
+          correlation_id?: string | null
+          created_at?: string
+          decisions?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          limit_reached?: boolean
+          opportunities_considered?: number
+          outcome?: string | null
+          skipped_reason?: string | null
+          started_at?: string
+          status: string
+          trigger_type: string
+        }
+        Update: {
+          actions_attempted?: number
+          actions_awaiting_approval?: number
+          actions_executed?: number
+          actions_failed?: number
+          actions_rejected?: number
+          agency_id?: string
+          autonomy_mode?: string
+          correlation_id?: string | null
+          created_at?: string
+          decisions?: Json
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          limit_reached?: boolean
+          opportunities_considered?: number
+          outcome?: string | null
+          skipped_reason?: string | null
+          started_at?: string
+          status?: string
+          trigger_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "executive_cycles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
             referencedColumns: ["id"]
           },
         ]
