@@ -114,7 +114,11 @@ export function OrchestrationPanel() {
         ? { label: "Escalated", tone: "bg-chart-4/15 text-chart-4" }
         : cycle && cycle.actionsExecuted > 0
           ? { label: "Completed", tone: "bg-success/15 text-success" }
-          : { label: "Advisory", tone: "bg-muted text-muted-foreground" };
+          : mode === "assisted"
+            ? { label: "Advisory", tone: "bg-muted text-muted-foreground" }
+            : cycle
+              ? { label: "No action taken", tone: "bg-muted text-muted-foreground" }
+              : { label: "Idle", tone: "bg-muted text-muted-foreground" };
 
   return (
     <section aria-labelledby="orchestration-heading" className="panel min-w-0 p-5">
