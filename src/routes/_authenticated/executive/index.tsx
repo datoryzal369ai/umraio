@@ -17,6 +17,7 @@ import {
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { ExecutiveCommandPanel } from "@/components/executive/ExecutiveCommandPanel";
+import { SalesOpportunities } from "@/components/executive/SalesOpportunities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -101,6 +102,8 @@ function ExecutiveCenter() {
 
       <ExecutiveCommandPanel workers={workers.data ?? []} workersLoading={workers.isLoading} />
 
+      <SalesOpportunities />
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           icon={CheckCircle2}
@@ -183,7 +186,7 @@ function ExecutiveCenter() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <div className="panel p-5">
+        <div className="panel min-w-0 p-5">
           <h2 className="text-base font-semibold">Latest AI tasks</h2>
           <p className="text-xs text-muted-foreground">What the workforce produced recently</p>
           <ul className="mt-4 space-y-2">
@@ -212,7 +215,7 @@ function ExecutiveCenter() {
           </ul>
         </div>
 
-        <div className="panel p-5">
+        <div className="panel min-w-0 p-5">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-4 text-primary" />
             <div>
