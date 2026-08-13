@@ -270,7 +270,7 @@ function KnowledgePage() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {[0, 1, 2, 3].map((i) => (
             <div key={i} className="h-40 animate-pulse rounded-xl border border-border bg-card" />
           ))}
@@ -289,7 +289,7 @@ function KnowledgePage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {filtered.map((article) => (
             <article
               key={article.id}
@@ -373,7 +373,7 @@ function KnowledgePage() {
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select

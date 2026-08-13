@@ -204,15 +204,15 @@ function DashboardBody({ data }: { data: DashboardData }) {
 
       <WhatsappExecutiveCard />
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
-        <div className="panel p-5 lg:col-span-2">
+        <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={TrendingUp}
             title="Sales performance"
             subtitle="Revenue and bookings, last 6 months"
           />
-          <div className="mt-4">
+          <div className="mt-4 min-w-0 overflow-hidden">
             <SalesPerformanceChart data={series} />
           </div>
         </div>
@@ -248,14 +248,14 @@ function DashboardBody({ data }: { data: DashboardData }) {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <div className="panel p-5 lg:col-span-2">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={Activity}
             title="Monthly analytics"
             subtitle="Leads vs bookings trend"
           />
-          <div className="mt-4">
+          <div className="mt-4 min-w-0 overflow-hidden">
             <MonthlyAnalyticsChart data={series} />
           </div>
         </div>
@@ -379,7 +379,7 @@ function LoadingState() {
           <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Skeleton className="h-80 rounded-2xl lg:col-span-2" />
         <Skeleton className="h-80 rounded-2xl" />
       </div>

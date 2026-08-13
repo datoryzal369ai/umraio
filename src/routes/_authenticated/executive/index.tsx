@@ -155,7 +155,7 @@ function ExecutiveCenter() {
               const Icon = workerIcon[worker.worker_key] ?? Bot;
               const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
               return (
-                <article key={worker.id} className="panel flex flex-col gap-4 p-5">
+                <article key={worker.id} className="panel flex min-w-0 flex-col gap-4 p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-start gap-3">
                       <div className="rounded-xl border border-border/60 bg-surface p-2.5">
@@ -170,8 +170,8 @@ function ExecutiveCenter() {
                       {STATUS_LABEL[status]}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="min-w-0 text-xs text-muted-foreground">
                       {worker.last_run_at ? `Last run ${relative(worker.last_run_at)}` : "Not run yet"}
                       {" · "}
                       {worker.autonomy === "auto" ? "Autonomous" : "Approval required"}

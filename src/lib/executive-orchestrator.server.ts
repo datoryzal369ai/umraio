@@ -398,7 +398,7 @@ export async function runExecutiveOrchestration(
   let attempted = 0;
   let limitReached = false;
 
-  for (const opp of candidates) {
+  for (const [index, opp] of candidates.entries()) {
     if (executed >= MAX_ACTIONS_PER_CYCLE) {
       limitReached = true;
       decisions.push({
@@ -410,10 +410,11 @@ export async function runExecutiveOrchestration(
         action: null,
         worker: null,
         result: "orchestration_limit_reached",
-        detail: `${candidates.length - decisions.length} remaining priorities carry over to the next cycle.`,
+        detail: `${candidates.length - index} remaining priorities carry over to the next cycle.`,
       });
       break;
     }
+
 
     const plan = planFor(opp);
     const why = `${opp.reasons.join(", ")} · score ${opp.lead.score}/100 · ${opp.intent} intent`;
@@ -467,17 +468,33 @@ export async function runExecutiveOrchestration(
   // pipeline has unattended priorities. Queued only — the existing task engine
   // executes it, so nothing here bypasses the worker path.
   if (executed < MAX_ACTIONS_PER_CYCLE && candidates.length >= 3) {
+    const coordinationKind = "lead_scoring";
     attempted += 1;
     const outcome = await registry.invoke(
       "executive_queue_worker_task",
       {
-        kind: "lead_scoring",
+        kind: coordinationKind,
         brief: `Executive orchestration: ${candidates.length} open priorities detected — rescore and re-prioritise the pipeline.`,
       },
       toolCtx,
     );
     const executedOk = outcome.status === "executed";
     if (executedOk) executed += 1;
+
+    // Deterministic outcome classification — never inferred from message text.
+    let coordinationResult: ExecutiveActionResult;
+    if (executedOk) {
+      coordinationResult = "executed";
+    } else if (outcome.status === "rejected") {
+      coordinationResult = APPROVAL_REQUIRED_KINDS.has(coordinationKind)
+        ? "approval_required"
+        : outcome.stage === "business_rule"
+          ? "duplicate_skipped"
+          : "rejected";
+    } else {
+      coordinationResult = "failed";
+    }
+
     decisions.push({
       at: new Date().toISOString(),
       lead_id: null,
@@ -486,14 +503,12 @@ export async function runExecutiveOrchestration(
       why: `${candidates.length} open priorities detected in this cycle.`,
       action: "executive_queue_worker_task",
       worker: "AI Lead Intelligence",
-      result: executedOk
-        ? "executed"
+      result: coordinationResult,
+      detail: executedOk
+        ? JSON.stringify(outcome.result)
         : outcome.status === "rejected"
-          ? outcome.reason.includes("approval")
-            ? "approval_required"
-            : "duplicate_skipped"
-          : "failed",
-      detail: executedOk ? JSON.stringify(outcome.result) : (outcome as any).reason,
+          ? outcome.reason
+          : outcome.reason,
     });
   }
 

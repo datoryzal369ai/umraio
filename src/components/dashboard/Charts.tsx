@@ -49,7 +49,7 @@ function ChartTooltip({
 
 export function SalesPerformanceChart({ data }: { data: Point[] }) {
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={260} minWidth={0}>
       <ComposedChart data={data} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
         <XAxis dataKey="month" {...axisProps} />
@@ -78,7 +78,7 @@ export function SalesPerformanceChart({ data }: { data: Point[] }) {
 
 export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
   return (
-    <ResponsiveContainer width="100%" height={260}>
+    <ResponsiveContainer width="100%" height={260} minWidth={0}>
       <AreaChart data={data} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
         <defs>
           <linearGradient id="leadsFill" x1="0" y1="0" x2="0" y2="1">
