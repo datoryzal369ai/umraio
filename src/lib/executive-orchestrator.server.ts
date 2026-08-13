@@ -544,6 +544,8 @@ export async function runExecutiveOrchestration(
     correlationId,
     startedAt,
     finishedAt,
+    triggerType,
+    advisoryOnly,
     opportunitiesConsidered: candidates.length,
     actionsAttempted: attempted,
     actionsExecuted: executed,
@@ -555,7 +557,9 @@ export async function runExecutiveOrchestration(
   await supabase.from("activity_log").insert({
     agency_id: agencyId,
     actor: "ai",
-    action: `AI Autonomous Business Executive ran an orchestration cycle — ${executed} action(s) executed`,
+    action: `AI Autonomous Business Executive ran a ${
+      triggerType === "scheduled_autonomous" ? "scheduled autonomous" : "manual"
+    } orchestration cycle — ${executed} action(s) executed`,
     entity: "executive_cycle",
     entity_id: null,
     meta: { ...cycle, user_id: userId ?? null },
