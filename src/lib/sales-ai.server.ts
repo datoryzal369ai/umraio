@@ -66,7 +66,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
     supabase
       .from("packages")
       .select(
-        "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions",
+        "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions, halal_review_status",
       )
       .eq("is_active", true)
       .order("price_myr", { ascending: true })
