@@ -217,6 +217,8 @@ function LeadDetailPage() {
         </Button>
       </header>
 
+      <NextBestAction lead={lead} />
+
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
           <section className="panel p-6">
