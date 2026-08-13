@@ -9,6 +9,8 @@ import {
   type ToolOutcome,
 } from "./ai/index.server";
 import { logAiEvent } from "./ai/audit.server";
+import { createIslamicPolicyChecker } from "./islamic/policy.server";
+
 import {
   OPEN_STAGES,
   buildOpportunity,
