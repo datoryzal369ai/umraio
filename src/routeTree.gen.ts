@@ -35,6 +35,7 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
+import { Route as ApiPublicHooksExecutiveAutonomyRouteImport } from './routes/api/public/hooks/executive-autonomy'
 import { Route as ApiPublicHooksTaskEngineRouteImport } from './routes/api/public/hooks/task-engine'
 
 const IndexRoute = IndexRouteImport.update({
@@ -179,6 +180,12 @@ const ApiPublicWhatsappRoute = ApiPublicWhatsappRouteImport.update({
   path: '/api/public/whatsapp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksExecutiveAutonomyRoute =
+  ApiPublicHooksExecutiveAutonomyRouteImport.update({
+    id: '/api/public/hooks/executive-autonomy',
+    path: '/api/public/hooks/executive-autonomy',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksTaskEngineRoute =
   ApiPublicHooksTaskEngineRouteImport.update({
     id: '/api/public/hooks/task-engine',
@@ -212,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/executive-autonomy': typeof ApiPublicHooksExecutiveAutonomyRoute
   '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRoutesByTo {
@@ -239,6 +247,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof AuthenticatedKnowledgeIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/executive-autonomy': typeof ApiPublicHooksExecutiveAutonomyRoute
   '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRoutesById {
@@ -269,6 +278,7 @@ export interface FileRoutesById {
   '/_authenticated/knowledge/': typeof AuthenticatedKnowledgeIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
+  '/api/public/hooks/executive-autonomy': typeof ApiPublicHooksExecutiveAutonomyRoute
   '/api/public/hooks/task-engine': typeof ApiPublicHooksTaskEngineRoute
 }
 export interface FileRouteTypes {
@@ -299,6 +309,7 @@ export interface FileRouteTypes {
     | '/knowledge/'
     | '/leads/'
     | '/settings/'
+    | '/api/public/hooks/executive-autonomy'
     | '/api/public/hooks/task-engine'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/leads'
     | '/settings'
+    | '/api/public/hooks/executive-autonomy'
     | '/api/public/hooks/task-engine'
   id:
     | '__root__'
@@ -355,6 +367,7 @@ export interface FileRouteTypes {
     | '/_authenticated/knowledge/'
     | '/_authenticated/leads/'
     | '/_authenticated/settings/'
+    | '/api/public/hooks/executive-autonomy'
     | '/api/public/hooks/task-engine'
   fileRoutesById: FileRoutesById
 }
@@ -365,6 +378,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
+  ApiPublicHooksExecutiveAutonomyRoute: typeof ApiPublicHooksExecutiveAutonomyRoute
   ApiPublicHooksTaskEngineRoute: typeof ApiPublicHooksTaskEngineRoute
 }
 
@@ -552,6 +566,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/executive-autonomy': {
+      id: '/api/public/hooks/executive-autonomy'
+      path: '/api/public/hooks/executive-autonomy'
+      fullPath: '/api/public/hooks/executive-autonomy'
+      preLoaderRoute: typeof ApiPublicHooksExecutiveAutonomyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/task-engine': {
       id: '/api/public/hooks/task-engine'
       path: '/api/public/hooks/task-engine'
@@ -633,6 +654,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
+  ApiPublicHooksExecutiveAutonomyRoute: ApiPublicHooksExecutiveAutonomyRoute,
   ApiPublicHooksTaskEngineRoute: ApiPublicHooksTaskEngineRoute,
 }
 export const routeTree = rootRouteImport
