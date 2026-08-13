@@ -13,6 +13,12 @@ import {
   type ToolRegistry,
 } from "./ai/tool-registry.server";
 import { hashContext, recordExperience } from "./ai/evaluation.server";
+import {
+  detectReligiousRulingRequest,
+  RELIGIOUS_BOUNDARY_INSTRUCTION,
+} from "./islamic/policy.core";
+import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
@@ -60,7 +66,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
     supabase
       .from("packages")
       .select(
-        "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions",
+        "id, name, hotel_makkah, hotel_madinah, star_rating, nights, departure_date, airline, price_myr, inclusions, halal_review_status",
       )
       .eq("is_active", true)
       .order("price_myr", { ascending: true })
@@ -231,6 +237,12 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const language = LANGUAGE_HINTS[s?.ai_language ?? "auto"] ?? LANGUAGE_HINTS["auto"];
   const tone = s?.ai_tone ?? "warm";
   const useKb = s?.kb_auto_use ?? true;
+  const lastCustomer = [...ctx.messages].reverse().find((m) => m.sender === "customer");
+  const religiousBoundary = detectReligiousRulingRequest(lastCustomer?.body)
+    .isReligiousRulingRequest
+    ? RELIGIOUS_BOUNDARY_INSTRUCTION
+    : null;
+
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
@@ -265,7 +277,15 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     "Every customer message must receive a reply: an answer, a clarifying question, a safe fallback, or an explicit human-handoff message. Silence is never acceptable.",
     "Never promise visas, guarantees or refunds outside the listed inclusions.",
 
+    // Islamic Implementation Layer™ — standing boundaries (always active)
+    "ISLAMIC IMPLEMENTATION LAYER™ (standing rules): you are a travel-sales assistant, not a mufti, scholar, fatwa body or Shariah authority. Never issue religious rulings and never declare something definitively halal, haram, wajib, sunat, makruh, sah or batal.",
+    "Never claim halal certification, JAKIM certification or Shariah compliance for the agency or any package. Never use absolute religious guarantees such as '100% halal', 'dijamin mabrur' or 'fully Shariah compliant'.",
+    "recommend_packages returns halal_review_status for every package. Only a package with status REVIEWED has been reviewed by the agency; anything else must never be presented as religiously verified — unknown means review pending, not halal and not haram.",
+    "When a customer asks for a religious ruling, state your limitation once, share only approved sourced guidance, and call request_expert_review so a qualified human is asked to review. Keep helping with the travel side.",
+    religiousBoundary,
+
     businessHoursLine(s),
+
     s?.ai_custom_instructions?.trim()
       ? `Agency custom instructions (highest priority, never break platform safety rules):\n${s.ai_custom_instructions.trim()}`
       : null,
@@ -658,7 +678,51 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         };
       },
     },
+
+    {
+      name: "request_expert_review",
+      description:
+        "Islamic Implementation Layer™: route a religious or Shariah-related question to a qualified human reviewer. Call this whenever the customer asks for a religious ruling, or asks whether something is halal/haram/wajib/sah. Only after it returns review_recorded=true may you tell the customer that a qualified person has been asked to review.",
+      permission: "external",
+      deterministicSafe: true,
+      inputSchema: z.object({
+        question: z.string().describe("The customer's religious question, in one sentence"),
+        topic: z.enum(["ritual", "halal_status", "financial", "mahram", "other"]),
+      }),
+      validate: (input) =>
+        input.question.trim() ? null : "A concrete question is required for expert review.",
+      execute: async ({ question, topic }, tctx) => {
+        const outcome = await requestExpertReview(tctx.supabase, {
+          agencyId: tctx.agencyId,
+          title: `Religious guidance review needed (${topic})`,
+          body: question,
+          entity: "conversation",
+          entityId: ctx.conversation.id,
+          meta: { topic, lead_id: leadId, conversation_id: ctx.conversation.id },
+        });
+        if (!outcome.recorded) {
+          return {
+            review_recorded: false,
+            instruction:
+              "The review request was NOT recorded. Do not claim anyone was notified. Say truthfully that you are not a religious authority and cannot give a ruling, then continue helping with travel arrangements.",
+          };
+        }
+        await tctx.supabase
+          .from("conversations")
+          .update({ human_attention_required: true })
+          .eq("id", ctx.conversation.id);
+        return {
+          review_recorded: true,
+          reference: outcome.reference,
+          review_status: "PENDING_EXPERT_REVIEW",
+          ai_still_enabled: true,
+          instruction:
+            "Tell the customer truthfully that you are not a religious authority and the question has been flagged for a qualified person to review. Do not give a ruling yourself. Continue helping with the travel side of the enquiry.",
+        };
+      },
+    },
   ];
+
   return createToolRegistry(tools);
 }
 
@@ -681,6 +745,8 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     agencyId,
     correlationId,
     grantedPermissions: ["read", "write", "external"],
+    islamicPolicy: createIslamicPolicyChecker(supabase, agencyId),
+
     allowedTools,
   };
 

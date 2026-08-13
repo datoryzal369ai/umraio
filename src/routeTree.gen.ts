@@ -31,6 +31,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedSettingsAgencyRouteImport } from './routes/_authenticated/settings/agency'
 import { Route as AuthenticatedSettingsAiRouteImport } from './routes/_authenticated/settings/ai'
 import { Route as AuthenticatedSettingsApiKeysRouteImport } from './routes/_authenticated/settings/api-keys'
+import { Route as AuthenticatedSettingsGovernanceRouteImport } from './routes/_authenticated/settings/governance'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
@@ -157,6 +158,12 @@ const AuthenticatedSettingsApiKeysRoute =
     path: '/api-keys',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const AuthenticatedSettingsGovernanceRoute =
+  AuthenticatedSettingsGovernanceRouteImport.update({
+    id: '/governance',
+    path: '/governance',
+    getParentRoute: () => AuthenticatedSettingsRouteRoute,
+  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/notifications',
@@ -210,6 +217,7 @@ export interface FileRoutesByFullPath {
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/settings/governance': typeof AuthenticatedSettingsGovernanceRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
@@ -238,6 +246,7 @@ export interface FileRoutesByTo {
   '/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/settings/governance': typeof AuthenticatedSettingsGovernanceRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
@@ -269,6 +278,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/agency': typeof AuthenticatedSettingsAgencyRoute
   '/_authenticated/settings/ai': typeof AuthenticatedSettingsAiRoute
   '/_authenticated/settings/api-keys': typeof AuthenticatedSettingsApiKeysRoute
+  '/_authenticated/settings/governance': typeof AuthenticatedSettingsGovernanceRoute
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
@@ -300,6 +310,7 @@ export interface FileRouteTypes {
     | '/settings/agency'
     | '/settings/ai'
     | '/settings/api-keys'
+    | '/settings/governance'
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
@@ -328,6 +339,7 @@ export interface FileRouteTypes {
     | '/settings/agency'
     | '/settings/ai'
     | '/settings/api-keys'
+    | '/settings/governance'
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
@@ -358,6 +370,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/agency'
     | '/_authenticated/settings/ai'
     | '/_authenticated/settings/api-keys'
+    | '/_authenticated/settings/governance'
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/whatsapp'
@@ -538,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsApiKeysRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/_authenticated/settings/governance': {
+      id: '/_authenticated/settings/governance'
+      path: '/governance'
+      fullPath: '/settings/governance'
+      preLoaderRoute: typeof AuthenticatedSettingsGovernanceRouteImport
+      parentRoute: typeof AuthenticatedSettingsRouteRoute
+    }
     '/_authenticated/settings/notifications': {
       id: '/_authenticated/settings/notifications'
       path: '/notifications'
@@ -587,6 +607,7 @@ interface AuthenticatedSettingsRouteRouteChildren {
   AuthenticatedSettingsAgencyRoute: typeof AuthenticatedSettingsAgencyRoute
   AuthenticatedSettingsAiRoute: typeof AuthenticatedSettingsAiRoute
   AuthenticatedSettingsApiKeysRoute: typeof AuthenticatedSettingsApiKeysRoute
+  AuthenticatedSettingsGovernanceRoute: typeof AuthenticatedSettingsGovernanceRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
   AuthenticatedSettingsSubscriptionRoute: typeof AuthenticatedSettingsSubscriptionRoute
   AuthenticatedSettingsWhatsappRoute: typeof AuthenticatedSettingsWhatsappRoute
@@ -598,6 +619,7 @@ const AuthenticatedSettingsRouteRouteChildren: AuthenticatedSettingsRouteRouteCh
     AuthenticatedSettingsAgencyRoute: AuthenticatedSettingsAgencyRoute,
     AuthenticatedSettingsAiRoute: AuthenticatedSettingsAiRoute,
     AuthenticatedSettingsApiKeysRoute: AuthenticatedSettingsApiKeysRoute,
+    AuthenticatedSettingsGovernanceRoute: AuthenticatedSettingsGovernanceRoute,
     AuthenticatedSettingsNotificationsRoute:
       AuthenticatedSettingsNotificationsRoute,
     AuthenticatedSettingsSubscriptionRoute:

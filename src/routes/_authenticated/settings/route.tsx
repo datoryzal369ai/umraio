@@ -7,7 +7,9 @@ const tabs = [
   { to: "/settings/agency", label: "Agency" },
   { to: "/settings/ai", label: "AI & Knowledge" },
   { to: "/settings/whatsapp", label: "WhatsApp" },
+  { to: "/settings/governance", label: "Governance" },
   { to: "/settings/notifications", label: "Notifications" },
+
   { to: "/settings/api-keys", label: "API Keys" },
   { to: "/settings/subscription", label: "Subscription" },
 ] as const;

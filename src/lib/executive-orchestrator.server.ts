@@ -9,6 +9,8 @@ import {
   type ToolOutcome,
 } from "./ai/index.server";
 import { logAiEvent } from "./ai/audit.server";
+import { createIslamicPolicyChecker } from "./islamic/policy.server";
+
 import {
   OPEN_STAGES,
   buildOpportunity,
@@ -391,6 +393,8 @@ export async function runExecutiveOrchestration(
     correlationId,
     grantedPermissions: ["read", "write"],
     allowedTools: registry.names(),
+    islamicPolicy: createIslamicPolicyChecker(supabase, agencyId),
+
   };
 
   await logAiEvent(supabase, {

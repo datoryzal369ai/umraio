@@ -3,9 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { isDeterministicOperation } from "./routing";
 import { logAiEvent } from "./audit.server";
+import type { IslamicScope } from "../islamic/policy.core";
+import { auditPolicyDecision, type IslamicPolicyChecker } from "../islamic/policy.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
+
 
 /**
  * Controlled tool/action layer.
@@ -29,6 +32,12 @@ export type ToolExecutionContext = {
   grantedPermissions: ToolPermission[];
   /** Per-request allowlist. Enforced, not advisory. */
   allowedTools: string[];
+  /**
+   * Islamic Implementation Layer™ checker. Optional: when absent, tools that
+   * declare an `islamicScope` are conservatively held for human review rather
+   * than executed.
+   */
+  islamicPolicy?: IslamicPolicyChecker | undefined;
 };
 
 export type ToolDefinition<TInput = any, TOutput = any> = {
@@ -43,6 +52,15 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
    */
   deterministicSafe: true;
   /**
+   * Islamic Implementation Layer™ scope. Set ONLY when the action can carry a
+   * religious, halal, marketing-claim or transaction implication. Ordinary
+   * technical actions (lead scoring, internal follow-ups) leave this undefined
+   * and are never policy-checked.
+   */
+  islamicScope?: IslamicScope;
+  /** Text extracted from the input that the policy check inspects. */
+  islamicPayload?: (input: TInput) => string;
+  /**
    * Deterministic business-rule validation. Return an error string to reject.
    * REQUIRED for `write` and `external` tools.
    */
@@ -51,7 +69,14 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
 };
 
 export type ToolRejectionStage =
-  "registration" | "allowed_tools" | "schema" | "permission" | "business_rule" | "safety";
+  | "registration"
+  | "allowed_tools"
+  | "schema"
+  | "permission"
+  | "business_rule"
+  | "islamic_policy"
+  | "safety";
+
 
 export type ToolOutcome<TOutput = any> =
   | { status: "executed"; result: TOutput }
@@ -140,6 +165,34 @@ export class ToolRegistry {
       const problem = await tool.validate(parsed.data, ctx);
       if (problem) return reject("business_rule", problem);
     }
+
+    // 6. Islamic Implementation Layer™ policy check (scoped tools only)
+    if (tool.islamicScope) {
+      const payload = tool.islamicPayload
+        ? tool.islamicPayload(parsed.data)
+        : JSON.stringify(parsed.data ?? {});
+      if (!ctx.islamicPolicy) {
+        return reject(
+          "islamic_policy",
+          "Islamic Implementation Layer™ is not available for this request; the action is held for qualified human review.",
+        );
+      }
+      const evaluation = await ctx.islamicPolicy.check(tool.islamicScope, payload);
+      await auditPolicyDecision(ctx.supabase, {
+        agencyId: ctx.agencyId,
+        correlationId: ctx.correlationId,
+        tool: name,
+        userId: ctx.userId,
+        evaluation,
+      });
+      if (evaluation.outcome === "BLOCK" || evaluation.outcome === "REVIEW_REQUIRED") {
+        return reject(
+          "islamic_policy",
+          `${evaluation.outcome === "BLOCK" ? "Blocked" : "Held for qualified human review"} by Islamic Implementation Layer™ — ${evaluation.reason}`,
+        );
+      }
+    }
+
 
     // 6. execution + 7. audit
     try {
