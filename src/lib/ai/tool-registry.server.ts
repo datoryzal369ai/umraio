@@ -32,6 +32,12 @@ export type ToolExecutionContext = {
   grantedPermissions: ToolPermission[];
   /** Per-request allowlist. Enforced, not advisory. */
   allowedTools: string[];
+  /**
+   * Islamic Implementation Layer™ checker. Optional: when absent, tools that
+   * declare an `islamicScope` are conservatively held for human review rather
+   * than executed.
+   */
+  islamicPolicy?: IslamicPolicyChecker | undefined;
 };
 
 export type ToolDefinition<TInput = any, TOutput = any> = {
@@ -46,6 +52,15 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
    */
   deterministicSafe: true;
   /**
+   * Islamic Implementation Layer™ scope. Set ONLY when the action can carry a
+   * religious, halal, marketing-claim or transaction implication. Ordinary
+   * technical actions (lead scoring, internal follow-ups) leave this undefined
+   * and are never policy-checked.
+   */
+  islamicScope?: IslamicScope;
+  /** Text extracted from the input that the policy check inspects. */
+  islamicPayload?: (input: TInput) => string;
+  /**
    * Deterministic business-rule validation. Return an error string to reject.
    * REQUIRED for `write` and `external` tools.
    */
@@ -54,7 +69,14 @@ export type ToolDefinition<TInput = any, TOutput = any> = {
 };
 
 export type ToolRejectionStage =
-  "registration" | "allowed_tools" | "schema" | "permission" | "business_rule" | "safety";
+  | "registration"
+  | "allowed_tools"
+  | "schema"
+  | "permission"
+  | "business_rule"
+  | "islamic_policy"
+  | "safety";
+
 
 export type ToolOutcome<TOutput = any> =
   | { status: "executed"; result: TOutput }
