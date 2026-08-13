@@ -191,9 +191,6 @@ function nextBestAction(args: {
   if (missing.length > 0 && intent !== "low") {
     return `Ask for the missing details: ${missing.join(", ")}.`;
   }
-  if (intent === "high" && lead.package_interestLike) {
-    return "Recommend a matching package and move to proposal.";
-  }
   if (intent === "high") return "Recommend a matching package and push for a booking decision.";
   if (reasons.includes("awaiting_reply")) return "No reply in over 24h — send a gentle follow-up.";
   return "Keep nurturing — wait for the customer's response.";
