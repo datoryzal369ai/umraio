@@ -250,7 +250,7 @@ function buildExecutiveRegistry() {
 /* Context loading (tenant-scoped)                                     */
 /* ------------------------------------------------------------------ */
 
-async function loadOpportunities(supabase: Db, agencyId: string): Promise<SalesOpportunity[]> {
+export async function loadOpportunities(supabase: Db, agencyId: string): Promise<SalesOpportunity[]> {
   const [leads, convs, followups] = await Promise.all([
     supabase
       .from("leads")
