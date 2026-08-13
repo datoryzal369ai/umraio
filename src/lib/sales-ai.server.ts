@@ -678,7 +678,51 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         };
       },
     },
+
+    {
+      name: "request_expert_review",
+      description:
+        "Islamic Implementation Layer™: route a religious or Shariah-related question to a qualified human reviewer. Call this whenever the customer asks for a religious ruling, or asks whether something is halal/haram/wajib/sah. Only after it returns review_recorded=true may you tell the customer that a qualified person has been asked to review.",
+      permission: "external",
+      deterministicSafe: true,
+      inputSchema: z.object({
+        question: z.string().describe("The customer's religious question, in one sentence"),
+        topic: z.enum(["ritual", "halal_status", "financial", "mahram", "other"]),
+      }),
+      validate: (input) =>
+        input.question.trim() ? null : "A concrete question is required for expert review.",
+      execute: async ({ question, topic }, tctx) => {
+        const outcome = await requestExpertReview(tctx.supabase, {
+          agencyId: tctx.agencyId,
+          title: `Religious guidance review needed (${topic})`,
+          body: question,
+          entity: "conversation",
+          entityId: ctx.conversation.id,
+          meta: { topic, lead_id: leadId, conversation_id: ctx.conversation.id },
+        });
+        if (!outcome.recorded) {
+          return {
+            review_recorded: false,
+            instruction:
+              "The review request was NOT recorded. Do not claim anyone was notified. Say truthfully that you are not a religious authority and cannot give a ruling, then continue helping with travel arrangements.",
+          };
+        }
+        await tctx.supabase
+          .from("conversations")
+          .update({ human_attention_required: true })
+          .eq("id", ctx.conversation.id);
+        return {
+          review_recorded: true,
+          reference: outcome.reference,
+          review_status: "PENDING_EXPERT_REVIEW",
+          ai_still_enabled: true,
+          instruction:
+            "Tell the customer truthfully that you are not a religious authority and the question has been flagged for a qualified person to review. Do not give a ruling yourself. Continue helping with the travel side of the enquiry.",
+        };
+      },
+    },
   ];
+
   return createToolRegistry(tools);
 }
 
