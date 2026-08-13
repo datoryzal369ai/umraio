@@ -1,0 +1,1 @@
+DELETE FROM public.demo_requests WHERE email = 'qa+step6@example.com';
