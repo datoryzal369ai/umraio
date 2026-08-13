@@ -391,6 +391,8 @@ export async function runExecutiveOrchestration(
     correlationId,
     grantedPermissions: ["read", "write"],
     allowedTools: registry.names(),
+    islamicPolicy: createIslamicPolicyChecker(supabase, agencyId),
+
   };
 
   await logAiEvent(supabase, {
