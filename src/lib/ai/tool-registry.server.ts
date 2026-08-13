@@ -3,9 +3,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { isDeterministicOperation } from "./routing";
 import { logAiEvent } from "./audit.server";
+import type { IslamicScope } from "../islamic/policy.core";
+import { auditPolicyDecision, type IslamicPolicyChecker } from "../islamic/policy.server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
+
 
 /**
  * Controlled tool/action layer.
