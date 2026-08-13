@@ -36,9 +36,15 @@ const relative = (iso: string) => {
   return `${Math.round(mins / 1440)}d ago`;
 };
 
+type GovernedOutcome =
+  | { status: "skipped"; reason: string }
+  | { status: "completed"; cycle: ExecutiveCycle }
+  | { status: "failed"; error: string };
+
 export function OrchestrationPanel() {
   const queryClient = useQueryClient();
   const runCycle = useServerFn(runExecutiveCycle);
+  const changeMode = useServerFn(setAutonomyMode);
   const [live, setLive] = useState<ExecutiveCycle | null>(null);
 
   const lastCycle = useQuery({
@@ -46,14 +52,37 @@ export function OrchestrationPanel() {
     queryFn: fetchLastExecutiveCycle,
   });
 
+  const autonomy = useQuery({
+    queryKey: ["executive-autonomy"],
+    queryFn: fetchAutonomyState,
+    refetchInterval: 60_000,
+  });
+
+  const modeMutation = useMutation({
+    mutationFn: async (mode: AutonomyMode) => await changeMode({ data: { mode } }),
+    onSuccess: (_res, mode) => {
+      toast.success(`AI autonomy set to ${AUTONOMY_LABEL[mode]}.`);
+      void queryClient.invalidateQueries({ queryKey: ["executive-autonomy"] });
+    },
+    onError: (error: unknown) =>
+      toast.error(error instanceof Error ? error.message : "Could not change autonomy mode."),
+  });
+
   const mutation = useMutation({
-    mutationFn: async () => (await runCycle()) as unknown as ExecutiveCycle,
-    onSuccess: (cycle) => {
-      setLive(cycle);
-      toast.success(
-        `Orchestration cycle finished — ${cycle.actionsExecuted} action(s) executed of ${cycle.actionsAttempted} attempted.`,
-      );
+    mutationFn: async () => (await runCycle()) as unknown as GovernedOutcome,
+    onSuccess: (outcome) => {
+      if (outcome.status === "completed") {
+        setLive(outcome.cycle);
+        toast.success(
+          `Orchestration cycle finished — ${outcome.cycle.actionsExecuted} action(s) executed of ${outcome.cycle.actionsAttempted} attempted.`,
+        );
+      } else if (outcome.status === "skipped") {
+        toast.info(SKIP_LABEL[outcome.reason] ?? `Cycle skipped — ${outcome.reason}`);
+      } else {
+        toast.error(outcome.error);
+      }
       void queryClient.invalidateQueries({ queryKey: ["executive-cycle"] });
+      void queryClient.invalidateQueries({ queryKey: ["executive-autonomy"] });
       void queryClient.invalidateQueries({ queryKey: ["ai-tasks", "all"] });
       void queryClient.invalidateQueries({ queryKey: ["ai-activity"] });
       void queryClient.invalidateQueries({ queryKey: ["sales-opportunities"] });
@@ -66,7 +95,18 @@ export function OrchestrationPanel() {
   const cycle = live ?? lastCycle.data ?? null;
   const running = mutation.isPending;
 
-  const status = running
+  const state = autonomy.data;
+  const mode: AutonomyMode = state?.mode ?? "off";
+  const record = state?.lastCycle ?? null;
+  const lastRun = state?.lastRunCycle ?? null;
+  const nextEligible =
+    mode === "autonomous" && lastRun?.started_at
+      ? new Date(
+          new Date(lastRun.started_at).getTime() + (state?.cooldownMinutes ?? 15) * 60_000,
+        )
+      : null;
+
+  const status = running || state?.runningCycle
     ? { label: "Orchestrating", tone: "bg-primary/15 text-primary" }
     : cycle && cycle.decisions.some((d) => d.result === "failed")
       ? { label: "Failed", tone: "bg-destructive/15 text-destructive" }
@@ -85,21 +125,82 @@ export function OrchestrationPanel() {
           </div>
           <div className="min-w-0">
             <h2 id="orchestration-heading" className="font-display text-base font-bold tracking-tight">
-              Governed orchestration
+              Governed autonomous execution
             </h2>
             <p className="text-xs text-muted-foreground">
               Understand → prioritise → decide → execute through existing governed tools → observe.
             </p>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
           <Badge className={cn("border-0", status.tone)}>{status.label}</Badge>
           <Button size="sm" disabled={running} onClick={() => mutation.mutate()}>
             {running ? <Loader2 className="size-4 animate-spin" /> : null}
-            {running ? "Running cycle…" : "Run orchestration cycle"}
+            {running ? "Running cycle…" : "Run cycle now"}
           </Button>
         </div>
       </div>
+
+      <div className="mt-4 flex min-w-0 flex-col gap-3 rounded-xl border border-border/60 bg-surface/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            AI autonomy
+          </span>
+          <Badge className={cn("border-0", AUTONOMY_TONE[mode])}>{AUTONOMY_LABEL[mode]}</Badge>
+        </div>
+        <Select
+          value={mode}
+          disabled={modeMutation.isPending || autonomy.isLoading}
+          onValueChange={(value) => modeMutation.mutate(value as AutonomyMode)}
+        >
+          <SelectTrigger aria-label="AI autonomy mode" className="w-full sm:w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="off">Off — no scheduled cycles</SelectItem>
+            <SelectItem value="assisted">Assisted — recommend only</SelectItem>
+            <SelectItem value="autonomous">Autonomous — governed execution</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <dl className="mt-3 grid min-w-0 grid-cols-1 gap-2 text-xs sm:grid-cols-2 xl:grid-cols-3">
+        <div className="min-w-0 rounded-lg border border-border/50 bg-surface/50 px-3 py-2">
+          <dt className="text-muted-foreground">Last cycle</dt>
+          <dd className="truncate font-medium">
+            {record
+              ? `${relative(record.finished_at ?? record.started_at)} · ${
+                  record.trigger_type === "scheduled_autonomous" ? "Scheduled" : "Manual"
+                }`
+              : "Never run"}
+          </dd>
+        </div>
+        <div className="min-w-0 rounded-lg border border-border/50 bg-surface/50 px-3 py-2">
+          <dt className="text-muted-foreground">Next eligible cycle</dt>
+          <dd className="truncate font-medium">
+            {mode !== "autonomous"
+              ? "Autonomy not enabled"
+              : !nextEligible
+                ? "At the next scheduled tick"
+                : nextEligible.getTime() <= Date.now()
+                  ? "Now — at the next scheduled tick"
+                  : nextEligible.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </dd>
+        </div>
+        <div className="min-w-0 rounded-lg border border-border/50 bg-surface/50 px-3 py-2">
+          <dt className="text-muted-foreground">Last outcome</dt>
+          <dd className="truncate font-medium">
+            {record
+              ? record.status === "skipped"
+                ? (SKIP_LABEL[record.skipped_reason ?? ""] ?? record.skipped_reason ?? "Skipped")
+                : record.status === "failed"
+                  ? (record.error ?? "Failed")
+                  : `${record.actions_executed} executed · ${record.actions_awaiting_approval} awaiting approval`
+              : "—"}
+          </dd>
+        </div>
+      </dl>
+
 
       {lastCycle.isLoading && !cycle ? (
         <div className="mt-4 space-y-2">
