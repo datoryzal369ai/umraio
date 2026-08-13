@@ -7,13 +7,25 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { runExecutiveCycle } from "@/lib/executive-orchestrator.functions";
+import { runExecutiveCycle, setAutonomyMode } from "@/lib/executive-orchestrator.functions";
 import {
+  AUTONOMY_LABEL,
+  AUTONOMY_TONE,
   RESULT_LABEL,
   RESULT_TONE,
+  SKIP_LABEL,
+  fetchAutonomyState,
   fetchLastExecutiveCycle,
+  type AutonomyMode,
   type ExecutiveCycle,
 } from "@/lib/orchestration";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 const relative = (iso: string) => {
