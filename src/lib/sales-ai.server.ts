@@ -237,6 +237,12 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
   const language = LANGUAGE_HINTS[s?.ai_language ?? "auto"] ?? LANGUAGE_HINTS["auto"];
   const tone = s?.ai_tone ?? "warm";
   const useKb = s?.kb_auto_use ?? true;
+  const lastCustomer = [...ctx.messages].reverse().find((m) => m.sender === "customer");
+  const religiousBoundary = detectReligiousRulingRequest(lastCustomer?.body)
+    .isReligiousRulingRequest
+    ? RELIGIOUS_BOUNDARY_INSTRUCTION
+    : null;
+
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
