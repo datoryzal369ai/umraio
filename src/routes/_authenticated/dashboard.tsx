@@ -255,7 +255,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
             title="Monthly analytics"
             subtitle="Leads vs bookings trend"
           />
-          <div className="mt-4">
+          <div className="mt-4 min-w-0 overflow-hidden">
             <MonthlyAnalyticsChart data={series} />
           </div>
         </div>
