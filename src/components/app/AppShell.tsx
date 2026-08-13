@@ -149,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <module.icon aria-hidden="true" className="size-4 shrink-0" />
             <span className="truncate">{module.label}</span>
             <span className="ml-auto shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider">
-              Soon
+              Upcoming
             </span>
           </li>
         ))}
