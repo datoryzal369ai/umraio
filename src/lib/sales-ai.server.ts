@@ -13,6 +13,12 @@ import {
   type ToolRegistry,
 } from "./ai/tool-registry.server";
 import { hashContext, recordExperience } from "./ai/evaluation.server";
+import {
+  detectReligiousRulingRequest,
+  RELIGIOUS_BOUNDARY_INSTRUCTION,
+} from "./islamic/policy.core";
+import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
+
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
