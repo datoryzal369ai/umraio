@@ -16,6 +16,7 @@ import {
 
 import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
+import { ExecutiveCommandPanel } from "@/components/executive/ExecutiveCommandPanel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -97,6 +98,8 @@ function ExecutiveCenter() {
           </div>
         }
       />
+
+      <ExecutiveCommandPanel workers={workers.data ?? []} workersLoading={workers.isLoading} />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
