@@ -69,3 +69,77 @@ export async function fetchLastExecutiveCycle(): Promise<ExecutiveCycle | null> 
   if (!meta || !Array.isArray(meta.decisions)) return null;
   return meta;
 }
+
+/* ---------------- STEP 4A: controlled autonomous execution ---------------- */
+
+export type AutonomyMode = "off" | "assisted" | "autonomous";
+
+export const AUTONOMY_LABEL: Record<AutonomyMode, string> = {
+  off: "Off",
+  assisted: "Assisted",
+  autonomous: "Autonomous",
+};
+
+export const AUTONOMY_TONE: Record<AutonomyMode, string> = {
+  off: "bg-muted text-muted-foreground",
+  assisted: "bg-chart-4/15 text-chart-4",
+  autonomous: "bg-success/15 text-success",
+};
+
+export type CycleRecord = {
+  id: string;
+  trigger_type: "manual" | "scheduled_autonomous";
+  autonomy_mode: AutonomyMode;
+  status: "running" | "completed" | "failed" | "skipped";
+  skipped_reason: string | null;
+  outcome: string | null;
+  error: string | null;
+  opportunities_considered: number;
+  actions_attempted: number;
+  actions_executed: number;
+  actions_rejected: number;
+  actions_awaiting_approval: number;
+  actions_failed: number;
+  limit_reached: boolean;
+  decisions: ExecutiveDecision[];
+  started_at: string;
+  finished_at: string | null;
+};
+
+const CYCLE_COLUMNS =
+  "id, trigger_type, autonomy_mode, status, skipped_reason, outcome, error, opportunities_considered, actions_attempted, actions_executed, actions_rejected, actions_awaiting_approval, actions_failed, limit_reached, decisions, started_at, finished_at";
+
+/** Real autonomy state for the Executive Center — never fabricated. */
+export async function fetchAutonomyState(): Promise<{
+  mode: AutonomyMode;
+  cooldownMinutes: number;
+  lastCycle: CycleRecord | null;
+  lastRunCycle: CycleRecord | null;
+  runningCycle: CycleRecord | null;
+}> {
+  const [{ data: settings }, { data: cycles }] = await Promise.all([
+    supabase.from("agency_settings").select("autonomy_mode, autonomy_cooldown_minutes").maybeSingle(),
+    supabase
+      .from("executive_cycles")
+      .select(CYCLE_COLUMNS)
+      .order("started_at", { ascending: false })
+      .limit(20),
+  ]);
+
+  const rows = ((cycles ?? []) as unknown as CycleRecord[]) ?? [];
+  return {
+    mode: ((settings?.autonomy_mode as AutonomyMode | undefined) ?? "off"),
+    cooldownMinutes: (settings?.autonomy_cooldown_minutes as number | undefined) ?? 15,
+    lastCycle: rows[0] ?? null,
+    lastRunCycle: rows.find((r) => r.status === "completed" || r.status === "failed") ?? null,
+    runningCycle: rows.find((r) => r.status === "running") ?? null,
+  };
+}
+
+export const SKIP_LABEL: Record<string, string> = {
+  autonomy_off: "Skipped — autonomy is off",
+  orchestration_cycle_skipped_active: "Skipped — a cycle was already running",
+  orchestration_cycle_skipped_cooldown: "Skipped — cooldown active",
+  no_actionable_priority: "Skipped — no actionable priority",
+  agency_inactive: "Skipped — agency inactive",
+};
