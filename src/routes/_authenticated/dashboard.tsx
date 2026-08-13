@@ -206,13 +206,13 @@ function DashboardBody({ data }: { data: DashboardData }) {
 
       <section className="grid gap-4 lg:grid-cols-3">
 
-        <div className="panel p-5 lg:col-span-2">
+        <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={TrendingUp}
             title="Sales performance"
             subtitle="Revenue and bookings, last 6 months"
           />
-          <div className="mt-4">
+          <div className="mt-4 min-w-0 overflow-hidden">
             <SalesPerformanceChart data={series} />
           </div>
         </div>
@@ -249,7 +249,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="panel p-5 lg:col-span-2">
+        <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={Activity}
             title="Monthly analytics"
