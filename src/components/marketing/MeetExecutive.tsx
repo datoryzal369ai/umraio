@@ -204,9 +204,11 @@ export function MeetExecutive() {
                         : "Insufficient data"}
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                  {gap.detail}
-                </p>
+                {gap.status === "insufficient" ? null : (
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {gap.detail}
+                  </p>
+                )}
               </li>
             ))}
           </ul>
