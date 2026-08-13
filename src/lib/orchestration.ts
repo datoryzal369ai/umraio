@@ -126,7 +126,7 @@ export async function fetchAutonomyState(): Promise<{
       .limit(20),
   ]);
 
-  const rows = ((cycles ?? []) as unknown as CycleRecord[]) ?? [];
+  const rows = (cycles ?? []) as unknown as CycleRecord[];
   return {
     mode: ((settings?.autonomy_mode as AutonomyMode | undefined) ?? "off"),
     cooldownMinutes: (settings?.autonomy_cooldown_minutes as number | undefined) ?? 15,
