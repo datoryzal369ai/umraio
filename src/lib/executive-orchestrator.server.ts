@@ -364,11 +364,21 @@ function planFor(opp: SalesOpportunity): PlannedAction {
 /* Orchestration cycle                                                 */
 /* ------------------------------------------------------------------ */
 
+export type OrchestrationOptions = {
+  /** MANUAL (user pressed run) vs SCHEDULED_AUTONOMOUS (server-side cycle). */
+  triggerType?: "manual" | "scheduled_autonomous";
+  /** ASSISTED mode: plan and record, but never perform a side effect. */
+  advisoryOnly?: boolean;
+};
+
 export async function runExecutiveOrchestration(
   supabase: Db,
   agencyId: string,
   userId?: string,
+  options: OrchestrationOptions = {},
 ): Promise<ExecutiveCycleResult> {
+  const advisoryOnly = options.advisoryOnly === true;
+  const triggerType = options.triggerType ?? "manual";
   const correlationId = newCorrelationId();
   const startedAt = new Date().toISOString();
   const registry = buildExecutiveRegistry();
