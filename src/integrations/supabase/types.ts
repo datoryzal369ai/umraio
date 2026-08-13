@@ -530,6 +530,51 @@ export type Database = {
           },
         ]
       }
+      demo_requests: {
+        Row: {
+          agency_name: string | null
+          agency_size: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          intent: string
+          monthly_enquiries: string | null
+          snapshot: Json
+          source: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          agency_name?: string | null
+          agency_size?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          intent: string
+          monthly_enquiries?: string | null
+          snapshot?: Json
+          source?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          agency_name?: string | null
+          agency_size?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          intent?: string
+          monthly_enquiries?: string | null
+          snapshot?: Json
+          source?: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       executive_cycles: {
         Row: {
           actions_attempted: number

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as MeetRouteImport } from './routes/meet'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authenticated/analytics'
@@ -35,6 +36,8 @@ import { Route as AuthenticatedSettingsGovernanceRouteImport } from './routes/_a
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings/notifications'
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
+import { Route as ApiPublicMeetExecutiveRouteImport } from './routes/api/public/meet-executive'
+import { Route as ApiPublicMeetRequestRouteImport } from './routes/api/public/meet-request'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
 import { Route as ApiPublicHooksExecutiveAutonomyRouteImport } from './routes/api/public/hooks/executive-autonomy'
 import { Route as ApiPublicHooksTaskEngineRouteImport } from './routes/api/public/hooks/task-engine'
@@ -51,6 +54,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetRoute = MeetRouteImport.update({
+  id: '/meet',
+  path: '/meet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -182,6 +190,16 @@ const AuthenticatedSettingsWhatsappRoute =
     path: '/whatsapp',
     getParentRoute: () => AuthenticatedSettingsRouteRoute,
   } as any)
+const ApiPublicMeetExecutiveRoute = ApiPublicMeetExecutiveRouteImport.update({
+  id: '/api/public/meet-executive',
+  path: '/api/public/meet-executive',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicMeetRequestRoute = ApiPublicMeetRequestRouteImport.update({
+  id: '/api/public/meet-request',
+  path: '/api/public/meet-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWhatsappRoute = ApiPublicWhatsappRouteImport.update({
   id: '/api/public/whatsapp',
   path: '/api/public/whatsapp',
@@ -203,6 +221,7 @@ const ApiPublicHooksTaskEngineRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/meet': typeof MeetRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -221,6 +240,8 @@ export interface FileRoutesByFullPath {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
+  '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -233,6 +254,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/meet': typeof MeetRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/analytics': typeof AuthenticatedAnalyticsRoute
@@ -250,6 +272,8 @@ export interface FileRoutesByTo {
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
+  '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
   '/executive': typeof AuthenticatedExecutiveIndexRoute
@@ -264,6 +288,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/meet': typeof MeetRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRouteRouteWithChildren
@@ -282,6 +307,8 @@ export interface FileRoutesById {
   '/_authenticated/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
+  '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/_authenticated/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -296,6 +323,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/meet'
     | '/reset-password'
     | '/sitemap.xml'
     | '/settings'
@@ -314,6 +342,8 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
+    | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/conversations/'
     | '/executive/'
@@ -326,6 +356,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/meet'
     | '/reset-password'
     | '/sitemap.xml'
     | '/analytics'
@@ -343,6 +374,8 @@ export interface FileRouteTypes {
     | '/settings/notifications'
     | '/settings/subscription'
     | '/settings/whatsapp'
+    | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/conversations'
     | '/executive'
@@ -356,6 +389,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/meet'
     | '/reset-password'
     | '/sitemap.xml'
     | '/_authenticated/settings'
@@ -374,6 +408,8 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/notifications'
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/whatsapp'
+    | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
     | '/_authenticated/executive/'
@@ -388,8 +424,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  MeetRoute: typeof MeetRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  ApiPublicMeetExecutiveRoute: typeof ApiPublicMeetExecutiveRoute
+  ApiPublicMeetRequestRoute: typeof ApiPublicMeetRequestRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
   ApiPublicHooksExecutiveAutonomyRoute: typeof ApiPublicHooksExecutiveAutonomyRoute
   ApiPublicHooksTaskEngineRoute: typeof ApiPublicHooksTaskEngineRoute
@@ -416,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meet': {
+      id: '/meet'
+      path: '/meet'
+      fullPath: '/meet'
+      preLoaderRoute: typeof MeetRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -579,6 +625,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsWhatsappRouteImport
       parentRoute: typeof AuthenticatedSettingsRouteRoute
     }
+    '/api/public/meet-executive': {
+      id: '/api/public/meet-executive'
+      path: '/api/public/meet-executive'
+      fullPath: '/api/public/meet-executive'
+      preLoaderRoute: typeof ApiPublicMeetExecutiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/meet-request': {
+      id: '/api/public/meet-request'
+      path: '/api/public/meet-request'
+      fullPath: '/api/public/meet-request'
+      preLoaderRoute: typeof ApiPublicMeetRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/whatsapp': {
       id: '/api/public/whatsapp'
       path: '/api/public/whatsapp'
@@ -673,8 +733,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  MeetRoute: MeetRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  ApiPublicMeetExecutiveRoute: ApiPublicMeetExecutiveRoute,
+  ApiPublicMeetRequestRoute: ApiPublicMeetRequestRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
   ApiPublicHooksExecutiveAutonomyRoute: ApiPublicHooksExecutiveAutonomyRoute,
   ApiPublicHooksTaskEngineRoute: ApiPublicHooksTaskEngineRoute,
