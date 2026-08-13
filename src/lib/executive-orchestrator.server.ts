@@ -444,6 +444,23 @@ export async function runExecutiveOrchestration(
       continue;
     }
 
+    if (advisoryOnly) {
+      // ASSISTED mode: recommend only. No governed side effect is performed.
+      decisions.push({
+        at: new Date().toISOString(),
+        lead_id: opp.lead.id,
+        subject: opp.lead.full_name,
+        decision: plan.decision,
+        why,
+        action: plan.tool,
+        worker: plan.worker,
+        result: "approval_required",
+        detail:
+          "Assisted autonomy mode — recommendation recorded. A human must approve before this action runs.",
+      });
+      continue;
+    }
+
     attempted += 1;
     const outcome: ToolOutcome = await registry.invoke(plan.tool, plan.input, toolCtx);
 
