@@ -44,7 +44,7 @@ function MeetPage() {
       <div className="relative">
         <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-6 sm:px-10 sm:py-8">
           <BrandLogo />
-          <Button asChild variant="ghost" size="sm" className="rounded-full">
+          <Button asChild variant="ghost" className="h-11 rounded-full px-4">
             <Link to="/">
               <ArrowLeft className="mr-1 size-4" aria-hidden />
               Back
