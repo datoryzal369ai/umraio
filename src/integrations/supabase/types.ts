@@ -655,9 +655,78 @@ export type Database = {
           },
         ]
       }
+      islamic_policies: {
+        Row: {
+          agency_id: string | null
+          authority: string
+          code: string
+          created_at: string
+          effective_from: string
+          effective_until: string | null
+          id: string
+          is_active: boolean
+          match_patterns: string[]
+          principle: string
+          requires_human_review: boolean
+          rule_text: string
+          scope: string
+          severity: string
+          source: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          agency_id?: string | null
+          authority: string
+          code: string
+          created_at?: string
+          effective_from?: string
+          effective_until?: string | null
+          id?: string
+          is_active?: boolean
+          match_patterns?: string[]
+          principle: string
+          requires_human_review?: boolean
+          rule_text: string
+          scope: string
+          severity: string
+          source: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          agency_id?: string | null
+          authority?: string
+          code?: string
+          created_at?: string
+          effective_from?: string
+          effective_until?: string | null
+          id?: string
+          is_active?: boolean
+          match_patterns?: string[]
+          principle?: string
+          requires_human_review?: boolean
+          rule_text?: string
+          scope?: string
+          severity?: string
+          source?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "islamic_policies_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_articles: {
         Row: {
           agency_id: string
+          authority: string | null
           category: Database["public"]["Enums"]["kb_category"]
           content: string
           created_at: string
@@ -666,13 +735,18 @@ export type Database = {
           file_path: string | null
           id: string
           is_active: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+          source: string | null
           summary: string | null
           tags: string[]
           title: string
           updated_at: string
+          version: number
         }
         Insert: {
           agency_id: string
+          authority?: string | null
           category?: Database["public"]["Enums"]["kb_category"]
           content?: string
           created_at?: string
@@ -681,13 +755,18 @@ export type Database = {
           file_path?: string | null
           id?: string
           is_active?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
           summary?: string | null
           tags?: string[]
           title: string
           updated_at?: string
+          version?: number
         }
         Update: {
           agency_id?: string
+          authority?: string | null
           category?: Database["public"]["Enums"]["kb_category"]
           content?: string
           created_at?: string
@@ -696,10 +775,14 @@ export type Database = {
           file_path?: string | null
           id?: string
           is_active?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          source?: string | null
           summary?: string | null
           tags?: string[]
           title?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -928,11 +1011,15 @@ export type Database = {
           airline: string | null
           created_at: string
           departure_date: string | null
+          halal_review_status: string
+          halal_reviewed_at: string | null
+          halal_reviewed_by: string | null
           hotel_madinah: string | null
           hotel_makkah: string | null
           id: string
           inclusions: string[]
           is_active: boolean
+          islamic_review_required: boolean
           name: string
           nights: number
           price_myr: number
@@ -944,11 +1031,15 @@ export type Database = {
           airline?: string | null
           created_at?: string
           departure_date?: string | null
+          halal_review_status?: string
+          halal_reviewed_at?: string | null
+          halal_reviewed_by?: string | null
           hotel_madinah?: string | null
           hotel_makkah?: string | null
           id?: string
           inclusions?: string[]
           is_active?: boolean
+          islamic_review_required?: boolean
           name: string
           nights?: number
           price_myr?: number
@@ -960,11 +1051,15 @@ export type Database = {
           airline?: string | null
           created_at?: string
           departure_date?: string | null
+          halal_review_status?: string
+          halal_reviewed_at?: string | null
+          halal_reviewed_by?: string | null
           hotel_madinah?: string | null
           hotel_makkah?: string | null
           id?: string
           inclusions?: string[]
           is_active?: boolean
+          islamic_review_required?: boolean
           name?: string
           nights?: number
           price_myr?: number
@@ -1141,6 +1236,7 @@ export type Database = {
         | "visa_info"
         | "hotel_info"
         | "general"
+        | "islamic_guidance"
       lead_stage:
         | "new"
         | "contacted"
@@ -1304,6 +1400,7 @@ export const Constants = {
         "visa_info",
         "hotel_info",
         "general",
+        "islamic_guidance",
       ],
       lead_stage: [
         "new",
