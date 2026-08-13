@@ -36,6 +36,7 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedSettingsSubscriptionRouteImport } from './routes/_authenticated/settings/subscription'
 import { Route as AuthenticatedSettingsWhatsappRouteImport } from './routes/_authenticated/settings/whatsapp'
 import { Route as ApiPublicMeetExecutiveRouteImport } from './routes/api/public/meet-executive'
+import { Route as ApiPublicMeetRequestRouteImport } from './routes/api/public/meet-request'
 import { Route as ApiPublicWhatsappRouteImport } from './routes/api/public/whatsapp'
 import { Route as ApiPublicHooksExecutiveAutonomyRouteImport } from './routes/api/public/hooks/executive-autonomy'
 import { Route as ApiPublicHooksTaskEngineRouteImport } from './routes/api/public/hooks/task-engine'
@@ -188,6 +189,11 @@ const ApiPublicMeetExecutiveRoute = ApiPublicMeetExecutiveRouteImport.update({
   path: '/api/public/meet-executive',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMeetRequestRoute = ApiPublicMeetRequestRouteImport.update({
+  id: '/api/public/meet-request',
+  path: '/api/public/meet-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWhatsappRoute = ApiPublicWhatsappRouteImport.update({
   id: '/api/public/whatsapp',
   path: '/api/public/whatsapp',
@@ -228,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/conversations': typeof AuthenticatedConversationsIndexRoute
   '/executive': typeof AuthenticatedExecutiveIndexRoute
@@ -291,6 +299,7 @@ export interface FileRoutesById {
   '/_authenticated/settings/subscription': typeof AuthenticatedSettingsSubscriptionRoute
   '/_authenticated/settings/whatsapp': typeof AuthenticatedSettingsWhatsappRoute
   '/api/public/meet-executive': typeof ApiPublicMeetExecutiveRoute
+  '/api/public/meet-request': typeof ApiPublicMeetRequestRoute
   '/api/public/whatsapp': typeof ApiPublicWhatsappRoute
   '/_authenticated/conversations/': typeof AuthenticatedConversationsIndexRoute
   '/_authenticated/executive/': typeof AuthenticatedExecutiveIndexRoute
@@ -324,6 +333,7 @@ export interface FileRouteTypes {
     | '/settings/subscription'
     | '/settings/whatsapp'
     | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/conversations/'
     | '/executive/'
@@ -354,6 +364,7 @@ export interface FileRouteTypes {
     | '/settings/subscription'
     | '/settings/whatsapp'
     | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/conversations'
     | '/executive'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings/subscription'
     | '/_authenticated/settings/whatsapp'
     | '/api/public/meet-executive'
+    | '/api/public/meet-request'
     | '/api/public/whatsapp'
     | '/_authenticated/conversations/'
     | '/_authenticated/executive/'
@@ -403,6 +415,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ApiPublicMeetExecutiveRoute: typeof ApiPublicMeetExecutiveRoute
+  ApiPublicMeetRequestRoute: typeof ApiPublicMeetRequestRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
   ApiPublicHooksExecutiveAutonomyRoute: typeof ApiPublicHooksExecutiveAutonomyRoute
   ApiPublicHooksTaskEngineRoute: typeof ApiPublicHooksTaskEngineRoute
@@ -599,6 +612,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicMeetExecutiveRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/meet-request': {
+      id: '/api/public/meet-request'
+      path: '/api/public/meet-request'
+      fullPath: '/api/public/meet-request'
+      preLoaderRoute: typeof ApiPublicMeetRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/whatsapp': {
       id: '/api/public/whatsapp'
       path: '/api/public/whatsapp'
@@ -696,6 +716,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   ApiPublicMeetExecutiveRoute: ApiPublicMeetExecutiveRoute,
+  ApiPublicMeetRequestRoute: ApiPublicMeetRequestRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
   ApiPublicHooksExecutiveAutonomyRoute: ApiPublicHooksExecutiveAutonomyRoute,
   ApiPublicHooksTaskEngineRoute: ApiPublicHooksTaskEngineRoute,

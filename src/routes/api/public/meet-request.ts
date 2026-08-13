@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/public/meet-request")({
             whatsapp: body.whatsapp || null,
             agency_size: body.agency_size || null,
             monthly_enquiries: body.monthly_enquiries || null,
-            snapshot: body.snapshot,
+            snapshot: body.snapshot as never,
             source: "meet_executive",
             updated_at: new Date().toISOString(),
           },
