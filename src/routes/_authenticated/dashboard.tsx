@@ -204,7 +204,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
 
       <WhatsappExecutiveCard />
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
 
         <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
@@ -248,7 +248,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={Activity}
@@ -379,7 +379,7 @@ function LoadingState() {
           <Skeleton key={i} className="h-36 rounded-2xl" />
         ))}
       </div>
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Skeleton className="h-80 rounded-2xl lg:col-span-2" />
         <Skeleton className="h-80 rounded-2xl" />
       </div>
