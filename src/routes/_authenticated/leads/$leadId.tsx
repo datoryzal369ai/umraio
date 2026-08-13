@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { StageBadge, TagList, TemperatureBadge } from "@/components/leads/LeadBadges";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
+import { NextBestAction } from "@/components/leads/NextBestAction";
 import { useAuth } from "@/hooks/useAuth";
 import {
   addLeadNote,
