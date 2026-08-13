@@ -745,6 +745,8 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     agencyId,
     correlationId,
     grantedPermissions: ["read", "write", "external"],
+    islamicPolicy: createIslamicPolicyChecker(supabase, agencyId),
+
     allowedTools,
   };
 
