@@ -494,7 +494,7 @@ export async function runExecutiveOrchestration(
   // Workforce coordination: keep Lead Intelligence scoring fresh when the
   // pipeline has unattended priorities. Queued only — the existing task engine
   // executes it, so nothing here bypasses the worker path.
-  if (executed < MAX_ACTIONS_PER_CYCLE && candidates.length >= 3) {
+  if (!advisoryOnly && executed < MAX_ACTIONS_PER_CYCLE && candidates.length >= 3) {
     const coordinationKind = "lead_scoring";
     attempted += 1;
     const outcome = await registry.invoke(
