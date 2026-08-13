@@ -102,7 +102,10 @@ function ExecutiveCenter() {
 
       <ExecutiveCommandPanel workers={workers.data ?? []} workersLoading={workers.isLoading} />
 
+      <OrchestrationPanel />
+
       <SalesOpportunities />
+
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
