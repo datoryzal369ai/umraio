@@ -98,6 +98,8 @@ function ExecutiveCenter() {
         }
       />
 
+      <ExecutiveCommandPanel workers={workers.data ?? []} workersLoading={workers.isLoading} />
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           icon={CheckCircle2}
