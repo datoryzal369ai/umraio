@@ -241,6 +241,17 @@ function Index() {
                 variant="ghost"
                 className="btn-glass h-13 w-full rounded-2xl px-8 text-base font-medium sm:w-auto"
               >
+                <Link to="/meet">
+                  <Sparkles className="mr-1 size-4 text-primary" />
+                  Meet Your AI Business Executive™
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="btn-glass h-13 w-full rounded-2xl px-8 text-base font-medium sm:w-auto"
+              >
                 <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
                   <PlayCircle className="mr-1 size-4 text-primary" />
                   Book Live Demo
