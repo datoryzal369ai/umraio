@@ -66,7 +66,7 @@ function extractVolume(text: string): string | null {
   const re =
     /(\d[\d,]*)\s*(?:\+)?\s*(?:enquiries|enquiry|inquiries|leads|messages|mesej|pertanyaan|prospek)/i;
   const found = re.exec(text);
-  return found ? `${found[1]} per month (as stated)` : null;
+  return found?.[1] ? `${found[1]} per month (as stated)` : null;
 }
 
 function extractTeam(text: string): string | null {
