@@ -5,6 +5,7 @@ import {
   BookOpen,
   BrainCircuit,
   FileText,
+  Handshake,
   HeartHandshake,
   KanbanSquare,
   ListChecks,
@@ -53,11 +54,12 @@ const activeWorkers = [
   { key: "whatsapp", label: "AI WhatsApp Executive", icon: MessageCircle },
   { key: "marketing", label: "AI Marketing Executive", icon: Megaphone },
   { key: "content", label: "AI Content Executive", icon: PenLine },
-  { key: "lead_intel", label: "AI Sales Executive", icon: Radar },
+  { key: "lead_intel", label: "AI Lead Intelligence", icon: Radar },
 ] as const;
 
 /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
 const futureModules = [
+  { label: "AI Sales Executive", icon: Handshake },
   { label: "AI Quotation Executive", icon: FileText },
   { label: "AI Follow-up Executive", icon: Repeat },
   { label: "AI Customer Success Executive", icon: HeartHandshake },
@@ -147,7 +149,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <module.icon aria-hidden="true" className="size-4 shrink-0" />
             <span className="truncate">{module.label}</span>
             <span className="ml-auto shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider">
-              Soon
+              Upcoming
             </span>
           </li>
         ))}
