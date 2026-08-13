@@ -186,7 +186,7 @@ function ExecutiveCenter() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        <div className="panel p-5">
+        <div className="panel min-w-0 p-5">
           <h2 className="text-base font-semibold">Latest AI tasks</h2>
           <p className="text-xs text-muted-foreground">What the workforce produced recently</p>
           <ul className="mt-4 space-y-2">
@@ -215,7 +215,7 @@ function ExecutiveCenter() {
           </ul>
         </div>
 
-        <div className="panel p-5">
+        <div className="panel min-w-0 p-5">
           <div className="flex items-center gap-3">
             <CalendarClock className="size-4 text-primary" />
             <div>
