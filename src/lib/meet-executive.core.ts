@@ -72,7 +72,7 @@ function extractVolume(text: string): string | null {
 function extractTeam(text: string): string | null {
   const re = /(\d{1,3})\s*(?:sales\s*)?(?:consultants?|agents?|staff|team members?|orang|staf)/i;
   const found = re.exec(text);
-  return found ? found[1] : null;
+  return found?.[1] ?? null;
 }
 
 export function deriveSnapshot(messages: DemoMessage[]): OpportunitySnapshot {
