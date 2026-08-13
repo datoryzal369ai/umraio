@@ -73,6 +73,8 @@ export type ExecutiveCycleResult = {
   correlationId: string;
   startedAt: string;
   finishedAt: string;
+  triggerType: "manual" | "scheduled_autonomous";
+  advisoryOnly: boolean;
   opportunitiesConsidered: number;
   actionsAttempted: number;
   actionsExecuted: number;
