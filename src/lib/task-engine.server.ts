@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { QuotaError, assertQuota, recordUsageEvent } from "./billing/usage.server";
+
 import {
   TASK_KINDS,
   runDocumentTask,
@@ -170,6 +172,10 @@ export async function executeTask(supabase: Db, agencyId: string, taskId: string
     .eq("worker_key", task.worker_key);
 
   try {
+    // COMMERCIAL SAFETY — AI worker tasks consume the ai_tasks allowance.
+    // Checked before any model call and fails closed.
+    await assertQuota(supabase, agencyId, "ai_task");
+
     await setStatus(supabase, taskId, "analysing", "Observing agency data and context");
     await setStatus(supabase, taskId, "planning", "Building an execution plan");
     await setStatus(supabase, taskId, "running", "Executing the plan", {
@@ -227,9 +233,31 @@ export async function executeTask(supabase: Db, agencyId: string, taskId: string
       entityId: taskId,
     });
 
+    await recordUsageEvent(supabase, {
+      agencyId,
+      eventKey: `task:${taskId}`,
+      category: "ai_task",
+      taskType: task.kind,
+      operation: "execute_task",
+      worker: task.worker_key,
+      success: true,
+      meta: { kind: task.kind, status },
+    });
+
     return status;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Task failed";
+    // A quota block is not consumption — it never counts against the allowance.
+    if (!(err instanceof QuotaError)) await recordUsageEvent(supabase, {
+      agencyId,
+      eventKey: `task:${taskId}`,
+      category: "ai_task",
+      taskType: task.kind,
+      operation: "execute_task",
+      worker: task.worker_key,
+      success: false,
+      meta: { kind: task.kind, error: message.slice(0, 200) },
+    });
     await setStatus(supabase, taskId, "failed", message, {
       error: message,
       completed_at: new Date().toISOString(),

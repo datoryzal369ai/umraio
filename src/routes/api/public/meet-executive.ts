@@ -20,7 +20,7 @@ const bodySchema = z.object({
       }),
     )
     .min(1)
-    .max(24),
+    .max(16),
 });
 
 const SYSTEM = [
@@ -48,6 +48,14 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           body = bodySchema.parse(await request.json());
         } catch {
           return Response.json({ error: "Invalid request" }, { status: 400 });
+        }
+
+        // Abuse / cost protection for this unauthenticated endpoint.
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { checkDemoRateLimit, clientIpHash } = await import("@/lib/billing/demo-limit.server");
+        const gate = await checkDemoRateLimit(supabaseAdmin, clientIpHash(request));
+        if (!gate.allowed) {
+          return Response.json({ error: gate.message }, { status: gate.status });
         }
 
         const { createIntelligenceGateway } = await import("@/lib/ai/gateway.server");

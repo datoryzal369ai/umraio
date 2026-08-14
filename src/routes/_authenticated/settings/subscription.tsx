@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UsagePanel } from "@/components/settings/UsagePanel";
 import { PLANS, fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
   head: () => ({
@@ -47,7 +49,7 @@ function SubscriptionPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Plan updated. Billing will be handled at checkout.");
+      toast.success("Plan preference recorded. Your entitlement is confirmed by the UMRAIO team.");
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -59,7 +61,10 @@ function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
+      <UsagePanel />
+
       <section className="panel space-y-4 p-5">
+
         <header className="flex items-start gap-3">
           <div className="rounded-xl border border-border/60 bg-surface p-2.5">
             <CreditCard className="size-4 text-primary" />
@@ -102,7 +107,8 @@ function SubscriptionPage() {
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
             <p className="text-xs text-muted-foreground">
-              Scale your Autonomous AI Business Executive as your agency grows.
+              Scale your Autonomous AI Business Executive as your agency grows. Selecting a plan
+              records your preference — usage limits stay governed by your confirmed entitlement.
             </p>
           </div>
         </header>

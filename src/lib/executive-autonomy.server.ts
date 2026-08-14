@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { clampAutonomy, resolveEntitlement } from "./billing/entitlements.server";
+
 import {
   MAX_ACTIONS_PER_CYCLE,
   loadOpportunities,
@@ -63,9 +65,13 @@ export async function readAutonomySettings(
     .select("autonomy_mode, autonomy_cooldown_minutes")
     .eq("agency_id", agencyId)
     .maybeSingle();
-  const mode = (data?.autonomy_mode as AutonomyMode | undefined) ?? "off";
+  const requested = (data?.autonomy_mode as AutonomyMode | undefined) ?? "off";
+  // Entitlement ceiling: a plan can never be exceeded by a client-side setting.
+  const { plan } = await resolveEntitlement(supabase, agencyId);
+  const mode = clampAutonomy(requested, plan) as AutonomyMode;
   const cooldown = (data?.autonomy_cooldown_minutes as number | undefined) ?? DEFAULT_COOLDOWN_MINUTES;
   return { autonomyMode: mode, cooldownMinutes: cooldown };
+
 }
 
 /** Release locks left behind by a crashed process/server restart. */

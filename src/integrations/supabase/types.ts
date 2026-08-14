@@ -106,6 +106,47 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_entitlements: {
+        Row: {
+          agency_id: string
+          created_at: string
+          effective_plan: string
+          notes: string | null
+          overrides: Json
+          requested_plan: string | null
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          effective_plan?: string
+          notes?: string | null
+          overrides?: Json
+          requested_plan?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          effective_plan?: string
+          notes?: string | null
+          overrides?: Json
+          requested_plan?: string | null
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_entitlements_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_settings: {
         Row: {
           agency_id: string
@@ -1158,6 +1199,104 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "profiles_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_demo_hits: {
+        Row: {
+          created_at: string
+          fingerprint: string | null
+          id: string
+          ip_hash: string
+        }
+        Insert: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_hash: string
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_hash?: string
+        }
+        Relationships: []
+      }
+      usage_events: {
+        Row: {
+          agency_id: string
+          category: string
+          correlation_id: string | null
+          counts_against: string
+          created_at: string
+          event_key: string
+          id: string
+          input_tokens: number | null
+          latency_ms: number | null
+          meta: Json
+          model: string | null
+          occurred_at: string
+          operation: string | null
+          output_tokens: number | null
+          provider: string | null
+          source: string | null
+          success: boolean
+          task_type: string | null
+          total_tokens: number | null
+          worker: string | null
+        }
+        Insert: {
+          agency_id: string
+          category: string
+          correlation_id?: string | null
+          counts_against?: string
+          created_at?: string
+          event_key: string
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          meta?: Json
+          model?: string | null
+          occurred_at?: string
+          operation?: string | null
+          output_tokens?: number | null
+          provider?: string | null
+          source?: string | null
+          success?: boolean
+          task_type?: string | null
+          total_tokens?: number | null
+          worker?: string | null
+        }
+        Update: {
+          agency_id?: string
+          category?: string
+          correlation_id?: string | null
+          counts_against?: string
+          created_at?: string
+          event_key?: string
+          id?: string
+          input_tokens?: number | null
+          latency_ms?: number | null
+          meta?: Json
+          model?: string | null
+          occurred_at?: string
+          operation?: string | null
+          output_tokens?: number | null
+          provider?: string | null
+          source?: string | null
+          success?: boolean
+          task_type?: string | null
+          total_tokens?: number | null
+          worker?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_events_agency_id_fkey"
             columns: ["agency_id"]
             isOneToOne: false
             referencedRelation: "agencies"
