@@ -59,7 +59,10 @@ function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
+      <UsagePanel />
+
       <section className="panel space-y-4 p-5">
+
         <header className="flex items-start gap-3">
           <div className="rounded-xl border border-border/60 bg-surface p-2.5">
             <CreditCard className="size-4 text-primary" />
