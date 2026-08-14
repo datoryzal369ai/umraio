@@ -894,6 +894,22 @@ export async function generateInsights(
     },
   });
 
+  // Internal reasoning: metered for cost visibility, but it is NOT a customer
+  // reply and therefore consumes no AI reply quota.
+  await recordUsageEvent(supabase, {
+    agencyId,
+    eventKey: `insights:${correlationId}`,
+    category: "internal_operation",
+    taskType: "conversation_analysis",
+    operation: "generate_conversation_insights",
+    model: result.usage?.model ?? null,
+    provider: result.usage?.provider ?? null,
+    correlationId,
+    success: result.ok,
+    latencyMs: result.usage?.latencyMs ?? null,
+    meta: { conversation_id: ctx.conversation.id },
+  });
+
   if (!result.ok || !result.data) {
     throw new Error(result.error?.message ?? "Could not generate insights. Please try again.");
   }
