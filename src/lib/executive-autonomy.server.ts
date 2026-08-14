@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { clampAutonomy, resolveEntitlement } from "./billing/entitlements.server";
+
 import {
   MAX_ACTIONS_PER_CYCLE,
   loadOpportunities,
