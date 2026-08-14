@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { QuotaError, assertQuota, recordUsageEvent } from "./billing/usage.server";
+
 import {
   TASK_KINDS,
   runDocumentTask,
@@ -245,7 +247,8 @@ export async function executeTask(supabase: Db, agencyId: string, taskId: string
     return status;
   } catch (err) {
     const message = err instanceof Error ? err.message : "Task failed";
-    await recordUsageEvent(supabase, {
+    // A quota block is not consumption — it never counts against the allowance.
+    if (!(err instanceof QuotaError)) await recordUsageEvent(supabase, {
       agencyId,
       eventKey: `task:${taskId}`,
       category: "ai_task",
