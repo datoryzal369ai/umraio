@@ -6,8 +6,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UsagePanel } from "@/components/settings/UsagePanel";
 import { PLANS, fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/_authenticated/settings/subscription")({
   head: () => ({
