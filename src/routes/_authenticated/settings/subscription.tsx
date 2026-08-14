@@ -49,7 +49,7 @@ function SubscriptionPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Plan updated. Billing will be handled at checkout.");
+      toast.success("Plan preference recorded. Your entitlement is confirmed by the UMRAIO team.");
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -107,7 +107,8 @@ function SubscriptionPage() {
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
             <p className="text-xs text-muted-foreground">
-              Scale your Autonomous AI Business Executive as your agency grows.
+              Scale your Autonomous AI Business Executive as your agency grows. Selecting a plan
+              records your preference — usage limits stay governed by your confirmed entitlement.
             </p>
           </div>
         </header>
