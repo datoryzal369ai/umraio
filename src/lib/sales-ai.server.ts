@@ -13,6 +13,7 @@ import {
   type ToolRegistry,
 } from "./ai/tool-registry.server";
 import { hashContext, recordExperience } from "./ai/evaluation.server";
+import { assertQuota, recordUsageEvent } from "./billing/usage.server";
 import {
   detectReligiousRulingRequest,
   RELIGIOUS_BOUNDARY_INSTRUCTION,
