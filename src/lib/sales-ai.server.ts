@@ -730,6 +730,10 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   const ctx = await loadContext(supabase, conversationId);
   const agencyId = ctx.conversation.agency_id as string;
 
+  // COMMERCIAL SAFETY — checked BEFORE any model call, from the server-side
+  // plan only. Fails closed when metering is unavailable (never unlimited AI).
+  const quota = await assertQuota(supabase, agencyId, "customer_reply");
+
   const history = ctx.messages.slice(-40).map((m) => ({
     role: (m.sender === "customer" ? "user" : "assistant") as "user" | "assistant",
     content: m.sender === "human" ? `[Human agent]: ${m.body}` : m.body,
@@ -750,6 +754,13 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     allowedTools,
   };
 
+  // Idempotency: a retry for the SAME inbound customer message reuses this key,
+  // so a duplicated/retried request can never be counted twice.
+  const lastMessageId = ctx.messages.length
+    ? (ctx.messages[ctx.messages.length - 1] as { id?: string }).id
+    : undefined;
+  const usageKey = `reply:${ctx.conversation.id}:${lastMessageId ?? correlationId}`;
+
   const gateway = createIntelligenceGateway({ supabase, agencyId });
   const result = await gateway.generate({
     taskType: "customer_reply",
@@ -757,7 +768,8 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     prompt: "",
     messages: history.length ? history : [{ role: "user", content: "Assalamualaikum" }],
     tools: createSdkTools({ registry, ctx: toolCtx }),
-    maxSteps: 50,
+    // Cost ceiling for customer-facing conversations (entitlement-aware).
+    maxSteps: quota.plan.maxConversationSteps,
     context: {
       agencyId,
       correlationId,
@@ -769,6 +781,22 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
       },
       allowedTools,
     },
+  });
+
+  await recordUsageEvent(supabase, {
+    agencyId,
+    eventKey: usageKey,
+    category: "customer_reply",
+    taskType: "customer_reply",
+    operation: "generate_agent_reply",
+    source: ctx.conversation.channel ?? "conversation",
+    worker: "whatsapp",
+    model: result.usage?.model ?? null,
+    provider: result.usage?.provider ?? null,
+    correlationId,
+    success: result.ok,
+    latencyMs: result.usage?.latencyMs ?? null,
+    meta: { conversation_id: ctx.conversation.id },
   });
 
   if (!result.ok) {
@@ -788,6 +816,7 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     });
     throw new Error(result.error?.message ?? "AI provider unavailable");
   }
+
 
   const text = (result.data ?? "").trim();
   await recordExperience(supabase, agencyId, {
