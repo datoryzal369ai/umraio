@@ -27,11 +27,11 @@ export type WhatsappInput = {
   auto_reply: boolean;
 };
 
-const COLUMNS =
+export const WHATSAPP_CLIENT_COLUMNS =
   "id, agency_id, display_phone_number, phone_number_id, business_account_id, has_access_token, verify_token, is_connected, auto_reply, last_inbound_at";
 
 export async function fetchWhatsappConfig(): Promise<WhatsappConfig | null> {
-  const { data, error } = await supabase.from("whatsapp_configs").select(COLUMNS).maybeSingle();
+  const { data, error } = await supabase.from("whatsapp_configs").select(WHATSAPP_CLIENT_COLUMNS).maybeSingle();
   if (error) throw error;
   return (data as WhatsappConfig | null) ?? null;
 }
@@ -60,7 +60,7 @@ export async function saveWhatsappConfig(
       // cannot read the stored token, so a blank field must not wipe it.
       .update(token ? { ...base, access_token: token } : base)
       .eq("id", existing.id)
-      .select(COLUMNS)
+      .select(WHATSAPP_CLIENT_COLUMNS)
       .single();
     if (error) throw error;
     return data as WhatsappConfig;
@@ -69,7 +69,7 @@ export async function saveWhatsappConfig(
   const { data, error } = await supabase
     .from("whatsapp_configs")
     .insert({ ...base, access_token: token, agency_id: agencyId })
-    .select(COLUMNS)
+    .select(WHATSAPP_CLIENT_COLUMNS)
     .single();
   if (error) throw error;
   return data as WhatsappConfig;

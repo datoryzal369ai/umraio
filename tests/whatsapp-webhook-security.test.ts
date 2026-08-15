@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import { signMetaPayload, verifyMetaSignature } from "../src/lib/whatsapp-signature";
-import { COLUMNS_FOR_TEST } from "./whatsapp-test-helpers";
+import { WHATSAPP_CLIENT_COLUMNS } from "../src/lib/whatsapp";
 
 const SECRET = "test_app_secret_value";
 const BODY = JSON.stringify({
@@ -160,8 +160,8 @@ describe("Meta webhook signature verification", () => {
 
 describe("access token confidentiality", () => {
   it("TEST 9/10 — client projection never requests access_token", () => {
-    expect(COLUMNS_FOR_TEST).not.toContain("access_token");
-    expect(COLUMNS_FOR_TEST).toContain("has_access_token");
+    expect(WHATSAPP_CLIENT_COLUMNS).not.toContain("access_token");
+    expect(WHATSAPP_CLIENT_COLUMNS).toContain("has_access_token");
   });
 
   it("TEST 14 — disconnect requests no projection back", async () => {
