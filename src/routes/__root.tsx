@@ -80,12 +80,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies" },
+      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads, create marketing campaigns and grow bookings.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
+
       { name: "author", content: "Digital Renaissance Metaverse" },
       {
         name: "google-site-verification",
