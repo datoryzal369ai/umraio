@@ -95,24 +95,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:site_name", content: "UMRAIO®" },
       {
         property: "og:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         property: "og:description",
         content:
-          "UMRAIO® is the Autonomous AI Business Executive built for licensed Umrah agencies. Automate WhatsApp conversations, generate leads and increase bookings.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         name: "twitter:description",
         content:
-          "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
+          "Autonomous AI Business Executive for Umrah agencies — WhatsApp enquiry automation, lead qualification, package recommendations and automated follow-up.",
       },
+
     ],
     links: [
       { rel: "stylesheet", href: appCss },
