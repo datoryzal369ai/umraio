@@ -20,6 +20,11 @@ import {
 } from "./islamic/policy.core";
 import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
 import { DOMAIN_ISOLATION_INSTRUCTION, intentAnchorInstruction } from "./sales-intent.core";
+import {
+  collectSuppressedTopics,
+  sanitizeHistory,
+  suppressionInstruction,
+} from "./topic-suppression.core";
 
 
 
@@ -245,11 +250,15 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     .isReligiousRulingRequest
     ? RELIGIOUS_BOUNDARY_INSTRUCTION
     : null;
+  const suppression = suppressionInstruction(
+    collectSuppressedTopics(ctx.messages.filter((m) => m.sender === "customer").map((m) => m.body)),
+  );
 
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
     DOMAIN_ISOLATION_INSTRUCTION,
+    suppression,
     intentAnchorInstruction(lastCustomer?.body),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
@@ -740,10 +749,16 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   // plan only. Fails closed when metering is unavailable (never unlimited AI).
   const quota = await assertQuota(supabase, agencyId, "customer_reply");
 
-  const history = ctx.messages.slice(-40).map((m) => ({
+  const rawHistory = ctx.messages.slice(-40).map((m) => ({
     role: (m.sender === "customer" ? "user" : "assistant") as "user" | "assistant",
     content: m.sender === "human" ? `[Human agent]: ${m.body}` : m.body,
   }));
+  // Context sanitization: strip explicitly suppressed topics from the model's
+  // context window while preserving all Umrah business context.
+  const history = sanitizeHistory(
+    rawHistory,
+    collectSuppressedTopics(ctx.messages.filter((m) => m.sender === "customer").map((m) => m.body)),
+  );
 
   // Tools are exposed to the model ONLY through the registry adapter, so every
   // call runs the decision gate before it can touch the database.
