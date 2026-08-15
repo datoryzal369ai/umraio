@@ -19,6 +19,8 @@ import {
   RELIGIOUS_BOUNDARY_INSTRUCTION,
 } from "./islamic/policy.core";
 import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
+import { DOMAIN_ISOLATION_INSTRUCTION, intentAnchorInstruction } from "./sales-intent.core";
+
 
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
