@@ -12,7 +12,6 @@ export type WhatsappConfig = {
   phone_number_id: string | null;
   business_account_id: string | null;
   has_access_token: boolean;
-  verify_token: string;
   is_connected: boolean;
   auto_reply: boolean;
   last_inbound_at: string | null;
@@ -28,7 +27,7 @@ export type WhatsappInput = {
 };
 
 export const WHATSAPP_CLIENT_COLUMNS =
-  "id, agency_id, display_phone_number, phone_number_id, business_account_id, has_access_token, verify_token, is_connected, auto_reply, last_inbound_at";
+  "id, agency_id, display_phone_number, phone_number_id, business_account_id, has_access_token, is_connected, auto_reply, last_inbound_at";
 
 export async function fetchWhatsappConfig(): Promise<WhatsappConfig | null> {
   const { data, error } = await supabase.from("whatsapp_configs").select(WHATSAPP_CLIENT_COLUMNS).maybeSingle();

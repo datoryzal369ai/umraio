@@ -255,11 +255,15 @@ function WhatsappSettings() {
               <h2 className="font-display text-base font-semibold">Webhook setup</h2>
             </div>
             <p className="text-xs text-muted-foreground">
-              In Meta for Developers → WhatsApp → Configuration, paste the callback URL and verify
-              token below, then subscribe to the <span className="font-mono">messages</span> field.
+              In Meta for Developers → WhatsApp → Configuration, paste the callback URL below, then
+              subscribe to the <span className="font-mono">messages</span> field. The verify token is
+              held server-side and never shown in the browser — contact support to retrieve it
+              securely.
             </p>
             <CopyField label="Callback URL" value={webhookUrl} />
-            <CopyField label="Verify token" value={config?.verify_token ?? "Save settings first"} />
+            <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
+              Webhook verification configured
+            </div>
           </section>
         </>
       )}
