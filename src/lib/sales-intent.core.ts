@@ -63,12 +63,19 @@ export const DOMAIN_ISOLATION_INSTRUCTION = [
  * Anchor block appended to the system prompt so the LATEST customer message —
  * not an older unrelated topic — decides what is answered.
  */
-export function intentAnchorInstruction(latestCustomerMessage: string | null | undefined): string {
+export function intentAnchorInstruction(
+  latestCustomerMessage: string | null | undefined,
+  /** Already-redacted rendering of the same message (suppression-safe). */
+  sanitizedLatestCustomerMessage?: string | null,
+): string {
   const latest = (latestCustomerMessage ?? "").trim();
+  // Intent is still classified from the authoritative raw message, but only the
+  // sanitized text is ever embedded in the system prompt.
   const intent = detectUmrahIntent(latest);
+  const embedded = ((sanitizedLatestCustomerMessage ?? latest) || "").trim();
   const lines = [
     "CURRENT TURN ANCHOR: the most recent customer message is the authoritative intent for this reply. Earlier messages are background only and must never override it. If an earlier topic is unrelated to the current message, ignore it completely.",
-    latest ? `Latest customer message (authoritative): "${latest.slice(0, 500)}"` : null,
+    embedded ? `Latest customer message (authoritative): "${embedded.slice(0, 500)}"` : null,
   ];
   if (intent) {
     lines.push(
