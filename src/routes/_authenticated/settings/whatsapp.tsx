@@ -89,7 +89,8 @@ function WhatsappSettings() {
       display_phone_number: config.display_phone_number ?? "",
       phone_number_id: config.phone_number_id ?? "",
       business_account_id: config.business_account_id ?? "",
-      access_token: config.access_token ?? "",
+      // The stored credential is never sent to the browser.
+      access_token: "",
       auto_reply: config.auto_reply,
     });
   }, [config]);
