@@ -80,6 +80,19 @@ export function BrandArchitecture({ className }: { className?: string }) {
         <p className="mt-3 text-sm font-medium tracking-tight text-foreground/80">
           Digital Renaissance Metaverse
         </p>
+
+        <div className="mt-14 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground/80">
+          <a
+            href="/privacy-policy"
+            className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
+          >
+            Privacy Policy
+          </a>
+        </div>
+
+        <p className="mt-8 text-xs font-light text-muted-foreground/60">
+          © {new Date().getFullYear()} UMRAIO®. All rights reserved.
+        </p>
       </div>
     </footer>
   );
