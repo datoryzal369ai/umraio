@@ -103,12 +103,13 @@ function WhatsappSettings() {
         agencyId,
         config ? { id: config.id, has_access_token: config.has_access_token } : null,
         {
-        display_phone_number: form.display_phone_number || null,
-        phone_number_id: form.phone_number_id || null,
-        business_account_id: form.business_account_id || null,
-        access_token: form.access_token || null,
-        auto_reply: form.auto_reply,
-      });
+          display_phone_number: form.display_phone_number || null,
+          phone_number_id: form.phone_number_id || null,
+          business_account_id: form.business_account_id || null,
+          access_token: form.access_token || null,
+          auto_reply: form.auto_reply,
+        },
+      );
     },
     onSuccess: () => {
       toast.success("WhatsApp settings saved.");
