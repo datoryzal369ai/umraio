@@ -1,0 +1,13 @@
+{
+  "name": "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
+  "short_name": "UMRAIO",
+  "description": "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — automating WhatsApp enquiries, lead qualification, package recommendations and follow-up.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071A27",
+  "theme_color": "#071A27",
+  "icons": [
+    { "src": "/favicon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
