@@ -22,6 +22,8 @@ import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/polic
 import { DOMAIN_ISOLATION_INSTRUCTION, intentAnchorInstruction } from "./sales-intent.core";
 import {
   collectSuppressedTopics,
+  countSuppressedOccurrences,
+  redactSuppressedTopics,
   sanitizeHistory,
   suppressionInstruction,
 } from "./topic-suppression.core";
@@ -38,6 +40,16 @@ export type ChatMessageRow = {
   body: string;
   created_at: string;
 };
+
+/** Safe build/revision identifier for diagnostics (never a secret). */
+const BUILD_REVISION = process.env["BUILD_REVISION"] ?? "umraio-6.4a-fix";
+
+/** Non-reversible short reference for a conversation id (diagnostics only). */
+function safeConversationRef(id: string): string {
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) | 0;
+  return `c_${(h >>> 0).toString(16)}`;
+}
 
 export async function loadContext(supabase: Db, conversationId: string) {
   const { data: conversation, error } = await supabase
@@ -60,7 +72,9 @@ export async function loadContext(supabase: Db, conversationId: string) {
       .from("messages")
       .select("id, conversation_id, sender, body, created_at")
       .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true })
+      // Newest 200 messages (DESC + LIMIT), reversed below to chronological
+      // order. Ascending+limit loaded the OLDEST 200 and dropped recent turns.
+      .order("created_at", { ascending: false })
       .limit(200),
     conversation.lead_id
       ? supabase
@@ -97,7 +111,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
 
   return {
     conversation,
-    messages: (messages ?? []) as ChatMessageRow[],
+    messages: [...((messages ?? []) as ChatMessageRow[])].reverse(),
     lead,
     packages: packages ?? [],
     agency,
@@ -235,7 +249,17 @@ function businessHoursLine(settings: AgencyAiSettings | null) {
   return `Agency business hours (${parts.join(", ")}). Outside these hours, tell the customer a human colleague will follow up when the office reopens.`;
 }
 
-function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
+/** Single authoritative suppression state for one reply generation. */
+export function collectContextSuppression(ctx: { messages: ChatMessageRow[] }): string[] {
+  return collectSuppressedTopics(
+    ctx.messages.filter((m) => m.sender === "customer").map((m) => m.body),
+  );
+}
+
+function systemPrompt(
+  ctx: Awaited<ReturnType<typeof loadContext>>,
+  suppressedTopics: string[] = collectContextSuppression(ctx),
+) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
   const s = ctx.settings;
   const aiName = s?.ai_name?.trim() || "UMRAIO";
@@ -250,16 +274,17 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
     .isReligiousRulingRequest
     ? RELIGIOUS_BOUNDARY_INSTRUCTION
     : null;
-  const suppression = suppressionInstruction(
-    collectSuppressedTopics(ctx.messages.filter((m) => m.sender === "customer").map((m) => m.body)),
-  );
+  const suppression = suppressionInstruction(suppressedTopics);
 
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
     DOMAIN_ISOLATION_INSTRUCTION,
     suppression,
-    intentAnchorInstruction(lastCustomer?.body),
+    intentAnchorInstruction(
+      lastCustomer?.body,
+      redactSuppressedTopics(lastCustomer?.body, suppressedTopics),
+    ),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
@@ -755,10 +780,23 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   }));
   // Context sanitization: strip explicitly suppressed topics from the model's
   // context window while preserving all Umrah business context.
-  const history = sanitizeHistory(
-    rawHistory,
-    collectSuppressedTopics(ctx.messages.filter((m) => m.sender === "customer").map((m) => m.body)),
-  );
+  const suppressedTopics = collectContextSuppression(ctx);
+  const history = sanitizeHistory(rawHistory, suppressedTopics);
+
+  // Safe diagnostics only (no message bodies, no prompts, no secrets).
+  console.log("[sales-ai] context", {
+    build: BUILD_REVISION,
+    conversation: safeConversationRef(ctx.conversation.id as string),
+    loaded_messages: ctx.messages.length,
+    model_history_before: rawHistory.length,
+    model_history_after: history.length,
+    suppression_detected: suppressedTopics.length > 0,
+    suppressed_topic_count: suppressedTopics.length,
+    suppressed_occurrences_after: countSuppressedOccurrences(
+      history.map((h) => h.content),
+      suppressedTopics,
+    ),
+  });
 
   // Tools are exposed to the model ONLY through the registry adapter, so every
   // call runs the decision gate before it can touch the database.
@@ -785,7 +823,7 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   const gateway = createIntelligenceGateway({ supabase, agencyId });
   const result = await gateway.generate({
     taskType: "customer_reply",
-    system: systemPrompt(ctx),
+    system: systemPrompt(ctx, suppressedTopics),
     prompt: "",
     messages: history.length ? history : [{ role: "user", content: "Assalamualaikum" }],
     tools: createSdkTools({ registry, ctx: toolCtx }),

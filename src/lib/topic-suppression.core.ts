@@ -126,6 +126,41 @@ export function sanitizeHistory(
   return out;
 }
 
+/**
+ * Redact suppressed topics inside a single string (used for the intent anchor).
+ * Keeps all non-suppressed information (pax, month, budget, booking intent).
+ */
+export function redactSuppressedTopics(
+  text: string | null | undefined,
+  suppressedTopics: string[],
+): string {
+  const value = (text ?? "").trim();
+  if (!value || !suppressedTopics.length) return value;
+  let out = value;
+  for (const topic of suppressedTopics) {
+    out = out.replace(new RegExp(escapeRegExp(topic), "gi"), REDACTION);
+  }
+  return out.replace(/\s+/g, " ").trim();
+}
+
+/** Count remaining occurrences of suppressed topics (diagnostics only). */
+export function countSuppressedOccurrences(
+  texts: Array<string | null | undefined>,
+  suppressedTopics: string[],
+): number {
+  if (!suppressedTopics.length) return 0;
+  let count = 0;
+  for (const text of texts) {
+    if (!text) continue;
+    for (const topic of suppressedTopics) {
+      const matches = text.match(new RegExp(escapeRegExp(topic), "gi"));
+      count += matches ? matches.length : 0;
+    }
+  }
+  return count;
+}
+
+
 /** System-prompt block enforcing suppression behaviour for this conversation. */
 export function suppressionInstruction(suppressedTopics: string[]): string | null {
   if (!suppressedTopics.length) return null;
