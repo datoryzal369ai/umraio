@@ -27,9 +27,14 @@ const faqs = [
     a: "UMRAIO® is an Autonomous AI Business Executive built for Umrah agencies. It answers enquiries, qualifies prospects, recommends packages and follows up so your team can focus on closing bookings.",
   },
   {
-    q: "Who is UMRAIO® for?",
-    a: "Licensed Umrah and travel agencies that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+    q: "Is UMRAIO® a CRM or a chatbot?",
+    a: "Neither. UMRAIO® is positioned as an Autonomous AI Business Executive purpose-built for Umrah agencies. It includes a pipeline and messaging, but its role is to execute business workflows — enquiry handling, qualification, package recommendation and follow-up — rather than to act as a generic chatbot or a conventional CRM.",
   },
+  {
+    q: "What does UMRAIO® do for Umrah agencies?",
+    a: "UMRAIO® handles WhatsApp enquiries, qualifies prospects, recommends suitable Umrah packages, follows up with leads and automates repetitive business workflows for agency teams.",
+  },
+
   {
     q: "How does UMRAIO® work with WhatsApp?",
     a: "You connect your WhatsApp Business number in settings. UMRAIO® then replies to incoming messages in Bahasa Malaysia or English, using your agency's packages and knowledge base.",
