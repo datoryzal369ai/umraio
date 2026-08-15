@@ -65,32 +65,33 @@ const faqs = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies" },
+      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO® is an autonomous AI business executive for Umrah agencies, combining Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
       {
         property: "og:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         property: "og:description",
         content:
-          "Autonomous AI business executive for Umrah agencies — Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
       { property: "og:url", content: "https://umraio.com/" },
       { property: "og:type", content: "website" },
       {
         name: "twitter:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         name: "twitter:description",
         content:
-          "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
+          "Autonomous AI Business Executive for Umrah agencies — WhatsApp enquiry automation, lead qualification, package recommendations and automated follow-up.",
       },
+
       { property: "og:image", content: `https://umraio.com${wordmarkAsset.url}` },
       {
         property: "og:image:alt",
