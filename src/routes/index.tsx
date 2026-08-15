@@ -34,6 +34,11 @@ const faqs = [
     q: "What does UMRAIO® do for Umrah agencies?",
     a: "UMRAIO® handles WhatsApp enquiries, qualifies prospects, recommends suitable Umrah packages, follows up with leads and automates repetitive business workflows for agency teams.",
   },
+  {
+    q: "Who is UMRAIO® for?",
+    a: "Licensed Umrah and travel agencies — primarily in Malaysia — that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+  },
+
 
   {
     q: "How does UMRAIO® work with WhatsApp?",
