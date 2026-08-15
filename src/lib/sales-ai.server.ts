@@ -247,7 +247,10 @@ function systemPrompt(ctx: Awaited<ReturnType<typeof loadContext>>) {
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
+    DOMAIN_ISOLATION_INSTRUCTION,
+    intentAnchorInstruction(lastCustomer?.body),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
+
     `${language} ${length} WhatsApp style, no markdown headings.`,
     s?.ai_emoji === false
       ? "Do not use emojis."
