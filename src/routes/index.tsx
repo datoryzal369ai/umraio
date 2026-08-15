@@ -27,9 +27,19 @@ const faqs = [
     a: "UMRAIO® is an Autonomous AI Business Executive built for Umrah agencies. It answers enquiries, qualifies prospects, recommends packages and follows up so your team can focus on closing bookings.",
   },
   {
-    q: "Who is UMRAIO® for?",
-    a: "Licensed Umrah and travel agencies that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+    q: "Is UMRAIO® a CRM or a chatbot?",
+    a: "Neither. UMRAIO® is positioned as an Autonomous AI Business Executive purpose-built for Umrah agencies. It includes a pipeline and messaging, but its role is to execute business workflows — enquiry handling, qualification, package recommendation and follow-up — rather than to act as a generic chatbot or a conventional CRM.",
   },
+  {
+    q: "What does UMRAIO® do for Umrah agencies?",
+    a: "UMRAIO® handles WhatsApp enquiries, qualifies prospects, recommends suitable Umrah packages, follows up with leads and automates repetitive business workflows for agency teams.",
+  },
+  {
+    q: "Who is UMRAIO® for?",
+    a: "Licensed Umrah and travel agencies — primarily in Malaysia — that handle enquiries over WhatsApp and want to convert more of them into bookings.",
+  },
+
+
   {
     q: "How does UMRAIO® work with WhatsApp?",
     a: "You connect your WhatsApp Business number in settings. UMRAIO® then replies to incoming messages in Bahasa Malaysia or English, using your agency's packages and knowledge base.",
@@ -65,32 +75,33 @@ const faqs = [
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies" },
+      { title: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies" },
       {
         name: "description",
         content:
-          "UMRAIO® is an autonomous AI business executive for Umrah agencies, combining Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
       {
         property: "og:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         property: "og:description",
         content:
-          "Autonomous AI business executive for Umrah agencies — Umrah domain intelligence, lead qualification, package recommendations, WhatsApp automation and follow-up with governed Islamic implementation.",
+          "UMRAIO® is an Autonomous AI Business Executive for Umrah agencies — helping automate WhatsApp enquiries, qualify leads, recommend packages, follow up and grow sales.",
       },
       { property: "og:url", content: "https://umraio.com/" },
       { property: "og:type", content: "website" },
       {
         name: "twitter:title",
-        content: "UMRAIO® | Autonomous AI Business Executive for Umrah Agencies",
+        content: "UMRAIO® — Autonomous AI Business Executive for Umrah Agencies",
       },
       {
         name: "twitter:description",
         content:
-          "Autonomous AI Business Executive for licensed Umrah agencies — WhatsApp automation, lead generation, marketing and bookings.",
+          "Autonomous AI Business Executive for Umrah agencies — WhatsApp enquiry automation, lead qualification, package recommendations and automated follow-up.",
       },
+
       { property: "og:image", content: `https://umraio.com${wordmarkAsset.url}` },
       {
         property: "og:image:alt",
