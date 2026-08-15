@@ -88,7 +88,20 @@ export function BrandArchitecture({ className }: { className?: string }) {
           >
             Privacy Policy
           </a>
+          <a
+            href="/terms"
+            className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
+          >
+            Terms of Service
+          </a>
+          <a
+            href="/data-deletion"
+            className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
+          >
+            Data Deletion
+          </a>
         </div>
+
 
         <p className="mt-8 text-xs font-light text-muted-foreground/60">
           © {new Date().getFullYear()} UMRAIO®. All rights reserved.
