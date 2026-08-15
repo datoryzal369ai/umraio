@@ -160,8 +160,9 @@ describe("Meta webhook signature verification", () => {
 
 describe("access token confidentiality", () => {
   it("TEST 9/10 — client projection never requests access_token", () => {
-    expect(WHATSAPP_CLIENT_COLUMNS).not.toContain("access_token");
-    expect(WHATSAPP_CLIENT_COLUMNS).toContain("has_access_token");
+    const columns = WHATSAPP_CLIENT_COLUMNS.split(",").map((c) => c.trim());
+    expect(columns).not.toContain("access_token");
+    expect(columns).toContain("has_access_token");
   });
 
   it("TEST 14 — disconnect requests no projection back", async () => {
