@@ -1344,6 +1344,7 @@ export type Database = {
           business_account_id: string | null
           created_at: string
           display_phone_number: string | null
+          has_access_token: boolean | null
           id: string
           is_connected: boolean
           last_inbound_at: string | null
@@ -1358,6 +1359,7 @@ export type Database = {
           business_account_id?: string | null
           created_at?: string
           display_phone_number?: string | null
+          has_access_token?: boolean | null
           id?: string
           is_connected?: boolean
           last_inbound_at?: string | null
@@ -1372,6 +1374,7 @@ export type Database = {
           business_account_id?: string | null
           created_at?: string
           display_phone_number?: string | null
+          has_access_token?: boolean | null
           id?: string
           is_connected?: boolean
           last_inbound_at?: string | null

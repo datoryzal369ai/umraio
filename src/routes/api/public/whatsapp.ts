@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { verifyMetaSignature } from "@/lib/whatsapp-signature";
+
 type WebhookValue = {
   metadata?: { phone_number_id?: string; display_phone_number?: string };
   contacts?: Array<{ profile?: { name?: string }; wa_id?: string }>;
@@ -61,9 +63,25 @@ export const Route = createFileRoute("/api/public/whatsapp")({
       },
 
       POST: async ({ request }) => {
+        // SECURITY: raw body → signature validation → parse → process.
+        // Nothing below this gate may touch the database, AI, quota or Meta.
+        const rawBody = await request.text();
+        const signature = verifyMetaSignature(
+          rawBody,
+          request.headers.get("x-hub-signature-256"),
+          process.env["META_APP_SECRET"],
+        );
+        if (!signature.valid) {
+          console.error(
+            `[whatsapp] webhook_signature_valid=false reason=${signature.reason} request_processing=rejected`,
+          );
+          return new Response("Unauthorized", { status: 401 });
+        }
+        console.log("[whatsapp] webhook_signature_valid=true");
+
         let payload: WebhookBody;
         try {
-          payload = (await request.json()) as WebhookBody;
+          payload = JSON.parse(rawBody) as WebhookBody;
         } catch {
           return new Response("Bad request", { status: 400 });
         }

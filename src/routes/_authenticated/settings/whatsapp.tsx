@@ -89,7 +89,8 @@ function WhatsappSettings() {
       display_phone_number: config.display_phone_number ?? "",
       phone_number_id: config.phone_number_id ?? "",
       business_account_id: config.business_account_id ?? "",
-      access_token: config.access_token ?? "",
+      // The stored credential is never sent to the browser.
+      access_token: "",
       auto_reply: config.auto_reply,
     });
   }, [config]);
@@ -98,13 +99,17 @@ function WhatsappSettings() {
     mutationFn: async () => {
       if (!user) throw new Error("Not signed in.");
       const agencyId = await currentAgencyId(user.id);
-      return saveWhatsappConfig(agencyId, config?.id ?? null, {
-        display_phone_number: form.display_phone_number || null,
-        phone_number_id: form.phone_number_id || null,
-        business_account_id: form.business_account_id || null,
-        access_token: form.access_token || null,
-        auto_reply: form.auto_reply,
-      });
+      return saveWhatsappConfig(
+        agencyId,
+        config ? { id: config.id, has_access_token: config.has_access_token } : null,
+        {
+          display_phone_number: form.display_phone_number || null,
+          phone_number_id: form.phone_number_id || null,
+          business_account_id: form.business_account_id || null,
+          access_token: form.access_token || null,
+          auto_reply: form.auto_reply,
+        },
+      );
     },
     onSuccess: () => {
       toast.success("WhatsApp settings saved.");
@@ -202,10 +207,16 @@ function WhatsappSettings() {
                 <Input
                   id="token"
                   type="password"
-                  placeholder="EAAG..."
+                  autoComplete="off"
+                  placeholder={config?.has_access_token ? "•••••• stored — leave blank to keep" : "EAAG..."}
                   value={form.access_token ?? ""}
                   onChange={(e) => setForm({ ...form, access_token: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {config?.has_access_token
+                    ? "A token is securely stored. It is never shown again — enter a new one only to replace it."
+                    : "Stored server-side only; it is never returned to your browser."}
+                </p>
               </div>
             </div>
 
