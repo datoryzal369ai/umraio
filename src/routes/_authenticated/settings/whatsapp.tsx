@@ -207,10 +207,16 @@ function WhatsappSettings() {
                 <Input
                   id="token"
                   type="password"
-                  placeholder="EAAG..."
+                  autoComplete="off"
+                  placeholder={config?.has_access_token ? "•••••• stored — leave blank to keep" : "EAAG..."}
                   value={form.access_token ?? ""}
                   onChange={(e) => setForm({ ...form, access_token: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {config?.has_access_token
+                    ? "A token is securely stored. It is never shown again — enter a new one only to replace it."
+                    : "Stored server-side only; it is never returned to your browser."}
+                </p>
               </div>
             </div>
 
