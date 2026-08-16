@@ -2,7 +2,7 @@
  * UMRAIO® AI Intelligence Layer — shared contracts.
  *
  * These interfaces are deliberately provider-agnostic so a future
- * RÉNAI.CORE™ implementation can sit above or replace the current gateway
+ * RÉNAIO.CORE™ implementation can sit above or replace the current gateway
  * without touching application code. Nothing here implements autonomous
  * learning; it is a contract surface only.
  */

@@ -53,12 +53,12 @@ export const GLOBAL_UMRAIO_KNOWLEDGE: GlobalArticle[] = [
   },
   {
     id: "global-umraio-and-umraverse",
-    title: "UMRAIO®, RÉNAI.CORE™ and UMRAVERSE®",
+    title: "UMRAIO®, RÉNAIO.CORE™ and UMRAVERSE®",
     category: "general",
     summary: "Brand architecture behind UMRAIO®.",
     content:
-      "Digital Renaissance Metaverse is the parent technology company. RÉNAI.CORE™ is the Autonomous Intelligence Core — the intelligence layer that powers UMRAIO®. UMRAVERSE® is the Umrah ecosystem that provides knowledge, business and customer context. UMRAIO® is the Autonomous AI Business Executive for modern Umrah agencies. Do not represent UMRAIO as the entire UMRAVERSE ecosystem, and do not describe UMRAVERSE as the AI brain.",
-    tags: ["umraverse", "renai.core", "ecosystem", "brand"],
+      "Digital Renaissance Metaverse is the parent technology company. RÉNAIO.CORE™ is the Autonomous Intelligence Core — the intelligence layer that powers UMRAIO®. UMRAVERSE® is the Umrah ecosystem that provides knowledge, business and customer context. UMRAIO® is the Autonomous AI Business Executive for modern Umrah agencies. Do not represent UMRAIO as the entire UMRAVERSE ecosystem, and do not describe UMRAVERSE as the AI brain.",
+    tags: ["umraverse", "renaio.core", "ecosystem", "brand"],
   },
 
   {

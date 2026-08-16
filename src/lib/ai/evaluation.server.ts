@@ -11,7 +11,7 @@ type Db = SupabaseClient<any, any, any>;
 /**
  * Experience / evaluation foundation.
  *
- * Collects outcome records so a future RÉNAI.CORE™ can learn from them.
+ * Collects outcome records so a future RÉNAIO.CORE™ can learn from them.
  * This is EXPERIENCE COLLECTION ONLY: nothing here modifies a model, prompt,
  * policy, tool, permission or source code. Records are written into the
  * existing append-only `activity_log` (no new table, no schema migration).

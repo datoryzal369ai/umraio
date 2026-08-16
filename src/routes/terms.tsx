@@ -177,7 +177,7 @@ function TermsPage() {
 
             <PolicySection title="Intellectual Property">
               <p>
-                UMRAIO®, RÉNAI.CORE™, the Islamic Implementation Layer™, UMRAVERSE®, and all software,
+                UMRAIO®, RÉNAIO.CORE™, the Islamic Implementation Layer™, UMRAVERSE®, and all software,
                 models, interfaces, designs, documentation and trademarks associated with the Service
                 remain the exclusive property of Digital Renaissance Metaverse and its licensors.
               </p>
