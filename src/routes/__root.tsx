@@ -163,9 +163,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           alternateName: ["RENAIO.CORE", "RÉNAIO.CORE™"],
           description:
             "RENAIO.CORE™ is the Autonomous Intelligence Core powering the Digital Renaissance ecosystem and its AI-native platforms, including UMRAVERSE® and UMRAIO®.",
-          parentOrganization: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
-
+          publisher: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
+        }),
       },
+
       {
         type: "application/ld+json",
         children: JSON.stringify({
