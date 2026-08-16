@@ -146,8 +146,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           areaServed: "MY",
           brand: { "@type": "Brand", name: "UMRAVERSE®" },
           parentOrganization: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
+          knowsAbout: [
+            "Autonomous AI Business Executive",
+            "Umrah agency automation",
+            "RENAIO.CORE™ Autonomous Intelligence Core",
+            "UMRAVERSE® Umrah digital ecosystem",
+          ],
         }),
       },
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Brand",
+          name: "RENAIO.CORE™",
+          alternateName: ["RENAIO.CORE", "RÉNAIO.CORE™"],
+          description:
+            "RENAIO.CORE™ is the Autonomous Intelligence Core powering the Digital Renaissance ecosystem and its AI-native platforms, including UMRAVERSE® and UMRAIO®.",
+          publisher: { "@type": "Organization", name: "Digital Renaissance Metaverse" },
+        }),
+      },
+
       {
         type: "application/ld+json",
         children: JSON.stringify({
@@ -172,7 +191,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "@type": "BusinessAudience",
             audienceType: "Umrah and Islamic travel agencies",
           },
+          applicationSuite: "RENAIO.CORE™",
           publisher: { "@type": "Organization", name: "UMRAIO®" },
+
         }),
       },
       {
