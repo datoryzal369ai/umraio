@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 
 /** Product hierarchy, top to bottom. Presentation only. */
 const HIERARCHY = [
-  { name: "RÉNAI.CORE™", role: "Autonomous Intelligence Core" },
+  { name: "RÉNAIO.CORE™", role: "Autonomous Intelligence Core" },
   { name: "UMRAIO®", role: "Autonomous AI Workforce for Umrah Agencies" },
   { name: "AI Executive Center", role: "Human + AI Control Room" },
   { name: "AI Autonomous Business Executive™", role: "AI Business Director & Orchestrator" },

@@ -8,7 +8,7 @@ import type { AiProviderId } from "./config.server";
  * Provider adapter registry.
  *
  * The neutral gateway depends on this interface only — never on a concrete
- * provider SDK. A future RÉNAI.CORE™ engine registers its own adapter here and
+ * provider SDK. A future RÉNAIO.CORE™ engine registers its own adapter here and
  * the gateway keeps working unchanged. All provider-specific request options
  * live inside the adapter, never in the neutral gateway.
  */

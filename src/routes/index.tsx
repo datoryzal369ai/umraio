@@ -66,7 +66,7 @@ const faqs = [
   },
   {
     q: "What powers UMRAIO®?",
-    a: "RÉNAI.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
+    a: "RÉNAIO.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
   },
 ];
 
@@ -181,7 +181,7 @@ function Index() {
               <span className="whitespace-nowrap">
                 Powered by{" "}
                 <span className="font-medium text-primary">
-                  RÉNAI.CORE
+                  RÉNAIO.CORE
                   <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">™</sup>
                 </span>
               </span>

@@ -1,6 +1,6 @@
 import umraioAsset from "@/assets/umraio-official-wordmark.png.asset.json";
 import umraverseAsset from "@/assets/umraverse-logo.png.asset.json";
-import renaiAsset from "@/assets/renai-core-logo.png.asset.json";
+import renaioAsset from "@/assets/renaio-core-logo.png.asset.json";
 import { cn } from "@/lib/utils";
 
 function Connector() {
@@ -41,11 +41,11 @@ export function BrandArchitecture({ className }: { className?: string }) {
 
         <Connector />
 
-        {/* SECONDARY — RÉNAI.CORE */}
+        {/* SECONDARY — RÉNAIO.CORE */}
         <Label>Powered by</Label>
         <img
-          src={renaiAsset.url}
-          alt="RÉNAI.CORE™ — The Autonomous Intelligence Core"
+          src={renaioAsset.url}
+          alt="RÉNAIO.CORE™ — The Autonomous Intelligence Core"
           loading="lazy"
           className="mt-6 h-auto w-full max-w-[280px] object-contain mix-blend-screen sm:max-w-[400px]"
         />

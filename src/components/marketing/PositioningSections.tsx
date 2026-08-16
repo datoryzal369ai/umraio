@@ -313,7 +313,7 @@ export function DifferentiationLadder() {
 /* ── 13. UMRAVERSE relationship ─────────────────────────────────── */
 const stack = [
   { name: "Digital Renaissance Metaverse™", role: "Ecosystem architect" },
-  { name: "RÉNAI.CORE™", role: "Autonomous intelligence core" },
+  { name: "RÉNAIO.CORE™", role: "Autonomous intelligence core" },
   {
     name: "Islamic Implementation Layer™",
     role: "Principles • Halal • Ethics • Governance • Implementation",

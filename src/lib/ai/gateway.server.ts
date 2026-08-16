@@ -16,7 +16,7 @@ type Db = SupabaseClient<any, any, any>;
  *
  * Application code calls this surface instead of a provider SDK. The gateway
  * depends only on the provider adapter interface (see providers.server.ts), so
- * swapping the foundation model — or dropping in a future RÉNAI.CORE™ engine —
+ * swapping the foundation model — or dropping in a future RÉNAIO.CORE™ engine —
  * is a configuration change.
  *
  * This layer never fabricates a response: a provider failure, timeout or
