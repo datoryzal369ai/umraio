@@ -65,9 +65,14 @@ const faqs = [
     a: "No. UMRAIO® automates repetitive business workflows and assists sales teams while preserving human judgement, approval and relationship management.",
   },
   {
+    q: "What is RÉNAIO.CORE™?",
+    a: "RÉNAIO.CORE™ (RENAIO.CORE™) is the Autonomous Intelligence Core powering the Digital Renaissance ecosystem and its AI-native platforms. UMRAIO® is the Autonomous AI Business Executive for Umrah agencies built within that intelligence architecture — it is a separate product, not the core itself.",
+  },
+  {
     q: "What powers UMRAIO®?",
     a: "RÉNAIO.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
   },
+
 ];
 
 
