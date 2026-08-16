@@ -191,7 +191,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "@type": "BusinessAudience",
             audienceType: "Umrah and Islamic travel agencies",
           },
+          applicationSuite: "RENAIO.CORE™",
           publisher: { "@type": "Organization", name: "UMRAIO®" },
+
         }),
       },
       {
