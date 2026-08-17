@@ -280,9 +280,45 @@ export function collectContextSuppression(ctx: { messages: ChatMessageRow[] }): 
   );
 }
 
+/**
+ * Step 3 — deterministic conversation intelligence for the current turn.
+ * Pure derivation from real conversation, lead and quotation data.
+ */
+export function buildIntelligence(ctx: Awaited<ReturnType<typeof loadContext>>): ConversationIntelligence {
+  const lead = ctx.lead as Record<string, unknown> | null;
+  const q = ctx.quotation as Record<string, unknown> | null;
+  return buildConversationIntelligence({
+    messages: ctx.messages.map((m) => ({ sender: m.sender, body: m.body, created_at: m.created_at })),
+    lead: lead
+      ? {
+          fullName: (lead["full_name"] as string | null) ?? null,
+          phone: (lead["phone"] as string | null) ?? null,
+          city: (lead["city"] as string | null) ?? null,
+          pax: (lead["pax"] as number | null) ?? null,
+          preferredMonth: (lead["preferred_month"] as string | null) ?? null,
+          budgetMyr: lead["budget_myr"] === null ? null : Number(lead["budget_myr"]),
+          packageInterest: (lead["package_interest"] as string | null) ?? null,
+          stage: (lead["stage"] as string | null) ?? null,
+        }
+      : null,
+    quotation: q
+      ? {
+          status: String(q["status"]),
+          quotationNumber: (q["quotation_number"] as string | null) ?? null,
+          total: q["total"] === null ? null : Number(q["total"]),
+          depositAmount: q["deposit_amount"] === null ? null : Number(q["deposit_amount"]),
+        }
+      : null,
+    humanTakeover: ctx.conversation.ai_enabled === false,
+    agencyDefaultLanguage: ctx.settings?.ai_language ?? null,
+    leadLanguagePreference: (lead?.["preferred_language"] as LanguagePreference | null) ?? null,
+  });
+}
+
 function systemPrompt(
   ctx: Awaited<ReturnType<typeof loadContext>>,
   suppressedTopics: string[] = collectContextSuppression(ctx),
+  intel: ConversationIntelligence = buildIntelligence(ctx),
 ) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
   const s = ctx.settings;
@@ -309,6 +345,7 @@ function systemPrompt(
       redactSuppressedTopics(lastCustomer?.body, suppressedTopics),
     ),
     conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
+    conversationIntelligenceInstruction(intel),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
@@ -521,6 +558,10 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         package_interest: z.string().nullable(),
         temperature: z.enum(["hot", "warm", "cold"]).nullable(),
         stage: z.enum(["new", "contacted", "qualified", "proposal", "booked", "lost"]).nullable(),
+        preferred_language: z
+          .enum(["auto", "ms", "en", "mix", "id", "ar", "zh", "ta", "ur", "bn"])
+          .nullable()
+          .describe("Set only when the customer explicitly states a language preference."),
       }),
       validate: (input) => {
         if (!leadId) return "No lead linked to this conversation.";
