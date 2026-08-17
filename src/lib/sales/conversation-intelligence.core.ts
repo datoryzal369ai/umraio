@@ -353,7 +353,9 @@ export type ConversationState =
   | "HUMAN_HANDOFF"
   | "NURTURE"
   | "BOOKED"
-  | "LOST";
+  | "LOST"
+  /** Step 3.6 — explicit customer opt-out. Highest priority state. */
+  | "DO_NOT_CONTACT";
 
 export type KnownFacts = {
   fullName?: string | null;
@@ -361,9 +363,14 @@ export type KnownFacts = {
   city?: string | null;
   pax?: number | null;
   preferredMonth?: string | null;
+  /** Per-person budget (existing column semantics). */
   budgetMyr?: number | null;
+  /** Step 3.6 — separate total-trip budget, never conflated with per-person. */
+  totalBudgetMyr?: number | null;
   packageInterest?: string | null;
   stage?: string | null;
+  doNotContact?: boolean | null;
+  travellerNeeds?: string[] | null;
 };
 
 export type QuotationSnapshot = {
@@ -398,7 +405,9 @@ export type NextBestAction =
   | "MOVE_TO_DEPOSIT_READY"
   | "ESCALATE"
   | "NURTURE"
-  | "STOP";
+  | "STOP"
+  /** Step 3.6 — answer from what is already known instead of re-asking. */
+  | "ANSWER_FROM_CONTEXT";
 
 export type ConversationIntelligence = {
   state: ConversationState;
@@ -410,6 +419,10 @@ export type ConversationIntelligence = {
   objections: ObjectionCategory[];
   /** Objections seen anywhere in the conversation (objection memory, §13). */
   objectionMemory: ObjectionCategory[];
+  /** Step 3.6 — full lifecycle: history preserved, resolved never blocks. */
+  objectionLifecycle: Array<ObjectionRecord<ObjectionCategory>>;
+  /** Objections that are still ACTIVE (unresolved). */
+  activeObjections: ObjectionCategory[];
   buyingSignals: BuyingSignal[];
   known: string[];
   missing: string[];
@@ -417,7 +430,15 @@ export type ConversationIntelligence = {
   /** 0-1 heuristic confidence in the derived state. */
   confidence: number;
   latestCustomerMessage: string | null;
+  /** Step 3.6 — deterministic customer-control + requirement outputs. */
+  optOut: boolean;
+  optOutPhrase: string | null;
+  humanRequested: boolean;
+  travellerNeeds: TravellerNeed[];
+  budget: BudgetReading;
+  hotelProximityPreference: boolean;
 };
+
 
 const DEPOSIT_ASK = /\b(brp|berapa)?\s*deposit\b|\bhow\s+(much|do)\s+.{0,20}(deposit|pay)\b|\bmacam\s?mana\s+nak\s+(bayar|book|tempah)\b|\bhow\s+(do\s+i|to)\s+(book|pay)\b/i;
 
