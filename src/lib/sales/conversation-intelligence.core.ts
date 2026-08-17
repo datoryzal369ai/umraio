@@ -289,13 +289,24 @@ const EXTENDED_OBJECTIONS: Array<{ type: ObjectionCategory; re: RegExp }> = [
   { type: "NEED_MORE_INFORMATION", re: /\b(boleh\s+bagi\s+(detail|maklumat)|more\s+(info|details)|itinerary|jadual|senarai)\b/i },
 ];
 
-/** Full Step 3 objection taxonomy for one message. */
+/**
+ * Full Step 3 objection taxonomy for one message.
+ *
+ * Step 3.6: a stated hotel REQUIREMENT ("kalau boleh hotel dekat Haram") is a
+ * preference, not an objection. Only resistance to a proposed option counts.
+ */
 export function detectObjectionCategories(text: string | null | undefined): ObjectionCategory[] {
   if (!text) return [];
-  const base = detectObjections(text).map((o) => BASE_TO_CATEGORY[o]);
-  const extended = EXTENDED_OBJECTIONS.filter((o) => o.re.test(text)).map((o) => o.type);
-  return Array.from(new Set([...base, ...extended]));
+  const normalized = normalizeMessage(text);
+  const base = detectObjections(normalized).map((o) => BASE_TO_CATEGORY[o]);
+  const extended = EXTENDED_OBJECTIONS.filter((o) => o.re.test(normalized)).map((o) => o.type);
+  const hotel = classifyHotelMention(text);
+  const all = new Set<ObjectionCategory>([...base, ...extended]);
+  if (!hotel.objection) all.delete("HOTEL");
+  else all.add("HOTEL");
+  return Array.from(all);
 }
+
 
 export const OBJECTION_PLAYBOOK: Record<ObjectionCategory, string> = {
   PRICE:
