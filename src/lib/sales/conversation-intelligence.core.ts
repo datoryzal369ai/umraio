@@ -18,6 +18,7 @@ import {
 import {
   buildObjectionLifecycle,
   classifyHotelMention,
+  conversationOptedOut,
   detectBookingIntent,
   detectBudget,
   detectDepositIntent,
@@ -745,7 +746,9 @@ const ACTION_DIRECTIVE: Record<NextBestAction, string> = {
   ESCALATE:
     "The customer is unhappy or needs a person. Acknowledge sincerely, call escalate_to_human with an honest reason, and say truthfully what was recorded.",
   NURTURE: "Keep it light and respectful. Do not push. Leave the door open.",
-  STOP: "A human is handling this conversation. Do not send another sales message.",
+  STOP: "A human is handling this conversation, or the customer asked not to be contacted. Do not send another sales message.",
+  ANSWER_FROM_CONTEXT:
+    "The customer says they already told you this. Do NOT ask another clarifying question. Acknowledge it honestly in one short line, then answer using the information already in this conversation and on the lead profile.",
 };
 
 /** Prompt block injected into the sales system prompt. */
@@ -859,6 +862,7 @@ export function conversationQualityScore(input: {
     NURTURE: 6,
     BOOKED: 25,
     LOST: 0,
+    DO_NOT_CONTACT: 0,
   };
 
   const objectionHandling = intel.objectionMemory.length ? (agent.length > 0 ? 10 : 4) : 5;
