@@ -89,7 +89,10 @@ const OPT_OUT_PATTERNS: RegExp[] = [
   /\bnot\s+interested\b/,
   /\bjangan\s+(whatsapp|wasap|wassap|mesej|message|contact|hubungi|call|telefon|hantar|follow\s?up)\b/,
   /\bjangan\s+\w+\s+(saya\s+)?lagi\b/,
-  /\bstop\s+(whatsapp|wasap|mesej|message|messages|contact|calling|texting)\b/,
+  /\bstop\s+(whatsapp|wasap|mesej|message|messages|messaging|contact(ing)?|calling|texting|sending)\b/,
+  /\b(tak|tidak)\s+(nak|mahu)\s+(terima|dapat)\s+(promosi|promotion|mesej|message|iklan)\b/,
+  /\bremove\s+(my|saya\s+punya)\s+(number|no|nombor|contact)\b/,
+  /\b(buang|padam)\s+(nombor|no)\s+saya\b/,
   /\bno\s+more\s+messages?\b/,
   /\b(please\s+)?do\s?n'?t\s+contact\s+me(\s+again)?\b/,
   /\bdo\s+not\s+contact\s+me\b/,
@@ -132,7 +135,7 @@ export function conversationOptedOut(messages: string[]): OptOutReading {
 export type FrustrationSignal = "FRUSTRATED" | "REPETITION_COMPLAINT" | "CONTEXT_FAILURE";
 
 const REPETITION_PATTERNS: RegExp[] = [
-  /\b(dah|dh|sudah|saya\s+dah|sy\s+dah)\s+(explain|terangkan|bagitahu|bagi\s?tahu|cakap|jawab|bagi|beritahu)\b/,
+  /\b(dah|dh|sudah|saya\s+dah|sy\s+dah)\s+(explain|terangkan|bagitahu|bagitau|bgtau|bagi\s?tahu|bagi\s?tau|cakap|jawab|bagi|beritahu|inform|state|sebut)\b/,
   /\b(explain|cakap|bagitahu)\b[^.?!]{0,20}\bbanyak\s+kali\b/,
   /\basyik\s+tanya\b/,
   /\bkenapa\s+tanya\s+(lagi|balik)\b/,
@@ -209,6 +212,9 @@ const ELDERLY_PATTERNS: RegExp[] = [
   /\b(bawa|bring|with|travel(ling)?\s+with)\b[^.?!]{0,20}\b(mak|emak|ibu|ayah|abah|bapa|parents?|mother|father|nenek|atuk)\b/,
   /\b(mak|emak|ibu|ayah|abah|bapa|mother|father|nenek|atuk)\b[^.?!]{0,20}\b(umur|aged?)\s*\d{2}\b/,
   /\bumur\s*(6\d|7\d|8\d|9\d)\b/,
+  /\b(6\d|7\d|8\d|9\d)\s*(tahun|thn|years?\s*old|yo)\b/,
+  /\b(mak|emak|ibu|ayah|abah|bapa|nenek|atuk|mother|father)\b[^.?!]{0,25}\b(6\d|7\d|8\d|9\d)\s*(tahun|thn|years?)\b/,
+  /\b(mak|emak|ibu|ayah|abah|bapa|nenek|atuk)\b[^.?!]{0,20}\b(dah\s+)?(tua|uzur)\b/,
   /\belderly(\s+(mother|father|parents?))?\b/,
   /\bwarga\s+emas\b/,
   /\bsenior\s+citizens?\b/,
@@ -396,6 +402,9 @@ const RESOLUTION_PATTERNS: RegExp[] = [
   /\bokay\s+dah\b/,
   /\bkami\s+nak\s+proceed\b/,
   /\bsemua\s+dah\s+ok(ay)?\b/,
+  /\b(ok(ay)?|oklah|takpe|tak\s+pe|tkpe|no\s+problem)\b[^.?!]{0,30}\b(faham|understand|terima|accept|boleh\s+terima|setuju|agree)\b/,
+  /\b(boleh|dapat)\s+terima\b/,
+  /\b(i\s+)?(understand|get\s+it)\b[^.?!]{0,20}\b(that'?s\s+)?(fine|ok(ay)?|acceptable)\b/,
 ];
 
 /** True when the message resolves a previously raised concern (past tense). */
