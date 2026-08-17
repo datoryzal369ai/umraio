@@ -676,7 +676,45 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     if (signals.includes("FRUSTRATED") && !repetitionComplaint) nextBestAction = "ESCALATE";
   }
 
+  // ---- Step 3.7 behavioural layer (additive; never overrides safety) ----
+  const behavior = buildBehavioralProfile({
+    customerMessages,
+    agentMessages: input.messages.filter((m) => m.sender !== "customer").map((m) => m.body),
+    optedOut: Boolean(optOutReading.optedOut || lead.doNotContact),
+    humanTakeover: input.humanTakeover,
+    quotationStatus: input.quotation?.status ?? null,
+    bookingConfirmed: input.bookingConfirmed,
+    leadStage: lead.stage ?? null,
+    knownCount: known.length,
+  });
+
+  if (!controlled && nextBestAction !== "ESCALATE" && nextBestAction !== "ANSWER_FROM_CONTEXT") {
+    // Behavioural strategy only refines *how* to advance, never whether the
+    // conversion state machine allows advancing.
+    if (behavior.strategy === "SUPPORT_DECISION_PROCESS" && nextBestAction !== "CREATE_QUOTATION") {
+      nextBestAction = "SUPPORT_DECISION_MAKER";
+    } else if (
+      behavior.strategy === "SIMPLIFY_CHOICES" &&
+      (nextBestAction === "ASK_CLARIFYING_QUESTION" || nextBestAction === "RECOMMEND_PACKAGE")
+    ) {
+      nextBestAction = "SIMPLIFY_OPTIONS";
+    } else if (
+      behavior.strategy === "REDUCE_FRICTION" &&
+      nextBestAction === "ASK_CLARIFYING_QUESTION"
+    ) {
+      nextBestAction = "REDUCE_FRICTION";
+    } else if (
+      behavior.strategy === "VALUE_CLARIFICATION" &&
+      nextBestAction === "ASK_CLARIFYING_QUESTION"
+    ) {
+      nextBestAction = "EXPLAIN_VALUE";
+    } else if (behavior.strategy === "BUILD_TRUST" && nextBestAction === "ASK_CLARIFYING_QUESTION") {
+      nextBestAction = "BUILD_TRUST";
+    }
+  }
+
   return {
+
     state,
     language: lang.language,
     languageSource: lang.source,
