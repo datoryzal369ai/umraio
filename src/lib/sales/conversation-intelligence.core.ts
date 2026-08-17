@@ -597,6 +597,9 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   // ---- next best action ----
   let nextBestAction: NextBestAction;
   switch (state) {
+    case "DO_NOT_CONTACT":
+      nextBestAction = "STOP";
+      break;
     case "BOOKED":
       nextBestAction = "STOP";
       break;
@@ -604,7 +607,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
       nextBestAction = "NURTURE";
       break;
     case "HUMAN_HANDOFF":
-      nextBestAction = "STOP";
+      nextBestAction = input.humanTakeover ? "STOP" : "ESCALATE";
       break;
     case "DEPOSIT_READY":
       nextBestAction = "MOVE_TO_DEPOSIT_READY";
@@ -645,7 +648,25 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     default:
       nextBestAction = "ASK_CLARIFYING_QUESTION";
   }
-  if (signals.includes("FRUSTRATED")) nextBestAction = "ESCALATE";
+
+  // ---- Step 3.6 signal/state priority ladder ----
+  const controlled = state === "DO_NOT_CONTACT" || state === "HUMAN_HANDOFF" || state === "BOOKED";
+  if (!controlled) {
+    // A recommendation request with sufficient verified information must never
+    // be answered with yet another clarifying question.
+    if (
+      recommendationRequest &&
+      enoughForRecommendation &&
+      (nextBestAction === "ASK_CLARIFYING_QUESTION" || state === "PACKAGE_MATCH" || state === "CONSIDERATION")
+    ) {
+      nextBestAction = "RECOMMEND_PACKAGE";
+    }
+    // A repetition complaint outranks any clarifying question.
+    if (repetitionComplaint && nextBestAction === "ASK_CLARIFYING_QUESTION") {
+      nextBestAction = "ANSWER_FROM_CONTEXT";
+    }
+    if (signals.includes("FRUSTRATED") && !repetitionComplaint) nextBestAction = "ESCALATE";
+  }
 
   return {
     state,
@@ -656,14 +677,23 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     signals,
     objections,
     objectionMemory,
+    objectionLifecycle,
+    activeObjections,
     buyingSignals,
     known,
     missing,
     nextBestAction,
     confidence,
     latestCustomerMessage: latest,
+    optOut: Boolean(optOutReading.optedOut || lead.doNotContact),
+    optOutPhrase: optOutReading.matched,
+    humanRequested,
+    travellerNeeds,
+    budget,
+    hotelProximityPreference,
   };
 }
+
 
 /* ------------------------------------------------------------------ *
  * 17 + 22. HUMAN-QUALITY RESPONSE / CLOSING GUIDANCE (prompt block)
