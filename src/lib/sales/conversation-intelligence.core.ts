@@ -454,11 +454,57 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   const style = detectConversationalStyle(customerMessages);
 
   const signals = detectConversationalSignals(latest);
-  const objections = detectObjectionCategories(latest);
-  const objectionMemory = Array.from(
-    new Set(customerMessages.flatMap((m) => detectObjectionCategories(m))),
+
+  // Step 3.6 — customer-control state, evaluated before anything positive.
+  const optOutReading = conversationOptedOut(customerMessages);
+  const humanRequested = customerMessages.slice(-3).some((m) => detectHumanRequest(m));
+  const frustration = detectFrustration(latest);
+  const repetitionComplaint = frustration.includes("REPETITION_COMPLAINT");
+
+  // Objection lifecycle: history preserved, resolution respected.
+  const objectionLifecycle = buildObjectionLifecycle<ObjectionCategory>(
+    customerMessages,
+    detectObjectionCategories,
   );
-  const buyingSignals = detectBuyingSignals(latest);
+  const resolvedCategories = new Set(
+    objectionLifecycle.filter((o) => o.status === "RESOLVED").map((o) => o.category),
+  );
+  const latestResolves = detectObjectionResolution(latest);
+  const objections = detectObjectionCategories(latest).filter(
+    (o) => !(latestResolves && resolvedCategories.has(o)),
+  );
+  const objectionMemory = objectionLifecycle.map((o) => o.category);
+  const activeObjections = objectionLifecycle
+    .filter((o) => o.status !== "RESOLVED")
+    .map((o) => o.category);
+
+  const maskedLatest = maskNegatedSpans(normalizeMessage(latest));
+  const buyingSignals = Array.from(
+    new Set<BuyingSignal>([
+      ...(optOutReading.optedOut ? [] : detectBuyingSignals(maskedLatest)),
+      ...(!optOutReading.optedOut && detectBookingIntent(latest) ? (["READY_TO_BOOK"] as BuyingSignal[]) : []),
+      ...(!optOutReading.optedOut && detectDepositIntent(latest) ? (["ASKED_HOW_TO_PAY"] as BuyingSignal[]) : []),
+      ...(detectPax(latest) ? (["CONFIRMED_PAX"] as BuyingSignal[]) : []),
+    ]),
+  );
+
+  // Step 3.6 — requirements captured from the whole conversation.
+  const travellerNeeds = Array.from(
+    new Set(customerMessages.flatMap((m) => detectTravellerNeeds(m))),
+  );
+  const budget = customerMessages
+    .map((m) => detectBudget(m))
+    .reduce<BudgetReading>(
+      (acc, b) => ({
+        totalBudgetMyr: b.totalBudgetMyr ?? acc.totalBudgetMyr,
+        perPersonBudgetMyr: b.perPersonBudgetMyr ?? acc.perPersonBudgetMyr,
+        pax: b.pax ?? acc.pax,
+      }),
+      { totalBudgetMyr: null, perPersonBudgetMyr: null, pax: null },
+    );
+  const hotelProximityPreference = customerMessages.some(
+    (m) => classifyHotelMention(m).preference,
+  );
 
   const lead = input.lead ?? {};
   const known: string[] = [];
@@ -470,27 +516,41 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   track("name", lead.fullName);
   track("phone", lead.phone);
   track("city", lead.city);
-  track("pilgrims", lead.pax);
+  track("pilgrims", lead.pax ?? budget.pax);
   track("travel month", lead.preferredMonth);
-  track("budget per person", lead.budgetMyr);
+  track(
+    "budget",
+    lead.budgetMyr ?? lead.totalBudgetMyr ?? budget.perPersonBudgetMyr ?? budget.totalBudgetMyr,
+  );
   track("package interest", lead.packageInterest);
 
-  const depositIntent = Boolean(latest && DEPOSIT_ASK.test(latest)) || buyingSignals.includes("ASKED_HOW_TO_PAY");
+  const depositIntent =
+    Boolean(latest && DEPOSIT_ASK.test(normalizeMessage(latest))) ||
+    detectDepositIntent(latest) ||
+    buyingSignals.includes("ASKED_HOW_TO_PAY");
+  const recommendationRequest = detectRecommendationRequest(latest);
+  const enoughForRecommendation =
+    Boolean(lead.pax ?? budget.pax) &&
+    Boolean(lead.preferredMonth) &&
+    Boolean(lead.budgetMyr ?? lead.totalBudgetMyr ?? budget.totalBudgetMyr ?? budget.perPersonBudgetMyr);
   const qStatus = input.quotation?.status ?? null;
 
-  // ---- state resolution (business events outrank keywords) ----
+  // ---- state resolution (customer control > business events > keywords) ----
   let state: ConversationState;
   let confidence = 0.6;
 
-  if (input.bookingConfirmed || lead.stage === "booked") {
+  if (optOutReading.optedOut || lead.doNotContact) {
+    state = "DO_NOT_CONTACT";
+    confidence = 0.95;
+  } else if (input.humanTakeover || humanRequested) {
+    state = "HUMAN_HANDOFF";
+    confidence = 0.95;
+  } else if (input.bookingConfirmed || lead.stage === "booked") {
     state = "BOOKED";
     confidence = 0.95;
   } else if (lead.stage === "lost" || signals.includes("NOT_INTERESTED")) {
     state = "LOST";
     confidence = 0.7;
-  } else if (input.humanTakeover) {
-    state = "HUMAN_HANDOFF";
-    confidence = 0.95;
   } else if (qStatus === "accepted" || (qStatus && depositIntent)) {
     state = "DEPOSIT_READY";
     confidence = 0.85;
@@ -503,6 +563,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   } else if (objections.length) {
     state = "OBJECTION";
     confidence = 0.75;
+
   } else if (signals.includes("TRUST_CONCERN")) {
     state = "TRUST_BUILDING";
     confidence = 0.7;
