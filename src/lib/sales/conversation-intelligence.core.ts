@@ -35,6 +35,11 @@ import {
   type ObjectionRecord,
   type TravellerNeed,
 } from "@/lib/sales/hardening.core";
+import {
+  behavioralInstruction,
+  buildBehavioralProfile,
+  type BehavioralProfile,
+} from "@/lib/sales/behavioral.core";
 
 /* ------------------------------------------------------------------ *
  * 4-8. LANGUAGE INTELLIGENCE™
@@ -737,6 +742,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     travellerNeeds,
     budget,
     hotelProximityPreference,
+    behavior,
   };
 }
 
@@ -882,6 +888,8 @@ export function conversationIntelligenceInstruction(intel: ConversationIntellige
     "HUMAN QUALITY: write like an experienced Umrah consultant on WhatsApp. No 'Thank you for your enquiry, how may I assist you today?'. No 'Please provide the following information.' No bullet-point forms. One or two short paragraphs, then one clear question or next step.",
     "NEVER create false urgency, fake scarcity, fake discounts, fake testimonials or religious pressure. If asked whether you are AI, answer truthfully.",
   );
+
+  lines.push(behavioralInstruction(intel.behavior));
 
   return lines.filter(Boolean).join("\n");
 }
