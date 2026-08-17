@@ -161,6 +161,9 @@ export type Database = {
           autonomy_mode: string
           business_hours: Json
           created_at: string
+          deposit_fixed_myr: number | null
+          deposit_percent: number | null
+          deposit_rule: string
           id: string
           kb_auto_use: boolean
           kb_escalate_when_unknown: boolean
@@ -175,6 +178,7 @@ export type Database = {
           notify_whatsapp: boolean
           plan: string
           plan_status: string
+          quotation_validity_days: number
           renews_at: string | null
           seats: number
           updated_at: string
@@ -192,6 +196,9 @@ export type Database = {
           autonomy_mode?: string
           business_hours?: Json
           created_at?: string
+          deposit_fixed_myr?: number | null
+          deposit_percent?: number | null
+          deposit_rule?: string
           id?: string
           kb_auto_use?: boolean
           kb_escalate_when_unknown?: boolean
@@ -206,6 +213,7 @@ export type Database = {
           notify_whatsapp?: boolean
           plan?: string
           plan_status?: string
+          quotation_validity_days?: number
           renews_at?: string | null
           seats?: number
           updated_at?: string
@@ -223,6 +231,9 @@ export type Database = {
           autonomy_mode?: string
           business_hours?: Json
           created_at?: string
+          deposit_fixed_myr?: number | null
+          deposit_percent?: number | null
+          deposit_rule?: string
           id?: string
           kb_auto_use?: boolean
           kb_escalate_when_unknown?: boolean
@@ -237,6 +248,7 @@ export type Database = {
           notify_whatsapp?: boolean
           plan?: string
           plan_status?: string
+          quotation_validity_days?: number
           renews_at?: string | null
           seats?: number
           updated_at?: string
@@ -454,35 +466,47 @@ export type Database = {
         Row: {
           agency_id: string
           amount_myr: number
+          balance_myr: number | null
           created_at: string
+          deposit_amount_myr: number | null
           deposit_paid: boolean
           id: string
           lead_id: string | null
           package_id: string | null
           pax: number
+          quotation_id: string | null
           status: string
+          updated_at: string
         }
         Insert: {
           agency_id: string
           amount_myr?: number
+          balance_myr?: number | null
           created_at?: string
+          deposit_amount_myr?: number | null
           deposit_paid?: boolean
           id?: string
           lead_id?: string | null
           package_id?: string | null
           pax?: number
+          quotation_id?: string | null
           status?: string
+          updated_at?: string
         }
         Update: {
           agency_id?: string
           amount_myr?: number
+          balance_myr?: number | null
           created_at?: string
+          deposit_amount_myr?: number | null
           deposit_paid?: boolean
           id?: string
           lead_id?: string | null
           package_id?: string | null
           pax?: number
+          quotation_id?: string | null
           status?: string
+          updated_at?: string
         }
         Relationships: [
           {
@@ -504,6 +528,13 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
             referencedColumns: ["id"]
           },
         ]
@@ -567,6 +598,74 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversion_events: {
+        Row: {
+          actor: string
+          agency_id: string
+          booking_id: string | null
+          created_at: string
+          id: string
+          lead_id: string | null
+          meta: Json
+          quotation_id: string | null
+          reason: string | null
+          stage: string
+        }
+        Insert: {
+          actor?: string
+          agency_id: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          meta?: Json
+          quotation_id?: string | null
+          reason?: string | null
+          stage: string
+        }
+        Update: {
+          actor?: string
+          agency_id?: string
+          booking_id?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string | null
+          meta?: Json
+          quotation_id?: string | null
+          reason?: string | null
+          stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversion_events_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversion_events_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
             referencedColumns: ["id"]
           },
         ]
@@ -696,31 +795,52 @@ export type Database = {
       followup_jobs: {
         Row: {
           agency_id: string
+          attempts: number
+          body: string | null
           channel: Database["public"]["Enums"]["channel"]
+          context: Json
+          conversation_id: string | null
           created_at: string
+          dispatched_at: string | null
           id: string
           lead_id: string | null
+          quotation_id: string | null
           run_at: string
+          skip_reason: string | null
           status: Database["public"]["Enums"]["followup_status"]
           title: string
         }
         Insert: {
           agency_id: string
+          attempts?: number
+          body?: string | null
           channel?: Database["public"]["Enums"]["channel"]
+          context?: Json
+          conversation_id?: string | null
           created_at?: string
+          dispatched_at?: string | null
           id?: string
           lead_id?: string | null
+          quotation_id?: string | null
           run_at?: string
+          skip_reason?: string | null
           status?: Database["public"]["Enums"]["followup_status"]
           title?: string
         }
         Update: {
           agency_id?: string
+          attempts?: number
+          body?: string | null
           channel?: Database["public"]["Enums"]["channel"]
+          context?: Json
+          conversation_id?: string | null
           created_at?: string
+          dispatched_at?: string | null
           id?: string
           lead_id?: string | null
+          quotation_id?: string | null
           run_at?: string
+          skip_reason?: string | null
           status?: Database["public"]["Enums"]["followup_status"]
           title?: string
         }
@@ -733,10 +853,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "followup_jobs_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "followup_jobs_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followup_jobs_quotation_id_fkey"
+            columns: ["quotation_id"]
+            isOneToOne: false
+            referencedRelation: "quotations"
             referencedColumns: ["id"]
           },
         ]
@@ -1226,6 +1360,143 @@ export type Database = {
           ip_hash?: string
         }
         Relationships: []
+      }
+      quotations: {
+        Row: {
+          accepted_at: string | null
+          agency_id: string
+          balance_amount: number | null
+          cancelled_at: string | null
+          conversation_id: string | null
+          created_at: string
+          created_by: string | null
+          currency: string
+          customer_name: string | null
+          customer_phone: string | null
+          deposit_amount: number | null
+          deposit_rule: string
+          discount: number
+          id: string
+          lead_id: string | null
+          notes: string | null
+          number_of_pilgrims: number
+          package_id: string | null
+          package_snapshot: Json
+          public_token: string
+          quantity: number
+          quotation_number: string
+          rejected_at: string | null
+          sent_at: string | null
+          status: string
+          subtotal: number
+          total: number
+          travel_date: string | null
+          travel_month: string | null
+          unit_price: number
+          updated_at: string
+          valid_until: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          agency_id: string
+          balance_amount?: number | null
+          cancelled_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          deposit_amount?: number | null
+          deposit_rule?: string
+          discount?: number
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          number_of_pilgrims?: number
+          package_id?: string | null
+          package_snapshot?: Json
+          public_token?: string
+          quantity?: number
+          quotation_number: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          travel_date?: string | null
+          travel_month?: string | null
+          unit_price?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          agency_id?: string
+          balance_amount?: number | null
+          cancelled_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          customer_name?: string | null
+          customer_phone?: string | null
+          deposit_amount?: number | null
+          deposit_rule?: string
+          discount?: number
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          number_of_pilgrims?: number
+          package_id?: string | null
+          package_snapshot?: Json
+          public_token?: string
+          quantity?: number
+          quotation_number?: string
+          rejected_at?: string | null
+          sent_at?: string | null
+          status?: string
+          subtotal?: number
+          total?: number
+          travel_date?: string | null
+          travel_month?: string | null
+          unit_price?: number
+          updated_at?: string
+          valid_until?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotations_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quotations_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       usage_events: {
         Row: {

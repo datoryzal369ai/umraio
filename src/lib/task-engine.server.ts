@@ -78,10 +78,17 @@ async function setStatus(
   note: string,
   extra: Record<string, unknown> = {},
 ) {
-  const { data: current } = await supabase.from("ai_tasks").select("steps").eq("id", taskId).maybeSingle();
+  const { data: current } = await supabase
+    .from("ai_tasks")
+    .select("steps")
+    .eq("id", taskId)
+    .maybeSingle();
   const steps: Step[] = Array.isArray(current?.steps) ? (current!.steps as Step[]) : [];
   steps.push({ at: new Date().toISOString(), status, note });
-  await supabase.from("ai_tasks").update({ status, steps, ...extra }).eq("id", taskId);
+  await supabase
+    .from("ai_tasks")
+    .update({ status, steps, ...extra })
+    .eq("id", taskId);
 }
 
 export async function notify(
@@ -137,10 +144,18 @@ export async function createTask(
       origin: input.origin ?? "manual",
       input: { brief: input.brief ?? "" },
       plan: planFor(input.kind),
-      steps: [{ at: new Date().toISOString(), status: "queued", note: "Task queued by the autonomous engine" }],
+      steps: [
+        {
+          at: new Date().toISOString(),
+          status: "queued",
+          note: "Task queued by the autonomous engine",
+        },
+      ],
       minutes_saved: spec.minutes,
       requires_approval: requiresApproval,
-      approval_reason: requiresApproval ? "This action publishes or sends on behalf of the agency." : null,
+      approval_reason: requiresApproval
+        ? "This action publishes or sends on behalf of the agency."
+        : null,
       lead_id: input.leadId ?? null,
       created_by: input.createdBy ?? null,
     })
@@ -201,7 +216,9 @@ export async function executeTask(supabase: Db, agencyId: string, taskId: string
       supabase,
       taskId,
       status,
-      requiresApproval ? "Waiting for human approval before publishing" : "Task completed autonomously",
+      requiresApproval
+        ? "Waiting for human approval before publishing"
+        : "Task completed autonomously",
       {
         output: document,
         summary: `${document.summary}${suffix}`,
@@ -248,16 +265,17 @@ export async function executeTask(supabase: Db, agencyId: string, taskId: string
   } catch (err) {
     const message = err instanceof Error ? err.message : "Task failed";
     // A quota block is not consumption — it never counts against the allowance.
-    if (!(err instanceof QuotaError)) await recordUsageEvent(supabase, {
-      agencyId,
-      eventKey: `task:${taskId}`,
-      category: "ai_task",
-      taskType: task.kind,
-      operation: "execute_task",
-      worker: task.worker_key,
-      success: false,
-      meta: { kind: task.kind, error: message.slice(0, 200) },
-    });
+    if (!(err instanceof QuotaError))
+      await recordUsageEvent(supabase, {
+        agencyId,
+        eventKey: `task:${taskId}`,
+        category: "ai_task",
+        taskType: task.kind,
+        operation: "execute_task",
+        worker: task.worker_key,
+        success: false,
+        meta: { kind: task.kind, error: message.slice(0, 200) },
+      });
     await setStatus(supabase, taskId, "failed", message, {
       error: message,
       completed_at: new Date().toISOString(),
@@ -324,7 +342,10 @@ export async function observeAndQueue(supabase: Db, agencyId: string) {
   const stale = open.filter(
     (l: any) => now - new Date(l.last_contact_at ?? l.created_at).getTime() > 48 * HOURS,
   );
-  if (stale.length > 0 && now - (await lastTaskAt(supabase, agencyId, "followup_sweep")) > 12 * HOURS) {
+  if (
+    stale.length > 0 &&
+    now - (await lastTaskAt(supabase, agencyId, "followup_sweep")) > 12 * HOURS
+  ) {
     queued.push(
       await createTask(supabase, agencyId, {
         kind: "followup_sweep",
@@ -425,5 +446,17 @@ export async function drainQueue(supabase: Db, agencyId: string, limit = 3) {
 export async function runAutonomousCycle(supabase: Db, agencyId: string) {
   const queued = await observeAndQueue(supabase, agencyId);
   const executed = await drainQueue(supabase, agencyId);
-  return { queued: queued.length, executed };
+  // Follow-up dispatch closes the loop: scheduled nudges actually reach the
+  // customer, under deterministic safety rules (see dispatcher.server.ts).
+  const { dispatchDueFollowups } = await import("./followups/dispatcher.server");
+  let followups = { sent: 0, skipped: 0, failed: 0 };
+  try {
+    const res = await dispatchDueFollowups(supabase, agencyId);
+    followups = { sent: res.sent, skipped: res.skipped, failed: res.failed };
+  } catch (err) {
+    console.error(
+      `[task-engine] follow-up dispatch failed: ${err instanceof Error ? err.message : "unknown"}`,
+    );
+  }
+  return { queued: queued.length, executed, followups };
 }

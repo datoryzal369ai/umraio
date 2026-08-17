@@ -19,7 +19,11 @@ import {
   RELIGIOUS_BOUNDARY_INSTRUCTION,
 } from "./islamic/policy.core";
 import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
-import { DOMAIN_ISOLATION_INSTRUCTION, intentAnchorInstruction } from "./sales-intent.core";
+import {
+  DOMAIN_ISOLATION_INSTRUCTION,
+  conversionSignalInstruction,
+  intentAnchorInstruction,
+} from "./sales-intent.core";
 import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
@@ -27,8 +31,6 @@ import {
   sanitizeHistory,
   suppressionInstruction,
 } from "./topic-suppression.core";
-
-
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
@@ -276,7 +278,6 @@ function systemPrompt(
     : null;
   const suppression = suppressionInstruction(suppressedTopics);
 
-
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
     DOMAIN_ISOLATION_INSTRUCTION,
@@ -285,6 +286,7 @@ function systemPrompt(
       lastCustomer?.body,
       redactSuppressedTopics(lastCustomer?.body, suppressedTopics),
     ),
+    conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
@@ -292,6 +294,8 @@ function systemPrompt(
       ? "Do not use emojis."
       : "You may use light, respectful emojis sparingly.",
     "Sales method: greet -> understand intent -> ask ONE or TWO qualifying questions at a time (travel month, number of pax, budget per person, hotel distance preference, first-time or repeat) -> recommend the best matching packages with price in RM -> handle objections -> propose next step (deposit / booking slot / call).",
+    "QUOTATION RULE: once the customer has settled on one package AND confirmed how many pilgrims are travelling, call create_quotation with that package_id and pilgrim count, then send back the returned message_to_send exactly as written. NEVER calculate a total, discount, deposit or balance yourself, never promise a discount, and never state a figure that did not come from create_quotation or recommend_packages.",
+    "After a quotation is issued: answer questions about it, handle objections, and propose the deposit as the next step. Deposit payment and booking confirmation are always completed by a human colleague — never claim a payment was received or a booking is confirmed.",
     useKb
       ? "MANDATORY: before answering ANY question about the agency, packages, prices, visas, hotels, flights, refunds, itineraries or policies, first call search_knowledge and base your answer on what it returns."
       : "Use search_knowledge when the customer asks something the package catalogue cannot answer.",
@@ -531,6 +535,70 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           score,
           temperature: patch["temperature"],
           fields: Object.keys(patch),
+        };
+      },
+    },
+
+    {
+      name: "create_quotation",
+      description:
+        "Issue a formal written quotation for ONE of the agency's active packages once the customer has confirmed the package and the number of pilgrims. You choose the package and the pilgrim count only — every price, discount, deposit and total is calculated by the system. Returns the exact quotation text to send to the customer.",
+      permission: "write",
+      deterministicSafe: true,
+      islamicScope: "TRANSACTION",
+      islamicPayload: (input: { notes?: string | null }) => input.notes ?? "",
+      inputSchema: z.object({
+        package_id: z.string(),
+        pilgrims: z.number().int().min(1).max(50),
+        travel_month: z.string().nullable(),
+        notes: z.string().max(400).nullable(),
+      }),
+      validate: async (input, tctx) => {
+        if (!leadId) return "No lead linked to this conversation; qualify the customer first.";
+        const { data: pkg } = await tctx.supabase
+          .from("packages")
+          .select("id, is_active")
+          .eq("id", input.package_id)
+          .eq("agency_id", tctx.agencyId)
+          .maybeSingle();
+        if (!pkg) return "That package does not belong to this agency.";
+        if (pkg.is_active === false) return "That package is no longer active.";
+        // One live quotation at a time per lead keeps pricing unambiguous.
+        const { count } = await tctx.supabase
+          .from("quotations")
+          .select("id", { count: "exact", head: true })
+          .eq("lead_id", leadId)
+          .in("status", ["ready", "sent", "viewed", "discussing"]);
+        if ((count ?? 0) > 0) {
+          return "This lead already has a live quotation. Discuss the existing quotation instead of issuing a new one.";
+        }
+        return null;
+      },
+      execute: async (input, tctx) => {
+        const { createQuotation, renderQuotationMessage, quotationLink } =
+          await import("./quotations/quotations.server");
+        const lead = ctx.lead as Record<string, unknown> | null;
+        const row = await createQuotation(tctx.supabase, tctx.agencyId, {
+          packageId: input.package_id,
+          pilgrims: input.pilgrims,
+          leadId,
+          conversationId: ctx.conversation.id as string,
+          travelMonth: input.travel_month ?? (lead?.["preferred_month"] as string | null) ?? null,
+          customerName: (lead?.["full_name"] as string | null) ?? null,
+          customerPhone: (lead?.["phone"] as string | null) ?? null,
+          notes: input.notes ?? null,
+          // Discounts are a human commercial decision — never a model one.
+        });
+        const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
+        return {
+          created: true,
+          quotation_number: row.quotation_number,
+          total_myr: Number(row.total),
+          deposit_myr: row.deposit_amount === null ? null : Number(row.deposit_amount),
+          customer_link: quotationLink(row.public_token),
+          message_to_send: renderQuotationMessage(row, agencyName),
+          instruction:
+            "Send message_to_send to the customer as-is (you may add a short greeting). Never change any figure.",
         };
       },
     },
@@ -875,7 +943,6 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     });
     throw new Error(result.error?.message ?? "AI provider unavailable");
   }
-
 
   const text = (result.data ?? "").trim();
   await recordExperience(supabase, agencyId, {
