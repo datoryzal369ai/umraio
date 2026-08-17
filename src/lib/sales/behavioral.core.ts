@@ -254,7 +254,10 @@ export function buildBehavioralProfile(input: BehavioralInput): BehavioralProfil
   const frustration = detectFrustration(latest);
 
   /* ---- TRUST ---- */
-  const trustHits = anyMatch(norm, TRUST_CONCERN);
+  const trustHits = norm.reduce(
+    (n, m) => n + (m.match(new RegExp(TRUST_CONCERN.source, "gi")) ?? []).length,
+    0,
+  );
   const trustPositive = anyMatch(norm, TRUST_POSITIVE);
   let trustValue: Level = "UNKNOWN";
   if (trustHits >= 2) trustValue = "LOW";
@@ -268,7 +271,9 @@ export function buildBehavioralProfile(input: BehavioralInput): BehavioralProfil
   };
 
   /* ---- HESITATION ---- */
-  const hesitationHits = anyMatch(masked, HESITATION);
+  // Hesitation is a negative-intent reading: evaluate the raw normalized text
+  // (negation masking would hide phrases like "tak pasti").
+  const hesitationHits = anyMatch(norm, HESITATION);
   const hesitation: Reading<HesitationLevel> = {
     value:
       hesitationHits >= 3 ? "HIGH" : hesitationHits === 2 ? "MEDIUM" : hesitationHits === 1 ? "LOW" : "NONE",
@@ -355,7 +360,12 @@ export function buildBehavioralProfile(input: BehavioralInput): BehavioralProfil
   };
 
   /* ---- DECISION READINESS (aligned to conversion state, never parallel) ---- */
-  const bookingIntent = !optedOut && detectBookingIntent(latest);
+  const explicitCommitment =
+    !optedOut &&
+    /\b(nak\s+proceed|proceed|go\s+ahead|kami\s+setuju|saya\s+setuju|deal|confirm\s+booking|jom\s+book)\b/i.test(
+      latestMasked,
+    );
+  const bookingIntent = !optedOut && (detectBookingIntent(latest) || explicitCommitment);
   const depositIntent = !optedOut && detectDepositIntent(latest);
   let readiness: DecisionReadiness;
   if (input.bookingConfirmed || input.leadStage === "booked") readiness = "BOOKED";
