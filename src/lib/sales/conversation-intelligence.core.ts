@@ -756,7 +756,14 @@ const ACTION_DIRECTIVE: Record<NextBestAction, string> = {
   STOP: "A human is handling this conversation, or the customer asked not to be contacted. Do not send another sales message.",
   ANSWER_FROM_CONTEXT:
     "The customer says they already told you this. Do NOT ask another clarifying question. Acknowledge it honestly in one short line, then answer using the information already in this conversation and on the lead profile.",
+  SIMPLIFY_OPTIONS:
+    "The customer is carrying too much information. Narrow to one recommended verified package plus at most one alternative, one short reason each, then one clear question.",
+  SUPPORT_DECISION_MAKER:
+    "The customer must consult someone before deciding. Give a short forwardable summary of the verified key facts, and agree a specific time to check back. Never pressure them to decide alone.",
+  REDUCE_FRICTION:
+    "They are close but one thing is blocking them. Name and resolve that single blocker with verified facts, then ask for the next small commitment. Do not restart qualification.",
 };
+
 
 /** Prompt block injected into the sales system prompt. */
 export function conversationIntelligenceInstruction(intel: ConversationIntelligence): string {
