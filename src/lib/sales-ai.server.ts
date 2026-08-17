@@ -475,8 +475,31 @@ type SalesCtx = Awaited<ReturnType<typeof loadContext>>;
  * decision gate: allowedTools → schema → permission → business rule →
  * execution → audit.
  */
-function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
+function buildSalesToolRegistry(ctx: SalesCtx, intel: ConversationIntelligence = buildIntelligence(ctx)): ToolRegistry {
   const leadId = ctx.conversation.lead_id as string | null;
+  const leadFacts = {
+    fullName: (ctx.lead as any)?.full_name ?? null,
+    phone: (ctx.lead as any)?.phone ?? null,
+    city: (ctx.lead as any)?.city ?? null,
+    pax: (ctx.lead as any)?.pax ?? null,
+    preferredMonth: (ctx.lead as any)?.preferred_month ?? null,
+    budgetMyr: (ctx.lead as any)?.budget_myr ?? null,
+    packageInterest: (ctx.lead as any)?.package_interest ?? null,
+    stage: (ctx.lead as any)?.stage ?? null,
+  };
+  const quotationFacts = ctx.quotation
+    ? {
+        status: String((ctx.quotation as any).status),
+        quotationNumber: (ctx.quotation as any).quotation_number ?? null,
+        total: Number((ctx.quotation as any).total ?? 0),
+        depositAmount:
+          (ctx.quotation as any).deposit_amount === null
+            ? null
+            : Number((ctx.quotation as any).deposit_amount),
+      }
+    : null;
+  const handoffBrief = (reason: string) =>
+    buildHandoffBrief({ intel, lead: leadFacts, quotation: quotationFacts, reason });
 
   const tools: ToolDefinition[] = [
     {
@@ -734,6 +757,7 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           title: takeover
             ? `Human takeover needed: ${reason}`
             : `Human attention requested: ${reason}`,
+          context: { handoff_brief: handoffBrief(reason), conversation_state: intel.state },
           channel: "whatsapp",
           run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
@@ -754,6 +778,8 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
             explicit_human_request: requested,
             ai_remains_enabled: !takeover,
             decision: takeover ? "human_takeover" : "human_attention_required",
+            handoff_brief: handoffBrief(reason),
+            conversation_state: intel.state,
           },
         });
         return {
@@ -797,7 +823,7 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           kind: "human_handoff",
           severity: urgency === "high" ? "warning" : "info",
           title: `Customer request needs agency verification (${topic})`,
-          body: request,
+          body: `${request}\n\n${handoffBrief(request)}`,
           entity: "conversation",
           entity_id: ctx.conversation.id,
           meta: { reference, topic, urgency, lead_id: leadId },
