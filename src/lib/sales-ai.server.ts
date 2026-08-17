@@ -90,7 +90,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
       ? supabase
           .from("leads")
           .select(
-            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style",
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style, do_not_contact, total_budget_myr, budget_basis, traveller_needs",
           )
           .eq("id", conversation.lead_id)
           .maybeSingle()
@@ -299,6 +299,9 @@ export function buildIntelligence(ctx: Awaited<ReturnType<typeof loadContext>>):
           budgetMyr: lead["budget_myr"] === null ? null : Number(lead["budget_myr"]),
           packageInterest: (lead["package_interest"] as string | null) ?? null,
           stage: (lead["stage"] as string | null) ?? null,
+          totalBudgetMyr:
+            lead["total_budget_myr"] == null ? null : Number(lead["total_budget_myr"]),
+          doNotContact: lead["do_not_contact"] === true,
         }
       : null,
     quotation: q
