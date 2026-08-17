@@ -154,27 +154,86 @@ export type ConversationalSignal =
   | "FRUSTRATED"
   | "URGENT"
   | "READY_TO_BUY"
-  | "NOT_INTERESTED";
+  | "NOT_INTERESTED"
+  // Step 3.6 additions
+  | "DO_NOT_CONTACT"
+  | "REPETITION_COMPLAINT"
+  | "CONTEXT_FAILURE"
+  | "NOT_READY"
+  | "READY_TO_BOOK"
+  | "DEPOSIT_INTENT"
+  | "RECOMMENDATION_REQUEST"
+  | "HUMAN_REQUEST"
+  | "HOTEL_PROXIMITY_PREFERENCE"
+  | "ELDERLY_TRAVELLER"
+  | "MOBILITY_CONCERN"
+  | "WALKING_DISTANCE_CONCERN"
+  | "COMFORT_PRIORITY";
 
-const SIGNAL_RULES: Array<{ signal: ConversationalSignal; re: RegExp }> = [
-  { signal: "PRICE_CONCERN", re: /\b(mahal|expensive|pricey|over\s?budget|tak\s?mampu|cannot\s+afford|murah\s+sikit|cheaper|diskaun|discount)\b/i },
-  { signal: "TRUST_CONCERN", re: /\b(scam|penipu|selamat\s+ke|betul\s+ke|trusted|licence|lesen|motac|review|ulasan|sah\s+ke)\b/i },
-  { signal: "HESITANT", re: /\b(hmm+|entah|tak\s?pasti|not\s+sure|fikir\s+dulu|think\s+about|nanti\s+dulu|belum\s+decide|belum\s+sedia|maybe|mungkin|takut)\b/i },
-  { signal: "CONFUSED", re: /\b(tak\s?faham|dont\s+understand|don'?t\s+get|maksud\s+(nya|apa)|apa\s+maksud|confuse[d]?|keliru)\b/i },
-  { signal: "FRUSTRATED", re: /\b(lambat|slow\s+response|dah\s+lama\s+tunggu|no\s+reply|tak\s+jawab|marah|kecewa|useless|teruk|complaint|komplen)\b/i },
-  { signal: "URGENT", re: /\b(urgent|segera|cepat|asap|hari\s+ini|today|esok|tomorrow|last\s+minute|kejar)\b/i },
+/** `negative: true` rules read the raw message; positive rules read masked text. */
+const SIGNAL_RULES: Array<{ signal: ConversationalSignal; re: RegExp; negative?: boolean }> = [
+  { signal: "PRICE_CONCERN", negative: true, re: /\b(mahal|expensive|pricey|over\s?budget|tak\s?mampu|cannot\s+afford|murah\s+sikit|cheaper|diskaun|discount)\b/i },
+  { signal: "TRUST_CONCERN", negative: true, re: /\b(scam|penipu|selamat\s+ke|betul\s+ke|trusted|licence|lesen|motac|review|ulasan|sah\s+ke)\b/i },
+  { signal: "HESITANT", negative: true, re: /\b(hmm+|entah|tak\s?pasti|not\s+sure|fikir\s+dulu|think\s+about|nanti\s+dulu|belum\s+decide|belum\s+sedia|maybe|mungkin|takut)\b/i },
+  { signal: "CONFUSED", negative: true, re: /\b(tak\s?faham|dont\s+understand|don'?t\s+get|maksud\s+(nya|apa)|apa\s+maksud|confuse[d]?|keliru)\b/i },
+  { signal: "FRUSTRATED", negative: true, re: /\b(lambat|slow\s+response|dah\s+lama\s+tunggu|no\s+reply|tak\s+jawab|marah|kecewa|useless|teruk|complaint|komplen)\b/i },
+  { signal: "URGENT", negative: true, re: /\b(urgent|segera|cepat|asap|hari\s+ini|today|esok|tomorrow|last\s+minute|kejar)\b/i },
   { signal: "READY_TO_BUY", re: /\b(nak\s+(book|tempah|daftar)|saya\s+ambil|i'?ll\s+take|confirm|proceed|go\s+ahead|deal)\b/i },
-  { signal: "NOT_INTERESTED", re: /\b(tak\s+jadi|tak\s+minat|not\s+interested|cancel|batal|stop\s+(message|whatsapp)|jangan\s+hantar|unsubscribe|opt\s?out)\b/i },
+  { signal: "NOT_INTERESTED", negative: true, re: /\b(tak\s+jadi|tak\s+minat|tak\s+berminat|not\s+interested|cancel|batal|stop\s+(message|whatsapp)|jangan\s+hantar|unsubscribe|opt\s?out)\b/i },
   { signal: "EXCITED", re: /\b(alhamdulillah|masyaallah|best|excited|tak\s+sabar|can'?t\s+wait|great|superb)\b/i },
   { signal: "CURIOUS", re: /\b(macam\s?mana|how|apa\s+beza|what'?s\s+the\s+difference|boleh\s+terangkan|explain|detail|info)\b/i },
   { signal: "INTERESTED", re: /\b(berminat|interested|okay\s+juga|nampak\s+ok|sounds\s+good|boleh\s+tahu|nak\s+tahu)\b/i },
   { signal: "CONFIDENT", re: /\b(saya\s+dah\s+decide|dah\s+pilih|i'?ve\s+decided|we'?ll\s+go\s+with)\b/i },
 ];
 
+/**
+ * Step 3.6 — negative/customer-control intent is evaluated BEFORE positive
+ * intent, and positive matchers only ever see negation-masked text.
+ */
 export function detectConversationalSignals(text: string | null | undefined): ConversationalSignal[] {
   if (!text) return [];
-  return SIGNAL_RULES.filter((r) => r.re.test(text)).map((r) => r.signal);
+  const normalized = normalizeMessage(text);
+  const masked = maskNegatedSpans(normalized);
+  const out = new Set<ConversationalSignal>();
+
+  // 1. Customer control first.
+  const optOut = detectOptOut(text);
+  if (optOut.optedOut) {
+    out.add("DO_NOT_CONTACT");
+    out.add("NOT_INTERESTED");
+  }
+  if (detectHumanRequest(text)) out.add("HUMAN_REQUEST");
+  for (const f of detectFrustration(text)) out.add(f);
+
+  // 2. Negated positive intent becomes explicit hesitation, never a buying signal.
+  const positiveTokens = /\b(book|booking|deposit|berminat|interested|proceed|confirm)\b/;
+  if (positiveTokens.test(normalized) && !positiveTokens.test(masked) && !optOut.optedOut) {
+    out.add("NOT_READY");
+    out.add("HESITANT");
+  }
+
+  // 3. Requirements / preferences (never objections by themselves).
+  const hotel = classifyHotelMention(text);
+  if (hotel.preference) out.add("HOTEL_PROXIMITY_PREFERENCE");
+  for (const need of detectTravellerNeeds(text)) out.add(need as ConversationalSignal);
+
+  // 4. Positive intent, on masked text only.
+  if (!optOut.optedOut) {
+    if (detectBookingIntent(text)) out.add("READY_TO_BOOK");
+    if (detectDepositIntent(text)) out.add("DEPOSIT_INTENT");
+    if (detectRecommendationRequest(text)) out.add("RECOMMENDATION_REQUEST");
+  }
+
+  for (const rule of SIGNAL_RULES) {
+    const haystack = rule.negative ? normalized : masked;
+    if (!rule.re.test(haystack)) continue;
+    if (optOut.optedOut && !rule.negative) continue;
+    out.add(rule.signal);
+  }
+
+  return Array.from(out);
 }
+
 
 /* ------------------------------------------------------------------ *
  * 12-13. OBJECTION INTELLIGENCE (extends Step 2 taxonomy)
