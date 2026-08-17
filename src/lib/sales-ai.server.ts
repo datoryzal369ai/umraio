@@ -289,6 +289,7 @@ function systemPrompt(
       lastCustomer?.body,
       redactSuppressedTopics(lastCustomer?.body, suppressedTopics),
     ),
+    conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
