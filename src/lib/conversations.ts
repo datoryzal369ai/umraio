@@ -9,6 +9,25 @@ export type Conversation = {
   ai_enabled: boolean;
   last_message_at: string;
   created_at: string;
+  conversation_state: string | null;
+  intelligence: ConversationIntelligenceSnapshot | null;
+};
+
+/** Step 3 — deterministic sales intelligence snapshot persisted per conversation. */
+export type ConversationIntelligenceSnapshot = {
+  state?: string;
+  confidence?: number;
+  language?: string;
+  language_source?: string;
+  style?: string;
+  signals?: string[];
+  objections?: string[];
+  objection_memory?: string[];
+  buying_signals?: string[];
+  next_best_action?: string;
+  missing?: string[];
+  quality_score?: number;
+  updated_at?: string;
 };
 
 export type ConversationWithLead = Conversation & {
@@ -26,7 +45,7 @@ export type ChatMessage = {
 };
 
 const CONV_COLUMNS =
-  "id, agency_id, lead_id, channel, status, ai_enabled, last_message_at, created_at";
+  "id, agency_id, lead_id, channel, status, ai_enabled, last_message_at, created_at, conversation_state, intelligence";
 
 export async function fetchMyAgencyId(): Promise<string | null> {
   const { data, error } = await supabase.from("profiles").select("agency_id").maybeSingle();

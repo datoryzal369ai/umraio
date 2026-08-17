@@ -18,6 +18,7 @@ import {
   insertMessage,
   setAiEnabled,
   type ChatMessage,
+  type ConversationIntelligenceSnapshot,
 } from "@/lib/conversations";
 import { aiReplyToConversation, conversationInsights } from "@/lib/sales-ai.functions";
 
@@ -220,6 +221,7 @@ function ConversationPage() {
       </section>
 
       <aside className="space-y-4">
+        <SalesIntelligencePanel snapshot={conversation?.intelligence ?? null} />
         <div className="panel p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -346,6 +348,77 @@ function Bubble({ message }: { message: ChatMessage }) {
           {chatTime(message.created_at)}
         </p>
       </div>
+    </div>
+  );
+}
+
+const HUMANISED: Record<string, string> = {
+  ASK_CLARIFYING_QUESTION: "Ask a clarifying question",
+  RECOMMEND_PACKAGE: "Recommend a package",
+  EXPLAIN_VALUE: "Explain package value",
+  HANDLE_OBJECTION: "Handle the objection",
+  PROVIDE_COMPARISON: "Compare the options",
+  BUILD_TRUST: "Build trust",
+  CREATE_QUOTATION: "Create a quotation",
+  SEND_QUOTATION: "Send the quotation",
+  FOLLOW_UP: "Follow up",
+  MOVE_TO_DEPOSIT_READY: "Move to deposit",
+  ESCALATE: "Escalate to a colleague",
+  NURTURE: "Nurture",
+  STOP: "Hold — human handling",
+};
+
+function SalesIntelligencePanel({
+  snapshot,
+}: {
+  snapshot: ConversationIntelligenceSnapshot | null;
+}) {
+  if (!snapshot?.state) return null;
+  const chips: Array<{ label: string; value: string }> = [
+    { label: "Stage", value: snapshot.state.replaceAll("_", " ").toLowerCase() },
+    snapshot.language ? { label: "Language", value: snapshot.language.toUpperCase() } : null,
+    snapshot.style ? { label: "Style", value: snapshot.style.replaceAll("_", " ") } : null,
+  ].filter(Boolean) as Array<{ label: string; value: string }>;
+
+  return (
+    <div className="panel p-5">
+      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        Sales intelligence
+      </h2>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {chips.map((c) => (
+          <span
+            key={c.label}
+            className="rounded-full bg-primary/10 px-3 py-1 text-[11px] font-medium capitalize text-primary"
+          >
+            {c.label}: {c.value}
+          </span>
+        ))}
+        {typeof snapshot.quality_score === "number" && (
+          <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">
+            Conversation quality: {snapshot.quality_score}/100
+          </span>
+        )}
+      </div>
+      {snapshot.next_best_action && (
+        <p className="mt-3 text-sm">
+          <span className="text-muted-foreground">Next best action: </span>
+          {HUMANISED[snapshot.next_best_action] ?? snapshot.next_best_action}
+        </p>
+      )}
+      {snapshot.objection_memory?.length ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Objections raised: {snapshot.objection_memory.join(", ").toLowerCase().replaceAll("_", " ")}
+        </p>
+      ) : null}
+      {snapshot.buying_signals?.length ? (
+        <p className="mt-1 text-xs text-chart-4">
+          Buying signals: {snapshot.buying_signals.join(", ").toLowerCase().replaceAll("_", " ")}
+        </p>
+      ) : null}
+      {snapshot.missing?.length ? (
+        <p className="mt-1 text-xs text-muted-foreground">Still unknown: {snapshot.missing.join(", ")}</p>
+      ) : null}
     </div>
   );
 }
