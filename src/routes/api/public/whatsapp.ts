@@ -214,6 +214,26 @@ export const Route = createFileRoute("/api/public/whatsapp")({
                 entity_id: conversationId,
                 meta: { response_ms: responseMs, delivered: sent, preview: reply.slice(0, 160) },
               });
+
+              // A quotation is only "sent" once the message actually left.
+              if (sent) {
+                const now = new Date().toISOString();
+                const { data: issued } = await supabaseAdmin
+                  .from("quotations")
+                  .update({ status: "sent", sent_at: now })
+                  .eq("conversation_id", conversationId)
+                  .eq("status", "ready")
+                  .select("id, lead_id");
+                for (const q of issued ?? []) {
+                  await supabaseAdmin.from("conversion_events").insert({
+                    agency_id: agencyId,
+                    stage: "quotation_sent",
+                    actor: "ai",
+                    lead_id: q.lead_id,
+                    quotation_id: q.id,
+                  });
+                }
+              }
             }
           } catch (error) {
             console.error("[whatsapp] AI reply failed", error);
