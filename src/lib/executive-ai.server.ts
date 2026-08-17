@@ -299,6 +299,8 @@ export async function runFollowupSweep(supabase: Db, agencyId: string, brief: st
       channel: "whatsapp",
       run_at: runAt.toISOString(),
       status: "pending",
+      // Customer-facing body: only jobs carrying a body are ever dispatched.
+      body: item.message,
     });
     if (error) continue;
     scheduled += 1;

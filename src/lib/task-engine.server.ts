@@ -425,5 +425,17 @@ export async function drainQueue(supabase: Db, agencyId: string, limit = 3) {
 export async function runAutonomousCycle(supabase: Db, agencyId: string) {
   const queued = await observeAndQueue(supabase, agencyId);
   const executed = await drainQueue(supabase, agencyId);
-  return { queued: queued.length, executed };
+  // Follow-up dispatch closes the loop: scheduled nudges actually reach the
+  // customer, under deterministic safety rules (see dispatcher.server.ts).
+  const { dispatchDueFollowups } = await import("./followups/dispatcher.server");
+  let followups = { sent: 0, skipped: 0, failed: 0 };
+  try {
+    const res = await dispatchDueFollowups(supabase, agencyId);
+    followups = { sent: res.sent, skipped: res.skipped, failed: res.failed };
+  } catch (err) {
+    console.error(
+      `[task-engine] follow-up dispatch failed: ${err instanceof Error ? err.message : "unknown"}`,
+    );
+  }
+  return { queued: queued.length, executed, followups };
 }
