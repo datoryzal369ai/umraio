@@ -285,7 +285,7 @@ export function MeetExecutive() {
           </ul>
         </section>
 
-        <section className="panel p-4 sm:p-6" aria-labelledby="convert-heading">
+        <section id="book-demo" className="panel scroll-mt-24 p-4 sm:p-6" aria-labelledby="convert-heading">
           <h2 id="convert-heading" className="text-base font-semibold tracking-tight">
             Ready to see UMRAIO working with your agency?
           </h2>
