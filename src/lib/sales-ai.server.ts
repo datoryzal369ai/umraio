@@ -25,6 +25,14 @@ import {
   intentAnchorInstruction,
 } from "./sales-intent.core";
 import {
+  buildConversationIntelligence,
+  buildHandoffBrief,
+  conversationIntelligenceInstruction,
+  conversationQualityScore,
+  type ConversationIntelligence,
+  type LanguagePreference,
+} from "./sales/conversation-intelligence.core";
+import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
   redactSuppressedTopics,
@@ -56,7 +64,7 @@ function safeConversationRef(id: string): string {
 export async function loadContext(supabase: Db, conversationId: string) {
   const { data: conversation, error } = await supabase
     .from("conversations")
-    .select("id, agency_id, lead_id, channel, status, ai_enabled")
+    .select("id, agency_id, lead_id, channel, status, ai_enabled, conversation_state")
     .eq("id", conversationId)
     .maybeSingle();
   if (error) throw error;
@@ -82,7 +90,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
       ? supabase
           .from("leads")
           .select(
-            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score",
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style",
           )
           .eq("id", conversation.lead_id)
           .maybeSingle()
@@ -111,10 +119,24 @@ export async function loadContext(supabase: Db, conversationId: string) {
       .maybeSingle(),
   ]);
 
+  // Step 3: the live quotation is part of the conversation's business state.
+  const { data: quotation } = conversation.lead_id
+    ? await supabase
+        .from("quotations")
+        .select("quotation_number, status, total, deposit_amount, created_at")
+        .eq("agency_id", conversation.agency_id)
+        .eq("lead_id", conversation.lead_id)
+        .in("status", ["ready", "sent", "viewed", "discussing", "accepted"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
   return {
     conversation,
     messages: [...((messages ?? []) as ChatMessageRow[])].reverse(),
     lead,
+    quotation,
     packages: packages ?? [],
     agency,
     knowledge: (knowledge ?? []) as KnowledgeRow[],
@@ -258,9 +280,45 @@ export function collectContextSuppression(ctx: { messages: ChatMessageRow[] }): 
   );
 }
 
+/**
+ * Step 3 — deterministic conversation intelligence for the current turn.
+ * Pure derivation from real conversation, lead and quotation data.
+ */
+export function buildIntelligence(ctx: Awaited<ReturnType<typeof loadContext>>): ConversationIntelligence {
+  const lead = ctx.lead as Record<string, unknown> | null;
+  const q = ctx.quotation as Record<string, unknown> | null;
+  return buildConversationIntelligence({
+    messages: ctx.messages.map((m) => ({ sender: m.sender, body: m.body, created_at: m.created_at })),
+    lead: lead
+      ? {
+          fullName: (lead["full_name"] as string | null) ?? null,
+          phone: (lead["phone"] as string | null) ?? null,
+          city: (lead["city"] as string | null) ?? null,
+          pax: (lead["pax"] as number | null) ?? null,
+          preferredMonth: (lead["preferred_month"] as string | null) ?? null,
+          budgetMyr: lead["budget_myr"] === null ? null : Number(lead["budget_myr"]),
+          packageInterest: (lead["package_interest"] as string | null) ?? null,
+          stage: (lead["stage"] as string | null) ?? null,
+        }
+      : null,
+    quotation: q
+      ? {
+          status: String(q["status"]),
+          quotationNumber: (q["quotation_number"] as string | null) ?? null,
+          total: q["total"] === null ? null : Number(q["total"]),
+          depositAmount: q["deposit_amount"] === null ? null : Number(q["deposit_amount"]),
+        }
+      : null,
+    humanTakeover: ctx.conversation.ai_enabled === false,
+    agencyDefaultLanguage: ctx.settings?.ai_language ?? null,
+    leadLanguagePreference: (lead?.["preferred_language"] as LanguagePreference | null) ?? null,
+  });
+}
+
 function systemPrompt(
   ctx: Awaited<ReturnType<typeof loadContext>>,
   suppressedTopics: string[] = collectContextSuppression(ctx),
+  intel: ConversationIntelligence = buildIntelligence(ctx),
 ) {
   const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
   const s = ctx.settings;
@@ -287,6 +345,7 @@ function systemPrompt(
       redactSuppressedTopics(lastCustomer?.body, suppressedTopics),
     ),
     conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
+    conversationIntelligenceInstruction(intel),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
@@ -416,8 +475,31 @@ type SalesCtx = Awaited<ReturnType<typeof loadContext>>;
  * decision gate: allowedTools → schema → permission → business rule →
  * execution → audit.
  */
-function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
+function buildSalesToolRegistry(ctx: SalesCtx, intel: ConversationIntelligence = buildIntelligence(ctx)): ToolRegistry {
   const leadId = ctx.conversation.lead_id as string | null;
+  const leadFacts = {
+    fullName: (ctx.lead as any)?.full_name ?? null,
+    phone: (ctx.lead as any)?.phone ?? null,
+    city: (ctx.lead as any)?.city ?? null,
+    pax: (ctx.lead as any)?.pax ?? null,
+    preferredMonth: (ctx.lead as any)?.preferred_month ?? null,
+    budgetMyr: (ctx.lead as any)?.budget_myr ?? null,
+    packageInterest: (ctx.lead as any)?.package_interest ?? null,
+    stage: (ctx.lead as any)?.stage ?? null,
+  };
+  const quotationFacts = ctx.quotation
+    ? {
+        status: String((ctx.quotation as any).status),
+        quotationNumber: (ctx.quotation as any).quotation_number ?? null,
+        total: Number((ctx.quotation as any).total ?? 0),
+        depositAmount:
+          (ctx.quotation as any).deposit_amount === null
+            ? null
+            : Number((ctx.quotation as any).deposit_amount),
+      }
+    : null;
+  const handoffBrief = (reason: string) =>
+    buildHandoffBrief({ intel, lead: leadFacts, quotation: quotationFacts, reason });
 
   const tools: ToolDefinition[] = [
     {
@@ -499,6 +581,10 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         package_interest: z.string().nullable(),
         temperature: z.enum(["hot", "warm", "cold"]).nullable(),
         stage: z.enum(["new", "contacted", "qualified", "proposal", "booked", "lost"]).nullable(),
+        preferred_language: z
+          .enum(["auto", "ms", "en", "mix", "id", "ar", "zh", "ta", "ur", "bn"])
+          .nullable()
+          .describe("Set only when the customer explicitly states a language preference."),
       }),
       validate: (input) => {
         if (!leadId) return "No lead linked to this conversation.";
@@ -671,6 +757,7 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           title: takeover
             ? `Human takeover needed: ${reason}`
             : `Human attention requested: ${reason}`,
+          context: { handoff_brief: handoffBrief(reason), conversation_state: intel.state },
           channel: "whatsapp",
           run_at: new Date(Date.now() + (urgency === "high" ? 15 : 60) * 60_000).toISOString(),
           status: "pending",
@@ -691,6 +778,8 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
             explicit_human_request: requested,
             ai_remains_enabled: !takeover,
             decision: takeover ? "human_takeover" : "human_attention_required",
+            handoff_brief: handoffBrief(reason),
+            conversation_state: intel.state,
           },
         });
         return {
@@ -734,7 +823,7 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
           kind: "human_handoff",
           severity: urgency === "high" ? "warning" : "info",
           title: `Customer request needs agency verification (${topic})`,
-          body: request,
+          body: `${request}\n\n${handoffBrief(request)}`,
           entity: "conversation",
           entity_id: ctx.conversation.id,
           meta: { reference, topic, urgency, lead_id: leadId },
@@ -868,7 +957,8 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
 
   // Tools are exposed to the model ONLY through the registry adapter, so every
   // call runs the decision gate before it can touch the database.
-  const registry = buildSalesToolRegistry(ctx);
+  const intel = buildIntelligence(ctx);
+  const registry = buildSalesToolRegistry(ctx, intel);
   const correlationId = newCorrelationId();
   const allowedTools = registry.names();
   const toolCtx: ToolExecutionContext = {
@@ -891,7 +981,7 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   const gateway = createIntelligenceGateway({ supabase, agencyId });
   const result = await gateway.generate({
     taskType: "customer_reply",
-    system: systemPrompt(ctx, suppressedTopics),
+    system: systemPrompt(ctx, suppressedTopics, intel),
     prompt: "",
     messages: history.length ? history : [{ role: "user", content: "Assalamualaikum" }],
     tools: createSdkTools({ registry, ctx: toolCtx }),
@@ -945,6 +1035,48 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   }
 
   const text = (result.data ?? "").trim();
+
+  // Step 3 — persist derived conversation memory (real data only, no fabrication).
+  try {
+    const quality = conversationQualityScore({ messages: ctx.messages, intel });
+    await supabase
+      .from("conversations")
+      .update({
+        conversation_state: intel.state,
+        state_updated_at: new Date().toISOString(),
+        intelligence: {
+          state: intel.state,
+          confidence: intel.confidence,
+          language: intel.language,
+          language_source: intel.languageSource,
+          style: intel.style,
+          signals: intel.signals,
+          objections: intel.objections,
+          objection_memory: intel.objectionMemory,
+          buying_signals: intel.buyingSignals,
+          next_best_action: intel.nextBestAction,
+          missing: intel.missing,
+          quality_score: quality.score,
+          quality_factors: quality.factors,
+          updated_at: new Date().toISOString(),
+        },
+      })
+      .eq("id", ctx.conversation.id);
+
+    if (ctx.conversation.lead_id && intel.language !== "auto") {
+      await supabase
+        .from("leads")
+        .update({
+          detected_language: intel.language,
+          language_confidence: intel.languageConfidence,
+          conversational_style: intel.style,
+        })
+        .eq("id", ctx.conversation.lead_id);
+    }
+  } catch (error) {
+    console.warn("[sales-ai] intelligence persistence skipped", (error as Error).message);
+  }
+
   await recordExperience(supabase, agencyId, {
     interaction_id: correlationId,
     task_type: "customer_reply",

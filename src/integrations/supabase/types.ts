@@ -544,6 +544,7 @@ export type Database = {
           agency_id: string
           ai_enabled: boolean
           channel: Database["public"]["Enums"]["channel"]
+          conversation_state: string | null
           created_at: string
           escalated_at: string | null
           escalation_reason: string | null
@@ -551,14 +552,17 @@ export type Database = {
           first_response_ms: number | null
           human_attention_required: boolean
           id: string
+          intelligence: Json
           last_message_at: string
           lead_id: string | null
+          state_updated_at: string | null
           status: string
         }
         Insert: {
           agency_id: string
           ai_enabled?: boolean
           channel?: Database["public"]["Enums"]["channel"]
+          conversation_state?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_reason?: string | null
@@ -566,14 +570,17 @@ export type Database = {
           first_response_ms?: number | null
           human_attention_required?: boolean
           id?: string
+          intelligence?: Json
           last_message_at?: string
           lead_id?: string | null
+          state_updated_at?: string | null
           status?: string
         }
         Update: {
           agency_id?: string
           ai_enabled?: boolean
           channel?: Database["public"]["Enums"]["channel"]
+          conversation_state?: string | null
           created_at?: string
           escalated_at?: string | null
           escalation_reason?: string | null
@@ -581,8 +588,10 @@ export type Database = {
           first_response_ms?: number | null
           human_attention_required?: boolean
           id?: string
+          intelligence?: Json
           last_message_at?: string
           lead_id?: string | null
+          state_updated_at?: string | null
           status?: string
         }
         Relationships: [
@@ -1065,14 +1074,18 @@ export type Database = {
           assigned_to: string | null
           budget_myr: number | null
           city: string | null
+          conversational_style: string | null
           created_at: string
+          detected_language: string | null
           email: string | null
           full_name: string
           id: string
+          language_confidence: number | null
           last_contact_at: string | null
           package_interest: string | null
           pax: number
           phone: string | null
+          preferred_language: string
           preferred_month: string | null
           score: number
           source: string
@@ -1086,14 +1099,18 @@ export type Database = {
           assigned_to?: string | null
           budget_myr?: number | null
           city?: string | null
+          conversational_style?: string | null
           created_at?: string
+          detected_language?: string | null
           email?: string | null
           full_name: string
           id?: string
+          language_confidence?: number | null
           last_contact_at?: string | null
           package_interest?: string | null
           pax?: number
           phone?: string | null
+          preferred_language?: string
           preferred_month?: string | null
           score?: number
           source?: string
@@ -1107,14 +1124,18 @@ export type Database = {
           assigned_to?: string | null
           budget_myr?: number | null
           city?: string | null
+          conversational_style?: string | null
           created_at?: string
+          detected_language?: string | null
           email?: string | null
           full_name?: string
           id?: string
+          language_confidence?: number | null
           last_contact_at?: string | null
           package_interest?: string | null
           pax?: number
           phone?: string | null
+          preferred_language?: string
           preferred_month?: string | null
           score?: number
           source?: string

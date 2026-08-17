@@ -29,6 +29,7 @@ import {
   type LeadStage,
   type LeadTemperature,
 } from "@/lib/leads";
+import { CUSTOMER_LANGUAGES } from "@/lib/sales/conversation-intelligence.core";
 
 const schema = z.object({
   full_name: z.string().trim().min(2, "Enter the lead's name").max(120),
@@ -50,6 +51,7 @@ type FormState = {
   pax: string;
   budget_myr: string;
   preferred_month: string;
+  preferred_language: string;
   tags: string;
 };
 
@@ -63,6 +65,7 @@ const empty: FormState = {
   pax: "1",
   budget_myr: "",
   preferred_month: "",
+  preferred_language: "auto",
   tags: "",
 };
 
@@ -97,6 +100,7 @@ export function LeadFormDialog({
             pax: String(lead.pax ?? 1),
             budget_myr: lead.budget_myr != null ? String(lead.budget_myr) : "",
             preferred_month: lead.preferred_month ?? "",
+            preferred_language: lead.preferred_language ?? "auto",
             tags: (lead.tags ?? []).join(", "),
           }
         : empty,
@@ -138,6 +142,7 @@ export function LeadFormDialog({
       budget_myr: parsed.data.budget_myr ?? null,
       pax: parsed.data.pax,
       preferred_month: parsed.data.preferred_month || null,
+      preferred_language: form.preferred_language,
     });
   }
 
@@ -240,6 +245,28 @@ export function LeadFormDialog({
                 placeholder="Ramadan 2027"
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="lead-language">Conversation language</Label>
+            <Select
+              value={form.preferred_language}
+              onValueChange={(v) => set("preferred_language", v)}
+            >
+              <SelectTrigger id="lead-language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CUSTOMER_LANGUAGES.map((language) => (
+                  <SelectItem key={language.value} value={language.value}>
+                    {language.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Auto detect follows the customer&apos;s own messages.
+            </p>
           </div>
 
           <div className="space-y-2">

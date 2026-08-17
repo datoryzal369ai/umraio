@@ -40,6 +40,9 @@ export type Lead = {
   budget_myr: number | null;
   pax: number;
   preferred_month: string | null;
+  preferred_language: string;
+  detected_language: string | null;
+  conversational_style: string | null;
   last_contact_at: string | null;
   created_at: string;
   updated_at: string;
@@ -64,10 +67,11 @@ export type LeadInput = {
   budget_myr: number | null;
   pax: number;
   preferred_month: string | null;
+  preferred_language?: string;
 };
 
 const LEAD_COLUMNS =
-  "id, agency_id, full_name, phone, email, source, stage, temperature, tags, score, budget_myr, pax, preferred_month, last_contact_at, created_at, updated_at";
+  "id, agency_id, full_name, phone, email, source, stage, temperature, tags, score, budget_myr, pax, preferred_month, preferred_language, detected_language, conversational_style, last_contact_at, created_at, updated_at";
 
 export async function fetchLeads(): Promise<Lead[]> {
   const { data, error } = await supabase
