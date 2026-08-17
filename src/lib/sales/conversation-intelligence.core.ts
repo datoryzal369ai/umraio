@@ -15,6 +15,25 @@ import {
   type BuyingSignal,
   type ObjectionType as BaseObjectionType,
 } from "@/lib/sales-intent.core";
+import {
+  buildObjectionLifecycle,
+  classifyHotelMention,
+  detectBookingIntent,
+  detectBudget,
+  detectDepositIntent,
+  detectFrustration,
+  detectHumanRequest,
+  detectObjectionResolution,
+  detectOptOut,
+  detectPax,
+  detectRecommendationRequest,
+  detectTravellerNeeds,
+  maskNegatedSpans,
+  normalizeMessage,
+  type BudgetReading,
+  type ObjectionRecord,
+  type TravellerNeed,
+} from "@/lib/sales/hardening.core";
 
 /* ------------------------------------------------------------------ *
  * 4-8. LANGUAGE INTELLIGENCE™
