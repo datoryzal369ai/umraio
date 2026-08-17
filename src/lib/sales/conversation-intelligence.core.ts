@@ -660,9 +660,7 @@ export function conversationQualityScore(input: {
     LOST: 0,
   };
 
-  const objectionHandling = intel.objectionMemory.length
-    ? Math.min(10, 4 + agent.length > 0 ? 10 : 4)
-    : 5;
+  const objectionHandling = intel.objectionMemory.length ? (agent.length > 0 ? 10 : 4) : 5;
 
   const factors = {
     engagement,
