@@ -112,7 +112,9 @@ function PublicQuotationPage() {
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
           <Plane className="h-4 w-4 text-primary" aria-hidden /> {snap["name"] ?? "Umrah package"}
         </h2>
-        {snap["hotel_makkah"] ? <Row label="Makkah hotel" value={String(snap["hotel_makkah"])} /> : null}
+        {snap["hotel_makkah"] ? (
+          <Row label="Makkah hotel" value={String(snap["hotel_makkah"])} />
+        ) : null}
         {snap["hotel_madinah"] ? (
           <Row label="Madinah hotel" value={String(snap["hotel_madinah"])} />
         ) : null}
@@ -155,8 +157,8 @@ function PublicQuotationPage() {
             <ShieldCheck className="h-4 w-4 text-primary" aria-hidden /> Your decision
           </h2>
           <p className="text-sm text-muted-foreground">
-            No payment is taken here. Accepting simply tells the agency you are ready to proceed;
-            a consultant will confirm your deposit and booking.
+            No payment is taken here. Accepting simply tells the agency you are ready to proceed; a
+            consultant will confirm your deposit and booking.
           </p>
           <Textarea
             value={reason}

@@ -23,7 +23,11 @@ const createSchema = z.object({
 });
 
 async function agencyOf(supabase: any, userId: string) {
-  const { data } = await supabase.from("profiles").select("agency_id").eq("id", userId).maybeSingle();
+  const { data } = await supabase
+    .from("profiles")
+    .select("agency_id")
+    .eq("id", userId)
+    .maybeSingle();
   const agencyId = data?.agency_id as string | undefined;
   if (!agencyId) throw new Error("No agency found for this account.");
   return agencyId;
@@ -31,7 +35,9 @@ async function agencyOf(supabase: any, userId: string) {
 
 export const listLeadQuotations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { leadId: string }) => z.object({ leadId: z.string().uuid() }).parse(input))
+  .inputValidator((input: { leadId: string }) =>
+    z.object({ leadId: z.string().uuid() }).parse(input),
+  )
   .handler(async ({ data, context }) => {
     const { data: rows, error } = await context.supabase
       .from("quotations")
@@ -100,13 +106,10 @@ export const transitionQuotationFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const agencyId = await agencyOf(context.supabase, context.userId);
     const { transitionQuotation } = await import("./quotations/quotations.server");
-    return transitionQuotation(
-      context.supabase as never,
-      agencyId,
-      data.quotationId,
-      data.status,
-      { actor: "human", reason: data.reason ?? null },
-    );
+    return transitionQuotation(context.supabase as never, agencyId, data.quotationId, data.status, {
+      actor: "human",
+      reason: data.reason ?? null,
+    });
   });
 
 /** Public, token-gated read for the customer review page. */

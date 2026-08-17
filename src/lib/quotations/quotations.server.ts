@@ -12,9 +12,10 @@ import {
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
 
-export const PUBLIC_SITE_URL = (
-  process.env["PUBLIC_SITE_URL"] ?? "https://umraio.com"
-).replace(/\/$/, "");
+export const PUBLIC_SITE_URL = (process.env["PUBLIC_SITE_URL"] ?? "https://umraio.com").replace(
+  /\/$/,
+  "",
+);
 
 export function quotationLink(token: string) {
   return `${PUBLIC_SITE_URL}/q/${token}`;
@@ -46,7 +47,10 @@ export async function logConversionEvent(
 }
 
 /** Deposit policy is agency-configured, never model-decided. */
-export async function loadDepositPolicy(supabase: Db, agencyId: string): Promise<{
+export async function loadDepositPolicy(
+  supabase: Db,
+  agencyId: string,
+): Promise<{
   policy: DepositPolicy;
   validityDays: number;
 }> {
@@ -223,7 +227,9 @@ export async function transitionQuotation(
 ) {
   const { data: row, error } = await supabase
     .from("quotations")
-    .select("id, agency_id, lead_id, status, total, deposit_amount, balance_amount, package_id, number_of_pilgrims")
+    .select(
+      "id, agency_id, lead_id, status, total, deposit_amount, balance_amount, package_id, number_of_pilgrims",
+    )
     .eq("id", quotationId)
     .eq("agency_id", agencyId)
     .maybeSingle();
@@ -304,7 +310,8 @@ export async function readQuotationByToken(supabase: Db, token: string) {
   if (!row) return null;
 
   const expired =
-    row.valid_until && new Date(row.valid_until).getTime() < Date.now() &&
+    row.valid_until &&
+    new Date(row.valid_until).getTime() < Date.now() &&
     ["ready", "sent", "viewed", "discussing"].includes(row.status);
 
   if (expired) {

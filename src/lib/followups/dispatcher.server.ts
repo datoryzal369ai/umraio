@@ -56,7 +56,10 @@ async function markJob(
   status: "sent" | "skipped" | "failed",
   patch: Record<string, unknown> = {},
 ) {
-  await supabase.from("followup_jobs").update({ status, ...patch }).eq("id", id);
+  await supabase
+    .from("followup_jobs")
+    .update({ status, ...patch })
+    .eq("id", id);
 }
 
 export async function dispatchDueFollowups(

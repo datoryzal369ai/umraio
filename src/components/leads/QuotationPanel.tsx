@@ -25,16 +25,17 @@ import {
   type QuotationStatus,
 } from "@/lib/quotations/pricing.core";
 
-const NEXT_ACTIONS: Partial<Record<QuotationStatus, Array<{ to: QuotationStatus; label: string }>>> =
-  {
-    ready: [{ to: "sent", label: "Mark as sent" }],
-    sent: [{ to: "accepted", label: "Customer accepted" }],
-    viewed: [{ to: "accepted", label: "Customer accepted" }],
-    discussing: [{ to: "accepted", label: "Customer accepted" }],
-    accepted: [{ to: "deposit_pending", label: "Awaiting deposit" }],
-    deposit_pending: [{ to: "deposit_paid", label: "Deposit received" }],
-    deposit_paid: [{ to: "booked", label: "Confirm booking" }],
-  };
+const NEXT_ACTIONS: Partial<
+  Record<QuotationStatus, Array<{ to: QuotationStatus; label: string }>>
+> = {
+  ready: [{ to: "sent", label: "Mark as sent" }],
+  sent: [{ to: "accepted", label: "Customer accepted" }],
+  viewed: [{ to: "accepted", label: "Customer accepted" }],
+  discussing: [{ to: "accepted", label: "Customer accepted" }],
+  accepted: [{ to: "deposit_pending", label: "Awaiting deposit" }],
+  deposit_pending: [{ to: "deposit_paid", label: "Deposit received" }],
+  deposit_paid: [{ to: "booked", label: "Confirm booking" }],
+};
 
 export function QuotationPanel({
   leadId,

@@ -97,20 +97,33 @@ export function intentAnchorInstruction(
  * ------------------------------------------------------------------ */
 
 export type ObjectionType =
-  | "PRICE"
-  | "TIMING"
-  | "TRUST"
-  | "COMPARISON"
-  | "FAMILY_DECISION"
-  | "DOCUMENTATION";
+  "PRICE" | "TIMING" | "TRUST" | "COMPARISON" | "FAMILY_DECISION" | "DOCUMENTATION";
 
 const OBJECTION_PATTERNS: Array<{ type: ObjectionType; re: RegExp }> = [
-  { type: "PRICE", re: /\b(mahal|expensive|too\s+much|tak\s+mampu|cannot\s+afford|murah\s+lagi|discount|diskaun)\b/i },
-  { type: "TIMING", re: /\b(nanti|later|next\s+year|tahun\s+depan|belum\s+sedia|not\s+ready|fikir\s+dulu|think\s+about)\b/i },
-  { type: "TRUST", re: /\b(scam|penipu|selamat\s+ke|trusted|licence|lesen|motac|review|ulasan)\b/i },
-  { type: "COMPARISON", re: /\b(agency\s+lain|other\s+agency|banding|compare|competitor|tempat\s+lain)\b/i },
-  { type: "FAMILY_DECISION", re: /\b(bincang|discuss|tanya\s+(suami|isteri|family|keluarga)|ask\s+my\s+(husband|wife|family))\b/i },
-  { type: "DOCUMENTATION", re: /\b(passport|pasport|visa|vaksin|vaccine|dokumen|document)\b.*\b(tiada|belum|expired|tak\s+ada|no)\b/i },
+  {
+    type: "PRICE",
+    re: /\b(mahal|expensive|too\s+much|tak\s+mampu|cannot\s+afford|murah\s+lagi|discount|diskaun)\b/i,
+  },
+  {
+    type: "TIMING",
+    re: /\b(nanti|later|next\s+year|tahun\s+depan|belum\s+sedia|not\s+ready|fikir\s+dulu|think\s+about)\b/i,
+  },
+  {
+    type: "TRUST",
+    re: /\b(scam|penipu|selamat\s+ke|trusted|licence|lesen|motac|review|ulasan)\b/i,
+  },
+  {
+    type: "COMPARISON",
+    re: /\b(agency\s+lain|other\s+agency|banding|compare|competitor|tempat\s+lain)\b/i,
+  },
+  {
+    type: "FAMILY_DECISION",
+    re: /\b(bincang|discuss|tanya\s+(suami|isteri|family|keluarga)|ask\s+my\s+(husband|wife|family))\b/i,
+  },
+  {
+    type: "DOCUMENTATION",
+    re: /\b(passport|pasport|visa|vaksin|vaccine|dokumen|document)\b.*\b(tiada|belum|expired|tak\s+ada|no)\b/i,
+  },
 ];
 
 /** Objections present in a single customer message. */
@@ -128,12 +141,27 @@ export type BuyingSignal =
   | "CHOSE_PACKAGE";
 
 const SIGNAL_PATTERNS: Array<{ signal: BuyingSignal; re: RegExp }> = [
-  { signal: "READY_TO_BOOK", re: /\b(nak\s+(tempah|book|daftar)|confirm|saya\s+ambil|i'?ll\s+take|proceed|go\s+ahead)\b/i },
-  { signal: "ASKED_FOR_QUOTATION", re: /\b(quotation|sebut\s?harga|quote|invois|invoice|breakdown)\b/i },
-  { signal: "ASKED_HOW_TO_PAY", re: /\b(deposit|bayar|payment|transfer|instal(l)?ment|ansuran|how\s+to\s+pay)\b/i },
+  {
+    signal: "READY_TO_BOOK",
+    re: /\b(nak\s+(tempah|book|daftar)|confirm|saya\s+ambil|i'?ll\s+take|proceed|go\s+ahead)\b/i,
+  },
+  {
+    signal: "ASKED_FOR_QUOTATION",
+    re: /\b(quotation|sebut\s?harga|quote|invois|invoice|breakdown)\b/i,
+  },
+  {
+    signal: "ASKED_HOW_TO_PAY",
+    re: /\b(deposit|bayar|payment|transfer|instal(l)?ment|ansuran|how\s+to\s+pay)\b/i,
+  },
   { signal: "CONFIRMED_PAX", re: /\b\d+\s*(orang|pax|jemaah|people|person)\b/i },
-  { signal: "CONFIRMED_MONTH", re: /\b(jan(uari)?|feb(ruari|ruary)?|mac|march|apr(il)?|mei|may|jun(e)?|jul(ai|y)?|ogos|august|sept(ember)?|okt(ober)?|october|nov(ember)?|dis(ember)?|december|ramadan|ramadhan|syawal|cuti\s+sekolah)\b/i },
-  { signal: "CHOSE_PACKAGE", re: /\b(pakej\s+(ini|tu|no|nombor)|this\s+package|the\s+\d+\s*star|ambil\s+yang)\b/i },
+  {
+    signal: "CONFIRMED_MONTH",
+    re: /\b(jan(uari)?|feb(ruari|ruary)?|mac|march|apr(il)?|mei|may|jun(e)?|jul(ai|y)?|ogos|august|sept(ember)?|okt(ober)?|october|nov(ember)?|dis(ember)?|december|ramadan|ramadhan|syawal|cuti\s+sekolah)\b/i,
+  },
+  {
+    signal: "CHOSE_PACKAGE",
+    re: /\b(pakej\s+(ini|tu|no|nombor)|this\s+package|the\s+\d+\s*star|ambil\s+yang)\b/i,
+  },
 ];
 
 export function detectBuyingSignals(text: string | null | undefined): BuyingSignal[] {
