@@ -24,6 +24,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
+import { Route as QTokenRouteImport } from './routes/q.$token'
 import { Route as AuthenticatedConversationsIndexRouteImport } from './routes/_authenticated/conversations/index'
 import { Route as AuthenticatedConversationsConversationIdRouteImport } from './routes/_authenticated/conversations/$conversationId'
 import { Route as AuthenticatedExecutiveIndexRouteImport } from './routes/_authenticated/executive/index'
@@ -119,6 +120,11 @@ const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const QTokenRoute = QTokenRouteImport.update({
+  id: '/q/$token',
+  path: '/q/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedConversationsIndexRoute =
   AuthenticatedConversationsIndexRouteImport.update({
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/q/$token': typeof QTokenRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -286,6 +293,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/q/$token': typeof QTokenRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -324,6 +332,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/q/$token': typeof QTokenRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
   '/_authenticated/executive/$workerKey': typeof AuthenticatedExecutiveWorkerKeyRoute
   '/_authenticated/leads/$leadId': typeof AuthenticatedLeadsLeadIdRoute
@@ -362,6 +371,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
+    | '/q/$token'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/profile'
     | '/tasks'
+    | '/q/$token'
     | '/conversations/$conversationId'
     | '/executive/$workerKey'
     | '/leads/$leadId'
@@ -434,6 +445,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
     | '/_authenticated/tasks'
+    | '/q/$token'
     | '/_authenticated/conversations/$conversationId'
     | '/_authenticated/executive/$workerKey'
     | '/_authenticated/leads/$leadId'
@@ -466,6 +478,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermsRoute: typeof TermsRoute
+  QTokenRoute: typeof QTokenRoute
   ApiPublicMeetExecutiveRoute: typeof ApiPublicMeetExecutiveRoute
   ApiPublicMeetRequestRoute: typeof ApiPublicMeetRequestRoute
   ApiPublicWhatsappRoute: typeof ApiPublicWhatsappRoute
@@ -579,6 +592,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/tasks'
       preLoaderRoute: typeof AuthenticatedTasksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/q/$token': {
+      id: '/q/$token'
+      path: '/q/$token'
+      fullPath: '/q/$token'
+      preLoaderRoute: typeof QTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/conversations/': {
       id: '/_authenticated/conversations/'
@@ -799,6 +819,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermsRoute: TermsRoute,
+  QTokenRoute: QTokenRoute,
   ApiPublicMeetExecutiveRoute: ApiPublicMeetExecutiveRoute,
   ApiPublicMeetRequestRoute: ApiPublicMeetRequestRoute,
   ApiPublicWhatsappRoute: ApiPublicWhatsappRoute,
