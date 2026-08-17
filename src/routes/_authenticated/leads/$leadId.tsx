@@ -21,6 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { StageBadge, TagList, TemperatureBadge } from "@/components/leads/LeadBadges";
 import { LeadFormDialog } from "@/components/leads/LeadFormDialog";
 import { NextBestAction } from "@/components/leads/NextBestAction";
+import { QuotationPanel } from "@/components/leads/QuotationPanel";
 import { useAuth } from "@/hooks/useAuth";
 import {
   addLeadNote,
@@ -219,6 +220,14 @@ function LeadDetailPage() {
       </header>
 
       <NextBestAction lead={lead} />
+
+      <QuotationPanel
+        leadId={lead.id}
+        leadName={lead.full_name}
+        leadPhone={lead.phone}
+        pax={lead.pax}
+        preferredMonth={lead.preferred_month}
+      />
 
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
