@@ -536,6 +536,71 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
     },
 
     {
+      name: "create_quotation",
+      description:
+        "Issue a formal written quotation for ONE of the agency's active packages once the customer has confirmed the package and the number of pilgrims. You choose the package and the pilgrim count only — every price, discount, deposit and total is calculated by the system. Returns the exact quotation text to send to the customer.",
+      permission: "write",
+      deterministicSafe: true,
+      islamicScope: "TRANSACTION",
+      islamicPayload: (input: { notes?: string | null }) => input.notes ?? "",
+      inputSchema: z.object({
+        package_id: z.string(),
+        pilgrims: z.number().int().min(1).max(50),
+        travel_month: z.string().nullable(),
+        notes: z.string().max(400).nullable(),
+      }),
+      validate: async (input, tctx) => {
+        if (!leadId) return "No lead linked to this conversation; qualify the customer first.";
+        const { data: pkg } = await tctx.supabase
+          .from("packages")
+          .select("id, is_active")
+          .eq("id", input.package_id)
+          .eq("agency_id", tctx.agencyId)
+          .maybeSingle();
+        if (!pkg) return "That package does not belong to this agency.";
+        if (pkg.is_active === false) return "That package is no longer active.";
+        // One live quotation at a time per lead keeps pricing unambiguous.
+        const { count } = await tctx.supabase
+          .from("quotations")
+          .select("id", { count: "exact", head: true })
+          .eq("lead_id", leadId)
+          .in("status", ["ready", "sent", "viewed", "discussing"]);
+        if ((count ?? 0) > 0) {
+          return "This lead already has a live quotation. Discuss the existing quotation instead of issuing a new one.";
+        }
+        return null;
+      },
+      execute: async (input, tctx) => {
+        const { createQuotation, renderQuotationMessage, quotationLink } = await import(
+          "./quotations/quotations.server"
+        );
+        const lead = ctx.lead as Record<string, unknown> | null;
+        const row = await createQuotation(tctx.supabase, tctx.agencyId, {
+          packageId: input.package_id,
+          pilgrims: input.pilgrims,
+          leadId,
+          conversationId: ctx.conversation.id as string,
+          travelMonth: input.travel_month ?? (lead?.["preferred_month"] as string | null) ?? null,
+          customerName: (lead?.["full_name"] as string | null) ?? null,
+          customerPhone: (lead?.["phone"] as string | null) ?? null,
+          notes: input.notes ?? null,
+          // Discounts are a human commercial decision — never a model one.
+        });
+        const agencyName = (ctx.agency as { name?: string } | null)?.name ?? "our agency";
+        return {
+          created: true,
+          quotation_number: row.quotation_number,
+          total_myr: Number(row.total),
+          deposit_myr: row.deposit_amount === null ? null : Number(row.deposit_amount),
+          customer_link: quotationLink(row.public_token),
+          message_to_send: renderQuotationMessage(row, agencyName),
+          instruction:
+            "Send message_to_send to the customer as-is (you may add a short greeting). Never change any figure.",
+        };
+      },
+    },
+
+    {
       name: "schedule_followup",
       description: "Schedule a follow-up task for this prospect.",
       permission: "write",
