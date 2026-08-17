@@ -32,8 +32,6 @@ import {
   suppressionInstruction,
 } from "./topic-suppression.core";
 
-
-
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
 
@@ -279,7 +277,6 @@ function systemPrompt(
     ? RELIGIOUS_BOUNDARY_INSTRUCTION
     : null;
   const suppression = suppressionInstruction(suppressedTopics);
-
 
   return [
     `You are ${aiName}, the Autonomous AI Business Executive for ${agencyName}, a Malaysian Umrah travel agency.`,
@@ -578,9 +575,8 @@ function buildSalesToolRegistry(ctx: SalesCtx): ToolRegistry {
         return null;
       },
       execute: async (input, tctx) => {
-        const { createQuotation, renderQuotationMessage, quotationLink } = await import(
-          "./quotations/quotations.server"
-        );
+        const { createQuotation, renderQuotationMessage, quotationLink } =
+          await import("./quotations/quotations.server");
         const lead = ctx.lead as Record<string, unknown> | null;
         const row = await createQuotation(tctx.supabase, tctx.agencyId, {
           packageId: input.package_id,
@@ -947,7 +943,6 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
     });
     throw new Error(result.error?.message ?? "AI provider unavailable");
   }
-
 
   const text = (result.data ?? "").trim();
   await recordExperience(supabase, agencyId, {

@@ -97,7 +97,9 @@ function baseSystem(ctx: Awaited<ReturnType<typeof loadAgencyContext>>) {
     `You are part of the Autonomous AI Business Executive team working for ${ctx.agency?.name ?? "an Umrah agency"} in ${ctx.agency?.country ?? "Malaysia"}.`,
     "You produce work that a senior Malaysian Umrah travel marketer would ship: specific, compliant, culturally respectful, never generic filler.",
     `Preferred language: ${ctx.settings?.ai_language ?? "Bahasa Malaysia + English mix"}. Tone: ${ctx.settings?.ai_tone ?? "warm professional"}.`,
-    ctx.settings?.ai_custom_instructions ? `Agency instructions: ${ctx.settings.ai_custom_instructions}` : "",
+    ctx.settings?.ai_custom_instructions
+      ? `Agency instructions: ${ctx.settings.ai_custom_instructions}`
+      : "",
     "Use only the real packages and lead data provided. Never invent prices, hotels or departure dates.",
     "",
     "Active packages (JSON):",
@@ -195,7 +197,9 @@ export async function runDocumentTask(
 
 export async function runLeadIntelligence(supabase: Db, agencyId: string, brief: string) {
   const ctx = await loadAgencyContext(supabase, agencyId);
-  const openLeads = ctx.leads.filter((l: any) => !["booked", "completed", "lost"].includes(l.stage));
+  const openLeads = ctx.leads.filter(
+    (l: any) => !["booked", "completed", "lost"].includes(l.stage),
+  );
   if (openLeads.length === 0) {
     return {
       document: {
