@@ -25,6 +25,14 @@ import {
   intentAnchorInstruction,
 } from "./sales-intent.core";
 import {
+  buildConversationIntelligence,
+  buildHandoffBrief,
+  conversationIntelligenceInstruction,
+  conversationQualityScore,
+  type ConversationIntelligence,
+  type LanguagePreference,
+} from "./sales/conversation-intelligence.core";
+import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
   redactSuppressedTopics,
@@ -56,7 +64,7 @@ function safeConversationRef(id: string): string {
 export async function loadContext(supabase: Db, conversationId: string) {
   const { data: conversation, error } = await supabase
     .from("conversations")
-    .select("id, agency_id, lead_id, channel, status, ai_enabled")
+    .select("id, agency_id, lead_id, channel, status, ai_enabled, conversation_state")
     .eq("id", conversationId)
     .maybeSingle();
   if (error) throw error;
@@ -82,7 +90,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
       ? supabase
           .from("leads")
           .select(
-            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score",
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style",
           )
           .eq("id", conversation.lead_id)
           .maybeSingle()
@@ -111,10 +119,24 @@ export async function loadContext(supabase: Db, conversationId: string) {
       .maybeSingle(),
   ]);
 
+  // Step 3: the live quotation is part of the conversation's business state.
+  const { data: quotation } = conversation.lead_id
+    ? await supabase
+        .from("quotations")
+        .select("quotation_number, status, total, deposit_amount, created_at")
+        .eq("agency_id", conversation.agency_id)
+        .eq("lead_id", conversation.lead_id)
+        .in("status", ["ready", "sent", "viewed", "discussing", "accepted"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null };
+
   return {
     conversation,
     messages: [...((messages ?? []) as ChatMessageRow[])].reverse(),
     lead,
+    quotation,
     packages: packages ?? [],
     agency,
     knowledge: (knowledge ?? []) as KnowledgeRow[],
