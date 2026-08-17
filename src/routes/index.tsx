@@ -268,7 +268,7 @@ function Index() {
                 variant="ghost"
                 className="btn-glass h-13 w-full rounded-2xl px-8 text-base font-medium sm:w-auto"
               >
-                <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
+                <Link to="/meet" hash="book-demo">
                   <PlayCircle className="mr-1 size-4 text-primary" />
                   Book Live Demo
                 </Link>
