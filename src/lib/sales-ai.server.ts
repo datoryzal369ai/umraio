@@ -957,7 +957,8 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
 
   // Tools are exposed to the model ONLY through the registry adapter, so every
   // call runs the decision gate before it can touch the database.
-  const registry = buildSalesToolRegistry(ctx);
+  const intel = buildIntelligence(ctx);
+  const registry = buildSalesToolRegistry(ctx, intel);
   const correlationId = newCorrelationId();
   const allowedTools = registry.names();
   const toolCtx: ToolExecutionContext = {
@@ -980,7 +981,7 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   const gateway = createIntelligenceGateway({ supabase, agencyId });
   const result = await gateway.generate({
     taskType: "customer_reply",
-    system: systemPrompt(ctx, suppressedTopics),
+    system: systemPrompt(ctx, suppressedTopics, intel),
     prompt: "",
     messages: history.length ? history : [{ role: "user", content: "Assalamualaikum" }],
     tools: createSdkTools({ registry, ctx: toolCtx }),
@@ -1034,6 +1035,48 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   }
 
   const text = (result.data ?? "").trim();
+
+  // Step 3 — persist derived conversation memory (real data only, no fabrication).
+  try {
+    const quality = conversationQualityScore({ messages: ctx.messages, intel });
+    await supabase
+      .from("conversations")
+      .update({
+        conversation_state: intel.state,
+        state_updated_at: new Date().toISOString(),
+        intelligence: {
+          state: intel.state,
+          confidence: intel.confidence,
+          language: intel.language,
+          language_source: intel.languageSource,
+          style: intel.style,
+          signals: intel.signals,
+          objections: intel.objections,
+          objection_memory: intel.objectionMemory,
+          buying_signals: intel.buyingSignals,
+          next_best_action: intel.nextBestAction,
+          missing: intel.missing,
+          quality_score: quality.score,
+          quality_factors: quality.factors,
+          updated_at: new Date().toISOString(),
+        },
+      })
+      .eq("id", ctx.conversation.id);
+
+    if (ctx.conversation.lead_id && intel.language !== "auto") {
+      await supabase
+        .from("leads")
+        .update({
+          detected_language: intel.language,
+          language_confidence: intel.languageConfidence,
+          conversational_style: intel.style,
+        })
+        .eq("id", ctx.conversation.lead_id);
+    }
+  } catch (error) {
+    console.warn("[sales-ai] intelligence persistence skipped", (error as Error).message);
+  }
+
   await recordExperience(supabase, agencyId, {
     interaction_id: correlationId,
     task_type: "customer_reply",
