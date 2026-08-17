@@ -686,9 +686,9 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     customerMessages,
     agentMessages: input.messages.filter((m) => m.sender !== "customer").map((m) => m.body),
     optedOut: Boolean(optOutReading.optedOut || lead.doNotContact),
-    humanTakeover: input.humanTakeover,
+    humanTakeover: input.humanTakeover ?? false,
     quotationStatus: input.quotation?.status ?? null,
-    bookingConfirmed: input.bookingConfirmed,
+    bookingConfirmed: input.bookingConfirmed ?? false,
     leadStage: lead.stage ?? null,
     knownCount: known.length,
   });
