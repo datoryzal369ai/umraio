@@ -222,7 +222,8 @@ const ELDERLY_PATTERNS: RegExp[] = [
 ];
 
 const MOBILITY_PATTERNS: RegExp[] = [
-  /\bsusah\s+(berjalan|jalan)\b/,
+  /\bsusah\s+((nak|utk|untuk)\s+)?(berjalan|jalan)\b/,
+  /\b(tak|tidak)\s+(larat|mampu)\s+((nak|utk|untuk)\s+)?(berjalan|jalan)\b/,
   /\b(tak|tidak)\s+boleh\s+jalan\b/,
   /\bwheelchair\b/,
   /\bkerusi\s+roda\b/,
