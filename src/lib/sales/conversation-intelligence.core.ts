@@ -408,7 +408,11 @@ export type NextBestAction =
   | "NURTURE"
   | "STOP"
   /** Step 3.6 — answer from what is already known instead of re-asking. */
-  | "ANSWER_FROM_CONTEXT";
+  | "ANSWER_FROM_CONTEXT"
+  /** Step 3.7 — behavioural actions. */
+  | "SIMPLIFY_OPTIONS"
+  | "SUPPORT_DECISION_MAKER"
+  | "REDUCE_FRICTION";
 
 export type ConversationIntelligence = {
   state: ConversationState;
@@ -438,7 +442,10 @@ export type ConversationIntelligence = {
   travellerNeeds: TravellerNeed[];
   budget: BudgetReading;
   hotelProximityPreference: boolean;
+  /** Step 3.7 — behavioural sales psychology profile (observed behaviour only). */
+  behavior: BehavioralProfile;
 };
+
 
 
 const DEPOSIT_ASK = /\b(brp|berapa)?\s*deposit\b|\bhow\s+(much|do)\s+.{0,20}(deposit|pay)\b|\bmacam\s?mana\s+nak\s+(bayar|book|tempah)\b|\bhow\s+(do\s+i|to)\s+(book|pay)\b/i;
