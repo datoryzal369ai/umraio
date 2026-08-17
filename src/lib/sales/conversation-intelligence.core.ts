@@ -784,11 +784,46 @@ export function conversationIntelligenceInstruction(intel: ConversationIntellige
     );
   }
   const remembered = intel.objectionMemory.filter((o) => !intel.objections.includes(o));
-  if (remembered.length) {
+  const resolved = intel.objectionLifecycle.filter((o) => o.status === "RESOLVED").map((o) => o.category);
+  const stillActive = remembered.filter((o) => intel.activeObjections.includes(o));
+  if (stillActive.length) {
     lines.push(
-      `OBJECTION MEMORY (raised earlier, still binding): ${remembered.join(", ")}. Never recommend something that contradicts these without naming the trade-off.`,
+      `OBJECTION MEMORY (raised earlier, still ACTIVE): ${stillActive.join(", ")}. Never recommend something that contradicts these without naming the trade-off.`,
     );
   }
+  if (resolved.length) {
+    lines.push(
+      `RESOLVED OBJECTIONS (history only, do NOT reopen): ${resolved.join(", ")}. The customer already settled these — never re-litigate them and never let them block the next commitment.`,
+    );
+  }
+
+  // Step 3.6 — customer control, requirements and budget dimension.
+  if (intel.optOut) {
+    lines.push(
+      `DO-NOT-CONTACT: the customer explicitly opted out${intel.optOutPhrase ? ` ("${intel.optOutPhrase}")` : ""}. Send no promotional message, no follow-up and no further sales question.`,
+    );
+  }
+  if (intel.humanRequested) {
+    lines.push(
+      "HUMAN REQUESTED: the customer asked for a real person. Human takeover has already been activated deterministically by the system — acknowledge briefly and stop selling.",
+    );
+  }
+  if (intel.travellerNeeds.length) {
+    lines.push(
+      `CUSTOMER REQUIREMENTS (not objections): ${intel.travellerNeeds.join(", ")}. Treat these as buying criteria — factor them into every recommendation (hotel proximity, walking distance, comfort) using verified package data only.`,
+    );
+  }
+  if (intel.hotelProximityPreference) {
+    lines.push(
+      "HOTEL_PROXIMITY_PREFERENCE: the customer prefers a hotel close to the Haram. This is a requirement, not a complaint — match it, do not defend against it.",
+    );
+  }
+  if (intel.budget.totalBudgetMyr || intel.budget.perPersonBudgetMyr) {
+    lines.push(
+      `BUDGET DIMENSION: ${intel.budget.totalBudgetMyr ? `total trip budget RM${intel.budget.totalBudgetMyr}` : ""}${intel.budget.totalBudgetMyr && intel.budget.perPersonBudgetMyr ? " · " : ""}${intel.budget.perPersonBudgetMyr ? `per-person budget RM${intel.budget.perPersonBudgetMyr}` : ""}. Never silently convert one into the other; package prices are per person.`,
+    );
+  }
+
 
   lines.push(
     "CLOSING FRAMEWORK: discover → match → value → confirm → quote → handle objection → confirm fit → ask for the next commitment → deposit-ready. Only advance one step per message, and only when the customer's own words justify it.",
