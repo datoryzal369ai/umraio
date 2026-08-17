@@ -1072,11 +1072,15 @@ export type Database = {
         Row: {
           agency_id: string
           assigned_to: string | null
+          budget_basis: string | null
           budget_myr: number | null
           city: string | null
           conversational_style: string | null
           created_at: string
           detected_language: string | null
+          do_not_contact: boolean
+          do_not_contact_at: string | null
+          do_not_contact_reason: string | null
           email: string | null
           full_name: string
           id: string
@@ -1092,16 +1096,22 @@ export type Database = {
           stage: Database["public"]["Enums"]["lead_stage"]
           tags: string[]
           temperature: Database["public"]["Enums"]["lead_temperature"]
+          total_budget_myr: number | null
+          traveller_needs: string[]
           updated_at: string
         }
         Insert: {
           agency_id: string
           assigned_to?: string | null
+          budget_basis?: string | null
           budget_myr?: number | null
           city?: string | null
           conversational_style?: string | null
           created_at?: string
           detected_language?: string | null
+          do_not_contact?: boolean
+          do_not_contact_at?: string | null
+          do_not_contact_reason?: string | null
           email?: string | null
           full_name: string
           id?: string
@@ -1117,16 +1127,22 @@ export type Database = {
           stage?: Database["public"]["Enums"]["lead_stage"]
           tags?: string[]
           temperature?: Database["public"]["Enums"]["lead_temperature"]
+          total_budget_myr?: number | null
+          traveller_needs?: string[]
           updated_at?: string
         }
         Update: {
           agency_id?: string
           assigned_to?: string | null
+          budget_basis?: string | null
           budget_myr?: number | null
           city?: string | null
           conversational_style?: string | null
           created_at?: string
           detected_language?: string | null
+          do_not_contact?: boolean
+          do_not_contact_at?: string | null
+          do_not_contact_reason?: string | null
           email?: string | null
           full_name?: string
           id?: string
@@ -1142,6 +1158,8 @@ export type Database = {
           stage?: Database["public"]["Enums"]["lead_stage"]
           tags?: string[]
           temperature?: Database["public"]["Enums"]["lead_temperature"]
+          total_budget_myr?: number | null
+          traveller_needs?: string[]
           updated_at?: string
         }
         Relationships: [

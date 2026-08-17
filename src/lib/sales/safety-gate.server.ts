@@ -1,0 +1,133 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { ConversationIntelligence } from "./conversation-intelligence.core";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Db = SupabaseClient<any, any, any>;
+
+/**
+ * UMRAIO® Step 3.6 — DETERMINISTIC SAFETY GATE.
+ *
+ * Customer-control decisions are never delegated to a model. Opt-out and
+ * explicit human requests are resolved in code, before any generation call,
+ * and they suppress all autonomous outbound messaging.
+ */
+
+export type SafetyGateResult = {
+  blocked: boolean;
+  reason: "opt_out" | "human_requested" | null;
+};
+
+async function cancelPendingFollowups(
+  supabase: Db,
+  agencyId: string,
+  leadId: string,
+  reason: string,
+) {
+  await supabase
+    .from("followup_jobs")
+    .update({ status: "skipped", skip_reason: reason })
+    .eq("agency_id", agencyId)
+    .eq("lead_id", leadId)
+    .eq("status", "pending");
+}
+
+export async function applySafetyGate(args: {
+  supabase: Db;
+  agencyId: string;
+  conversationId: string;
+  leadId: string | null;
+  intel: ConversationIntelligence;
+}): Promise<SafetyGateResult> {
+  const { supabase, agencyId, conversationId, leadId, intel } = args;
+  const now = new Date().toISOString();
+
+  if (intel.optOut) {
+    await supabase
+      .from("conversations")
+      .update({
+        ai_enabled: false,
+        human_attention_required: true,
+        conversation_state: "DO_NOT_CONTACT",
+        state_updated_at: now,
+        escalated_at: now,
+        escalation_reason: "Customer requested no further contact",
+      })
+      .eq("id", conversationId);
+
+    if (leadId) {
+      await supabase
+        .from("leads")
+        .update({
+          do_not_contact: true,
+          do_not_contact_at: now,
+          do_not_contact_reason: intel.optOutPhrase ?? "Customer opted out",
+          stage: "lost",
+        })
+        .eq("id", leadId);
+      await cancelPendingFollowups(supabase, agencyId, leadId, "Customer opted out of contact");
+    }
+
+    await supabase.from("activity_log").insert({
+      agency_id: agencyId,
+      actor: "ai",
+      action: "Customer opted out — do-not-contact applied",
+      entity: "lead",
+      entity_id: leadId,
+      meta: { conversation_id: conversationId, phrase: intel.optOutPhrase ?? null },
+    });
+    await supabase.from("notifications").insert({
+      agency_id: agencyId,
+      kind: "do_not_contact",
+      severity: "warning",
+      title: "Customer asked not to be contacted",
+      body: "UMRAIO stopped all automated messages and follow-ups for this lead.",
+      entity: "conversation",
+      entity_id: conversationId,
+      meta: { lead_id: leadId },
+    });
+
+    return { blocked: true, reason: "opt_out" };
+  }
+
+  if (intel.humanRequested) {
+    await supabase
+      .from("conversations")
+      .update({
+        ai_enabled: false,
+        human_attention_required: true,
+        conversation_state: "HUMAN_HANDOFF",
+        state_updated_at: now,
+        escalated_at: now,
+        escalation_reason: "Customer asked to speak to a human",
+      })
+      .eq("id", conversationId);
+
+    if (leadId) {
+      await cancelPendingFollowups(supabase, agencyId, leadId, "Human handover requested");
+    }
+
+    await supabase.from("activity_log").insert({
+      agency_id: agencyId,
+      actor: "ai",
+      action: "Customer requested a human — AI paused",
+      entity: "conversation",
+      entity_id: conversationId,
+      meta: { lead_id: leadId },
+    });
+    await supabase.from("notifications").insert({
+      agency_id: agencyId,
+      kind: "human_handoff",
+      severity: "critical",
+      title: "Customer asked for a real person",
+      body: "AI replies are paused on this conversation. Please take over now.",
+      entity: "conversation",
+      entity_id: conversationId,
+      meta: { lead_id: leadId },
+    });
+
+    return { blocked: true, reason: "human_requested" };
+  }
+
+  return { blocked: false, reason: null };
+}

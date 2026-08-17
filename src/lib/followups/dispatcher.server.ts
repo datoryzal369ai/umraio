@@ -122,9 +122,14 @@ export async function dispatchDueFollowups(
 
     const { data: lead } = await supabase
       .from("leads")
-      .select("id, phone, stage, last_contact_at, full_name")
+      .select("id, phone, stage, last_contact_at, full_name, do_not_contact")
       .eq("id", job.lead_id)
       .maybeSingle();
+    // Step 3.6 — do-not-contact is absolute and outranks every other rule.
+    if (lead?.do_not_contact) {
+      await skip("Customer requested no further contact");
+      continue;
+    }
     if (!lead?.phone) {
       await skip("Lead has no WhatsApp number");
       continue;

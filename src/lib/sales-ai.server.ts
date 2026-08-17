@@ -32,6 +32,7 @@ import {
   type ConversationIntelligence,
   type LanguagePreference,
 } from "./sales/conversation-intelligence.core";
+import { applySafetyGate } from "./sales/safety-gate.server";
 import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
@@ -90,7 +91,7 @@ export async function loadContext(supabase: Db, conversationId: string) {
       ? supabase
           .from("leads")
           .select(
-            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style",
+            "id, full_name, phone, email, stage, temperature, budget_myr, pax, preferred_month, city, package_interest, tags, score, preferred_language, detected_language, language_confidence, conversational_style, do_not_contact, total_budget_myr, budget_basis, traveller_needs",
           )
           .eq("id", conversation.lead_id)
           .maybeSingle()
@@ -299,6 +300,9 @@ export function buildIntelligence(ctx: Awaited<ReturnType<typeof loadContext>>):
           budgetMyr: lead["budget_myr"] === null ? null : Number(lead["budget_myr"]),
           packageInterest: (lead["package_interest"] as string | null) ?? null,
           stage: (lead["stage"] as string | null) ?? null,
+          totalBudgetMyr:
+            lead["total_budget_myr"] == null ? null : Number(lead["total_budget_myr"]),
+          doNotContact: lead["do_not_contact"] === true,
         }
       : null,
     quotation: q
@@ -927,6 +931,24 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
   const ctx = await loadContext(supabase, conversationId);
   const agencyId = ctx.conversation.agency_id as string;
 
+  // Step 3.6 — DETERMINISTIC SAFETY GATE. Customer control (opt-out, explicit
+  // human request) is decided in code and short-circuits the model entirely.
+  const intel = buildIntelligence(ctx);
+  const gate = await applySafetyGate({
+    supabase,
+    agencyId,
+    conversationId: ctx.conversation.id as string,
+    leadId: (ctx.conversation.lead_id as string | null) ?? null,
+    intel,
+  });
+  if (gate.blocked) {
+    console.log("[sales-ai] outbound suppressed", {
+      conversation: safeConversationRef(ctx.conversation.id as string),
+      reason: gate.reason,
+    });
+    return "";
+  }
+
   // COMMERCIAL SAFETY — checked BEFORE any model call, from the server-side
   // plan only. Fails closed when metering is unavailable (never unlimited AI).
   const quota = await assertQuota(supabase, agencyId, "customer_reply");
@@ -957,7 +979,6 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
 
   // Tools are exposed to the model ONLY through the registry adapter, so every
   // call runs the decision gate before it can touch the database.
-  const intel = buildIntelligence(ctx);
   const registry = buildSalesToolRegistry(ctx, intel);
   const correlationId = newCorrelationId();
   const allowedTools = registry.names();
@@ -1055,6 +1076,12 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
           objection_memory: intel.objectionMemory,
           buying_signals: intel.buyingSignals,
           next_best_action: intel.nextBestAction,
+          active_objections: intel.activeObjections,
+          objection_lifecycle: intel.objectionLifecycle,
+          traveller_needs: intel.travellerNeeds,
+          budget: intel.budget,
+          opt_out: intel.optOut,
+          human_requested: intel.humanRequested,
           missing: intel.missing,
           quality_score: quality.score,
           quality_factors: quality.factors,
@@ -1070,6 +1097,11 @@ export async function generateAgentReply(supabase: Db, conversationId: string): 
           detected_language: intel.language,
           language_confidence: intel.languageConfidence,
           conversational_style: intel.style,
+          ...(intel.travellerNeeds.length ? { traveller_needs: intel.travellerNeeds } : {}),
+          ...(intel.budget.totalBudgetMyr ? { total_budget_myr: intel.budget.totalBudgetMyr } : {}),
+          ...(intel.budget.perPersonBudgetMyr || intel.budget.totalBudgetMyr
+            ? { budget_basis: intel.budget.perPersonBudgetMyr ? "per_person" : "total" }
+            : {}),
         })
         .eq("id", ctx.conversation.lead_id);
     }

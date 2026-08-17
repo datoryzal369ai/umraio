@@ -15,6 +15,26 @@ import {
   type BuyingSignal,
   type ObjectionType as BaseObjectionType,
 } from "@/lib/sales-intent.core";
+import {
+  buildObjectionLifecycle,
+  classifyHotelMention,
+  conversationOptedOut,
+  detectBookingIntent,
+  detectBudget,
+  detectDepositIntent,
+  detectFrustration,
+  detectHumanRequest,
+  detectObjectionResolution,
+  detectOptOut,
+  detectPax,
+  detectRecommendationRequest,
+  detectTravellerNeeds,
+  maskNegatedSpans,
+  normalizeMessage,
+  type BudgetReading,
+  type ObjectionRecord,
+  type TravellerNeed,
+} from "@/lib/sales/hardening.core";
 
 /* ------------------------------------------------------------------ *
  * 4-8. LANGUAGE INTELLIGENCE™
@@ -154,27 +174,86 @@ export type ConversationalSignal =
   | "FRUSTRATED"
   | "URGENT"
   | "READY_TO_BUY"
-  | "NOT_INTERESTED";
+  | "NOT_INTERESTED"
+  // Step 3.6 additions
+  | "DO_NOT_CONTACT"
+  | "REPETITION_COMPLAINT"
+  | "CONTEXT_FAILURE"
+  | "NOT_READY"
+  | "READY_TO_BOOK"
+  | "DEPOSIT_INTENT"
+  | "RECOMMENDATION_REQUEST"
+  | "HUMAN_REQUEST"
+  | "HOTEL_PROXIMITY_PREFERENCE"
+  | "ELDERLY_TRAVELLER"
+  | "MOBILITY_CONCERN"
+  | "WALKING_DISTANCE_CONCERN"
+  | "COMFORT_PRIORITY";
 
-const SIGNAL_RULES: Array<{ signal: ConversationalSignal; re: RegExp }> = [
-  { signal: "PRICE_CONCERN", re: /\b(mahal|expensive|pricey|over\s?budget|tak\s?mampu|cannot\s+afford|murah\s+sikit|cheaper|diskaun|discount)\b/i },
-  { signal: "TRUST_CONCERN", re: /\b(scam|penipu|selamat\s+ke|betul\s+ke|trusted|licence|lesen|motac|review|ulasan|sah\s+ke)\b/i },
-  { signal: "HESITANT", re: /\b(hmm+|entah|tak\s?pasti|not\s+sure|fikir\s+dulu|think\s+about|nanti\s+dulu|belum\s+decide|belum\s+sedia|maybe|mungkin|takut)\b/i },
-  { signal: "CONFUSED", re: /\b(tak\s?faham|dont\s+understand|don'?t\s+get|maksud\s+(nya|apa)|apa\s+maksud|confuse[d]?|keliru)\b/i },
-  { signal: "FRUSTRATED", re: /\b(lambat|slow\s+response|dah\s+lama\s+tunggu|no\s+reply|tak\s+jawab|marah|kecewa|useless|teruk|complaint|komplen)\b/i },
-  { signal: "URGENT", re: /\b(urgent|segera|cepat|asap|hari\s+ini|today|esok|tomorrow|last\s+minute|kejar)\b/i },
+/** `negative: true` rules read the raw message; positive rules read masked text. */
+const SIGNAL_RULES: Array<{ signal: ConversationalSignal; re: RegExp; negative?: boolean }> = [
+  { signal: "PRICE_CONCERN", negative: true, re: /\b(mahal|expensive|pricey|over\s?budget|tak\s?mampu|cannot\s+afford|murah\s+sikit|cheaper|diskaun|discount)\b/i },
+  { signal: "TRUST_CONCERN", negative: true, re: /\b(scam|penipu|selamat\s+ke|betul\s+ke|trusted|licence|lesen|motac|review|ulasan|sah\s+ke)\b/i },
+  { signal: "HESITANT", negative: true, re: /\b(hmm+|entah|tak\s?pasti|not\s+sure|fikir\s+dulu|think\s+about|nanti\s+dulu|belum\s+decide|belum\s+sedia|maybe|mungkin|takut)\b/i },
+  { signal: "CONFUSED", negative: true, re: /\b(tak\s?faham|dont\s+understand|don'?t\s+get|maksud\s+(nya|apa)|apa\s+maksud|confuse[d]?|keliru)\b/i },
+  { signal: "FRUSTRATED", negative: true, re: /\b(lambat|slow\s+response|dah\s+lama\s+tunggu|no\s+reply|tak\s+jawab|marah|kecewa|useless|teruk|complaint|komplen)\b/i },
+  { signal: "URGENT", negative: true, re: /\b(urgent|segera|cepat|asap|hari\s+ini|today|esok|tomorrow|last\s+minute|kejar)\b/i },
   { signal: "READY_TO_BUY", re: /\b(nak\s+(book|tempah|daftar)|saya\s+ambil|i'?ll\s+take|confirm|proceed|go\s+ahead|deal)\b/i },
-  { signal: "NOT_INTERESTED", re: /\b(tak\s+jadi|tak\s+minat|not\s+interested|cancel|batal|stop\s+(message|whatsapp)|jangan\s+hantar|unsubscribe|opt\s?out)\b/i },
+  { signal: "NOT_INTERESTED", negative: true, re: /\b(tak\s+jadi|tak\s+minat|tak\s+berminat|not\s+interested|cancel|batal|stop\s+(message|whatsapp)|jangan\s+hantar|unsubscribe|opt\s?out)\b/i },
   { signal: "EXCITED", re: /\b(alhamdulillah|masyaallah|best|excited|tak\s+sabar|can'?t\s+wait|great|superb)\b/i },
   { signal: "CURIOUS", re: /\b(macam\s?mana|how|apa\s+beza|what'?s\s+the\s+difference|boleh\s+terangkan|explain|detail|info)\b/i },
   { signal: "INTERESTED", re: /\b(berminat|interested|okay\s+juga|nampak\s+ok|sounds\s+good|boleh\s+tahu|nak\s+tahu)\b/i },
   { signal: "CONFIDENT", re: /\b(saya\s+dah\s+decide|dah\s+pilih|i'?ve\s+decided|we'?ll\s+go\s+with)\b/i },
 ];
 
+/**
+ * Step 3.6 — negative/customer-control intent is evaluated BEFORE positive
+ * intent, and positive matchers only ever see negation-masked text.
+ */
 export function detectConversationalSignals(text: string | null | undefined): ConversationalSignal[] {
   if (!text) return [];
-  return SIGNAL_RULES.filter((r) => r.re.test(text)).map((r) => r.signal);
+  const normalized = normalizeMessage(text);
+  const masked = maskNegatedSpans(normalized);
+  const out = new Set<ConversationalSignal>();
+
+  // 1. Customer control first.
+  const optOut = detectOptOut(text);
+  if (optOut.optedOut) {
+    out.add("DO_NOT_CONTACT");
+    out.add("NOT_INTERESTED");
+  }
+  if (detectHumanRequest(text)) out.add("HUMAN_REQUEST");
+  for (const f of detectFrustration(text)) out.add(f);
+
+  // 2. Negated positive intent becomes explicit hesitation, never a buying signal.
+  const positiveTokens = /\b(book|booking|deposit|berminat|interested|proceed|confirm)\b/;
+  if (positiveTokens.test(normalized) && !positiveTokens.test(masked) && !optOut.optedOut) {
+    out.add("NOT_READY");
+    out.add("HESITANT");
+  }
+
+  // 3. Requirements / preferences (never objections by themselves).
+  const hotel = classifyHotelMention(text);
+  if (hotel.preference) out.add("HOTEL_PROXIMITY_PREFERENCE");
+  for (const need of detectTravellerNeeds(text)) out.add(need as ConversationalSignal);
+
+  // 4. Positive intent, on masked text only.
+  if (!optOut.optedOut) {
+    if (detectBookingIntent(text)) out.add("READY_TO_BOOK");
+    if (detectDepositIntent(text)) out.add("DEPOSIT_INTENT");
+    if (detectRecommendationRequest(text)) out.add("RECOMMENDATION_REQUEST");
+  }
+
+  for (const rule of SIGNAL_RULES) {
+    const haystack = rule.negative ? normalized : masked;
+    if (!rule.re.test(haystack)) continue;
+    if (optOut.optedOut && !rule.negative) continue;
+    out.add(rule.signal);
+  }
+
+  return Array.from(out);
 }
+
 
 /* ------------------------------------------------------------------ *
  * 12-13. OBJECTION INTELLIGENCE (extends Step 2 taxonomy)
@@ -211,13 +290,24 @@ const EXTENDED_OBJECTIONS: Array<{ type: ObjectionCategory; re: RegExp }> = [
   { type: "NEED_MORE_INFORMATION", re: /\b(boleh\s+bagi\s+(detail|maklumat)|more\s+(info|details)|itinerary|jadual|senarai)\b/i },
 ];
 
-/** Full Step 3 objection taxonomy for one message. */
+/**
+ * Full Step 3 objection taxonomy for one message.
+ *
+ * Step 3.6: a stated hotel REQUIREMENT ("kalau boleh hotel dekat Haram") is a
+ * preference, not an objection. Only resistance to a proposed option counts.
+ */
 export function detectObjectionCategories(text: string | null | undefined): ObjectionCategory[] {
   if (!text) return [];
-  const base = detectObjections(text).map((o) => BASE_TO_CATEGORY[o]);
-  const extended = EXTENDED_OBJECTIONS.filter((o) => o.re.test(text)).map((o) => o.type);
-  return Array.from(new Set([...base, ...extended]));
+  const normalized = normalizeMessage(text);
+  const base = detectObjections(normalized).map((o) => BASE_TO_CATEGORY[o]);
+  const extended = EXTENDED_OBJECTIONS.filter((o) => o.re.test(normalized)).map((o) => o.type);
+  const hotel = classifyHotelMention(text);
+  const all = new Set<ObjectionCategory>([...base, ...extended]);
+  if (!hotel.objection) all.delete("HOTEL");
+  else all.add("HOTEL");
+  return Array.from(all);
 }
+
 
 export const OBJECTION_PLAYBOOK: Record<ObjectionCategory, string> = {
   PRICE:
@@ -264,7 +354,9 @@ export type ConversationState =
   | "HUMAN_HANDOFF"
   | "NURTURE"
   | "BOOKED"
-  | "LOST";
+  | "LOST"
+  /** Step 3.6 — explicit customer opt-out. Highest priority state. */
+  | "DO_NOT_CONTACT";
 
 export type KnownFacts = {
   fullName?: string | null;
@@ -272,9 +364,14 @@ export type KnownFacts = {
   city?: string | null;
   pax?: number | null;
   preferredMonth?: string | null;
+  /** Per-person budget (existing column semantics). */
   budgetMyr?: number | null;
+  /** Step 3.6 — separate total-trip budget, never conflated with per-person. */
+  totalBudgetMyr?: number | null;
   packageInterest?: string | null;
   stage?: string | null;
+  doNotContact?: boolean | null;
+  travellerNeeds?: string[] | null;
 };
 
 export type QuotationSnapshot = {
@@ -309,7 +406,9 @@ export type NextBestAction =
   | "MOVE_TO_DEPOSIT_READY"
   | "ESCALATE"
   | "NURTURE"
-  | "STOP";
+  | "STOP"
+  /** Step 3.6 — answer from what is already known instead of re-asking. */
+  | "ANSWER_FROM_CONTEXT";
 
 export type ConversationIntelligence = {
   state: ConversationState;
@@ -321,6 +420,10 @@ export type ConversationIntelligence = {
   objections: ObjectionCategory[];
   /** Objections seen anywhere in the conversation (objection memory, §13). */
   objectionMemory: ObjectionCategory[];
+  /** Step 3.6 — full lifecycle: history preserved, resolved never blocks. */
+  objectionLifecycle: Array<ObjectionRecord<ObjectionCategory>>;
+  /** Objections that are still ACTIVE (unresolved). */
+  activeObjections: ObjectionCategory[];
   buyingSignals: BuyingSignal[];
   known: string[];
   missing: string[];
@@ -328,7 +431,15 @@ export type ConversationIntelligence = {
   /** 0-1 heuristic confidence in the derived state. */
   confidence: number;
   latestCustomerMessage: string | null;
+  /** Step 3.6 — deterministic customer-control + requirement outputs. */
+  optOut: boolean;
+  optOutPhrase: string | null;
+  humanRequested: boolean;
+  travellerNeeds: TravellerNeed[];
+  budget: BudgetReading;
+  hotelProximityPreference: boolean;
 };
+
 
 const DEPOSIT_ASK = /\b(brp|berapa)?\s*deposit\b|\bhow\s+(much|do)\s+.{0,20}(deposit|pay)\b|\bmacam\s?mana\s+nak\s+(bayar|book|tempah)\b|\bhow\s+(do\s+i|to)\s+(book|pay)\b/i;
 
@@ -344,11 +455,57 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   const style = detectConversationalStyle(customerMessages);
 
   const signals = detectConversationalSignals(latest);
-  const objections = detectObjectionCategories(latest);
-  const objectionMemory = Array.from(
-    new Set(customerMessages.flatMap((m) => detectObjectionCategories(m))),
+
+  // Step 3.6 — customer-control state, evaluated before anything positive.
+  const optOutReading = conversationOptedOut(customerMessages);
+  const humanRequested = customerMessages.slice(-3).some((m) => detectHumanRequest(m));
+  const frustration = detectFrustration(latest);
+  const repetitionComplaint = frustration.includes("REPETITION_COMPLAINT");
+
+  // Objection lifecycle: history preserved, resolution respected.
+  const objectionLifecycle = buildObjectionLifecycle<ObjectionCategory>(
+    customerMessages,
+    detectObjectionCategories,
   );
-  const buyingSignals = detectBuyingSignals(latest);
+  const resolvedCategories = new Set(
+    objectionLifecycle.filter((o) => o.status === "RESOLVED").map((o) => o.category),
+  );
+  const latestResolves = detectObjectionResolution(latest);
+  const objections = detectObjectionCategories(latest).filter(
+    (o) => !(latestResolves && resolvedCategories.has(o)),
+  );
+  const objectionMemory = objectionLifecycle.map((o) => o.category);
+  const activeObjections = objectionLifecycle
+    .filter((o) => o.status !== "RESOLVED")
+    .map((o) => o.category);
+
+  const maskedLatest = maskNegatedSpans(normalizeMessage(latest));
+  const buyingSignals = Array.from(
+    new Set<BuyingSignal>([
+      ...(optOutReading.optedOut ? [] : detectBuyingSignals(maskedLatest)),
+      ...(!optOutReading.optedOut && detectBookingIntent(latest) ? (["READY_TO_BOOK"] as BuyingSignal[]) : []),
+      ...(!optOutReading.optedOut && detectDepositIntent(latest) ? (["ASKED_HOW_TO_PAY"] as BuyingSignal[]) : []),
+      ...(detectPax(latest) ? (["CONFIRMED_PAX"] as BuyingSignal[]) : []),
+    ]),
+  );
+
+  // Step 3.6 — requirements captured from the whole conversation.
+  const travellerNeeds = Array.from(
+    new Set(customerMessages.flatMap((m) => detectTravellerNeeds(m))),
+  );
+  const budget = customerMessages
+    .map((m) => detectBudget(m))
+    .reduce<BudgetReading>(
+      (acc, b) => ({
+        totalBudgetMyr: b.totalBudgetMyr ?? acc.totalBudgetMyr,
+        perPersonBudgetMyr: b.perPersonBudgetMyr ?? acc.perPersonBudgetMyr,
+        pax: b.pax ?? acc.pax,
+      }),
+      { totalBudgetMyr: null, perPersonBudgetMyr: null, pax: null },
+    );
+  const hotelProximityPreference = customerMessages.some(
+    (m) => classifyHotelMention(m).preference,
+  );
 
   const lead = input.lead ?? {};
   const known: string[] = [];
@@ -360,27 +517,41 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   track("name", lead.fullName);
   track("phone", lead.phone);
   track("city", lead.city);
-  track("pilgrims", lead.pax);
+  track("pilgrims", lead.pax ?? budget.pax);
   track("travel month", lead.preferredMonth);
-  track("budget per person", lead.budgetMyr);
+  track(
+    "budget",
+    lead.budgetMyr ?? lead.totalBudgetMyr ?? budget.perPersonBudgetMyr ?? budget.totalBudgetMyr,
+  );
   track("package interest", lead.packageInterest);
 
-  const depositIntent = Boolean(latest && DEPOSIT_ASK.test(latest)) || buyingSignals.includes("ASKED_HOW_TO_PAY");
+  const depositIntent =
+    Boolean(latest && DEPOSIT_ASK.test(normalizeMessage(latest))) ||
+    detectDepositIntent(latest) ||
+    buyingSignals.includes("ASKED_HOW_TO_PAY");
+  const recommendationRequest = detectRecommendationRequest(latest);
+  const enoughForRecommendation =
+    Boolean(lead.pax ?? budget.pax) &&
+    Boolean(lead.preferredMonth) &&
+    Boolean(lead.budgetMyr ?? lead.totalBudgetMyr ?? budget.totalBudgetMyr ?? budget.perPersonBudgetMyr);
   const qStatus = input.quotation?.status ?? null;
 
-  // ---- state resolution (business events outrank keywords) ----
+  // ---- state resolution (customer control > business events > keywords) ----
   let state: ConversationState;
   let confidence = 0.6;
 
-  if (input.bookingConfirmed || lead.stage === "booked") {
+  if (optOutReading.optedOut || lead.doNotContact) {
+    state = "DO_NOT_CONTACT";
+    confidence = 0.95;
+  } else if (input.humanTakeover || humanRequested) {
+    state = "HUMAN_HANDOFF";
+    confidence = 0.95;
+  } else if (input.bookingConfirmed || lead.stage === "booked") {
     state = "BOOKED";
     confidence = 0.95;
   } else if (lead.stage === "lost" || signals.includes("NOT_INTERESTED")) {
     state = "LOST";
     confidence = 0.7;
-  } else if (input.humanTakeover) {
-    state = "HUMAN_HANDOFF";
-    confidence = 0.95;
   } else if (qStatus === "accepted" || (qStatus && depositIntent)) {
     state = "DEPOSIT_READY";
     confidence = 0.85;
@@ -393,6 +564,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   } else if (objections.length) {
     state = "OBJECTION";
     confidence = 0.75;
+
   } else if (signals.includes("TRUST_CONCERN")) {
     state = "TRUST_BUILDING";
     confidence = 0.7;
@@ -426,6 +598,9 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
   // ---- next best action ----
   let nextBestAction: NextBestAction;
   switch (state) {
+    case "DO_NOT_CONTACT":
+      nextBestAction = "STOP";
+      break;
     case "BOOKED":
       nextBestAction = "STOP";
       break;
@@ -433,7 +608,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
       nextBestAction = "NURTURE";
       break;
     case "HUMAN_HANDOFF":
-      nextBestAction = "STOP";
+      nextBestAction = input.humanTakeover ? "STOP" : "ESCALATE";
       break;
     case "DEPOSIT_READY":
       nextBestAction = "MOVE_TO_DEPOSIT_READY";
@@ -474,7 +649,25 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     default:
       nextBestAction = "ASK_CLARIFYING_QUESTION";
   }
-  if (signals.includes("FRUSTRATED")) nextBestAction = "ESCALATE";
+
+  // ---- Step 3.6 signal/state priority ladder ----
+  const controlled = state === "DO_NOT_CONTACT" || state === "HUMAN_HANDOFF" || state === "BOOKED";
+  if (!controlled) {
+    // A recommendation request with sufficient verified information must never
+    // be answered with yet another clarifying question.
+    if (
+      recommendationRequest &&
+      enoughForRecommendation &&
+      (nextBestAction === "ASK_CLARIFYING_QUESTION" || state === "PACKAGE_MATCH" || state === "CONSIDERATION")
+    ) {
+      nextBestAction = "RECOMMEND_PACKAGE";
+    }
+    // A repetition complaint outranks any clarifying question.
+    if (repetitionComplaint && nextBestAction === "ASK_CLARIFYING_QUESTION") {
+      nextBestAction = "ANSWER_FROM_CONTEXT";
+    }
+    if (signals.includes("FRUSTRATED") && !repetitionComplaint) nextBestAction = "ESCALATE";
+  }
 
   return {
     state,
@@ -485,14 +678,23 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     signals,
     objections,
     objectionMemory,
+    objectionLifecycle,
+    activeObjections,
     buyingSignals,
     known,
     missing,
     nextBestAction,
     confidence,
     latestCustomerMessage: latest,
+    optOut: Boolean(optOutReading.optedOut || lead.doNotContact),
+    optOutPhrase: optOutReading.matched,
+    humanRequested,
+    travellerNeeds,
+    budget,
+    hotelProximityPreference,
   };
 }
+
 
 /* ------------------------------------------------------------------ *
  * 17 + 22. HUMAN-QUALITY RESPONSE / CLOSING GUIDANCE (prompt block)
@@ -544,7 +746,9 @@ const ACTION_DIRECTIVE: Record<NextBestAction, string> = {
   ESCALATE:
     "The customer is unhappy or needs a person. Acknowledge sincerely, call escalate_to_human with an honest reason, and say truthfully what was recorded.",
   NURTURE: "Keep it light and respectful. Do not push. Leave the door open.",
-  STOP: "A human is handling this conversation. Do not send another sales message.",
+  STOP: "A human is handling this conversation, or the customer asked not to be contacted. Do not send another sales message.",
+  ANSWER_FROM_CONTEXT:
+    "The customer says they already told you this. Do NOT ask another clarifying question. Acknowledge it honestly in one short line, then answer using the information already in this conversation and on the lead profile.",
 };
 
 /** Prompt block injected into the sales system prompt. */
@@ -580,11 +784,46 @@ export function conversationIntelligenceInstruction(intel: ConversationIntellige
     );
   }
   const remembered = intel.objectionMemory.filter((o) => !intel.objections.includes(o));
-  if (remembered.length) {
+  const resolved = intel.objectionLifecycle.filter((o) => o.status === "RESOLVED").map((o) => o.category);
+  const stillActive = remembered.filter((o) => intel.activeObjections.includes(o));
+  if (stillActive.length) {
     lines.push(
-      `OBJECTION MEMORY (raised earlier, still binding): ${remembered.join(", ")}. Never recommend something that contradicts these without naming the trade-off.`,
+      `OBJECTION MEMORY (raised earlier, still ACTIVE): ${stillActive.join(", ")}. Never recommend something that contradicts these without naming the trade-off.`,
     );
   }
+  if (resolved.length) {
+    lines.push(
+      `RESOLVED OBJECTIONS (history only, do NOT reopen): ${resolved.join(", ")}. The customer already settled these — never re-litigate them and never let them block the next commitment.`,
+    );
+  }
+
+  // Step 3.6 — customer control, requirements and budget dimension.
+  if (intel.optOut) {
+    lines.push(
+      `DO-NOT-CONTACT: the customer explicitly opted out${intel.optOutPhrase ? ` ("${intel.optOutPhrase}")` : ""}. Send no promotional message, no follow-up and no further sales question.`,
+    );
+  }
+  if (intel.humanRequested) {
+    lines.push(
+      "HUMAN REQUESTED: the customer asked for a real person. Human takeover has already been activated deterministically by the system — acknowledge briefly and stop selling.",
+    );
+  }
+  if (intel.travellerNeeds.length) {
+    lines.push(
+      `CUSTOMER REQUIREMENTS (not objections): ${intel.travellerNeeds.join(", ")}. Treat these as buying criteria — factor them into every recommendation (hotel proximity, walking distance, comfort) using verified package data only.`,
+    );
+  }
+  if (intel.hotelProximityPreference) {
+    lines.push(
+      "HOTEL_PROXIMITY_PREFERENCE: the customer prefers a hotel close to the Haram. This is a requirement, not a complaint — match it, do not defend against it.",
+    );
+  }
+  if (intel.budget.totalBudgetMyr || intel.budget.perPersonBudgetMyr) {
+    lines.push(
+      `BUDGET DIMENSION: ${intel.budget.totalBudgetMyr ? `total trip budget RM${intel.budget.totalBudgetMyr}` : ""}${intel.budget.totalBudgetMyr && intel.budget.perPersonBudgetMyr ? " · " : ""}${intel.budget.perPersonBudgetMyr ? `per-person budget RM${intel.budget.perPersonBudgetMyr}` : ""}. Never silently convert one into the other; package prices are per person.`,
+    );
+  }
+
 
   lines.push(
     "CLOSING FRAMEWORK: discover → match → value → confirm → quote → handle objection → confirm fit → ask for the next commitment → deposit-ready. Only advance one step per message, and only when the customer's own words justify it.",
@@ -658,6 +897,7 @@ export function conversationQualityScore(input: {
     NURTURE: 6,
     BOOKED: 25,
     LOST: 0,
+    DO_NOT_CONTACT: 0,
   };
 
   const objectionHandling = intel.objectionMemory.length ? (agent.length > 0 ? 10 : 4) : 5;
