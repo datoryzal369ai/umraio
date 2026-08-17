@@ -19,7 +19,11 @@ import {
   RELIGIOUS_BOUNDARY_INSTRUCTION,
 } from "./islamic/policy.core";
 import { createIslamicPolicyChecker, requestExpertReview } from "./islamic/policy.server";
-import { DOMAIN_ISOLATION_INSTRUCTION, intentAnchorInstruction } from "./sales-intent.core";
+import {
+  DOMAIN_ISOLATION_INSTRUCTION,
+  conversionSignalInstruction,
+  intentAnchorInstruction,
+} from "./sales-intent.core";
 import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
