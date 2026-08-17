@@ -1,0 +1,237 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import { sendWhatsappText } from "../whatsapp-send.server";
+import { QuotaError, assertQuota, recordUsageEvent } from "../billing/usage.server";
+import { logConversionEvent } from "../quotations/quotations.server";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Db = SupabaseClient<any, any, any>;
+
+/**
+ * UMRAIO® FOLLOW-UP DISPATCHER.
+ *
+ * Activates the existing `followup_jobs` queue. Safety rules are deterministic
+ * and enforced here, never by a model:
+ *
+ *  - only jobs that carry an explicit customer-facing `body` are sent;
+ *    internal handover/attention tasks are left for humans,
+ *  - never sends when the conversation is under human takeover,
+ *  - never sends to a lead that already replied after the job was scheduled,
+ *  - respects agency quiet hours (09:00–21:00 local),
+ *  - one message per lead per dispatch cycle, with a hard cycle ceiling,
+ *  - fails closed on quota.
+ */
+
+const MAX_PER_CYCLE = 5;
+const QUIET_START_HOUR = 9;
+const QUIET_END_HOUR = 21;
+
+export function localHour(timezone: string | null | undefined, at = new Date()): number {
+  try {
+    const formatted = new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: timezone || "Asia/Kuala_Lumpur",
+    }).format(at);
+    return Number(formatted);
+  } catch {
+    return at.getUTCHours() + 8;
+  }
+}
+
+export function withinSendWindow(hour: number) {
+  return hour >= QUIET_START_HOUR && hour < QUIET_END_HOUR;
+}
+
+export type DispatchResult = {
+  sent: number;
+  skipped: number;
+  failed: number;
+  details: Array<{ id: string; outcome: string; reason?: string }>;
+};
+
+async function markJob(
+  supabase: Db,
+  id: string,
+  status: "sent" | "skipped" | "failed",
+  patch: Record<string, unknown> = {},
+) {
+  await supabase.from("followup_jobs").update({ status, ...patch }).eq("id", id);
+}
+
+export async function dispatchDueFollowups(
+  supabase: Db,
+  agencyId: string,
+  limit = MAX_PER_CYCLE,
+): Promise<DispatchResult> {
+  const result: DispatchResult = { sent: 0, skipped: 0, failed: 0, details: [] };
+
+  const { data: agency } = await supabase
+    .from("agencies")
+    .select("timezone")
+    .eq("id", agencyId)
+    .maybeSingle();
+
+  if (!withinSendWindow(localHour(agency?.timezone))) {
+    return result;
+  }
+
+  const { data: jobs } = await supabase
+    .from("followup_jobs")
+    .select("id, lead_id, conversation_id, quotation_id, title, body, run_at, channel, created_at")
+    .eq("agency_id", agencyId)
+    .eq("status", "pending")
+    .eq("channel", "whatsapp")
+    .lte("run_at", new Date().toISOString())
+    .order("run_at", { ascending: true })
+    .limit(limit * 4);
+
+  if (!jobs?.length) return result;
+
+  const { data: config } = await supabase
+    .from("whatsapp_configs")
+    .select("phone_number_id, access_token, is_connected, auto_reply")
+    .eq("agency_id", agencyId)
+    .maybeSingle();
+
+  const contactedLeads = new Set<string>();
+
+  for (const job of jobs) {
+    if (result.sent >= limit) break;
+
+    const skip = async (reason: string) => {
+      await markJob(supabase, job.id, "skipped", { skip_reason: reason });
+      result.skipped += 1;
+      result.details.push({ id: job.id, outcome: "skipped", reason });
+    };
+
+    // 1. Only explicit customer-facing follow-ups are ever sent.
+    const body = (job.body ?? "").trim();
+    if (!body) {
+      result.details.push({ id: job.id, outcome: "left_for_human" });
+      continue;
+    }
+    if (!job.lead_id) {
+      await skip("No lead attached");
+      continue;
+    }
+    if (contactedLeads.has(job.lead_id)) continue;
+
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("id, phone, stage, last_contact_at, full_name")
+      .eq("id", job.lead_id)
+      .maybeSingle();
+    if (!lead?.phone) {
+      await skip("Lead has no WhatsApp number");
+      continue;
+    }
+    if (["booked", "completed", "lost"].includes(lead.stage)) {
+      await skip(`Lead is already ${lead.stage}`);
+      continue;
+    }
+
+    // 2. The customer replied after this nudge was scheduled — do not chase.
+    if (
+      lead.last_contact_at &&
+      new Date(lead.last_contact_at).getTime() > new Date(job.created_at).getTime()
+    ) {
+      await skip("Customer already replied after this follow-up was scheduled");
+      continue;
+    }
+
+    // 3. Human takeover always wins.
+    const { data: conversation } = await supabase
+      .from("conversations")
+      .select("id, ai_enabled, external_id")
+      .eq("agency_id", agencyId)
+      .eq("lead_id", lead.id)
+      .order("last_message_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (conversation && conversation.ai_enabled === false) {
+      await skip("Conversation is under human takeover");
+      continue;
+    }
+
+    if (!config?.access_token || !config.phone_number_id) {
+      await skip("WhatsApp is not connected");
+      continue;
+    }
+
+    // 4. Commercial safety — a follow-up is a customer-facing message.
+    try {
+      await assertQuota(supabase, agencyId, "customer_reply");
+    } catch (err) {
+      if (err instanceof QuotaError) {
+        await skip("AI reply allowance reached");
+        continue;
+      }
+      throw err;
+    }
+
+    const to = conversation?.external_id || lead.phone;
+    const ok = await sendWhatsappText(config.phone_number_id, config.access_token, to, body);
+    if (!ok) {
+      await markJob(supabase, job.id, "failed", { skip_reason: "WhatsApp send failed" });
+      result.failed += 1;
+      result.details.push({ id: job.id, outcome: "failed" });
+      continue;
+    }
+
+    const now = new Date().toISOString();
+    await markJob(supabase, job.id, "sent", { dispatched_at: now });
+    contactedLeads.add(lead.id);
+    result.sent += 1;
+    result.details.push({ id: job.id, outcome: "sent" });
+
+    if (conversation?.id) {
+      await supabase.from("messages").insert({
+        agency_id: agencyId,
+        conversation_id: conversation.id,
+        sender: "ai",
+        body,
+      });
+      await supabase
+        .from("conversations")
+        .update({ last_message_at: now })
+        .eq("id", conversation.id);
+    }
+    await supabase.from("leads").update({ last_contact_at: now }).eq("id", lead.id);
+    await supabase.from("activity_log").insert({
+      agency_id: agencyId,
+      actor: "ai",
+      action: `Follow-up sent on WhatsApp: ${job.title}`,
+      entity: "lead",
+      entity_id: lead.id,
+      meta: { followup_id: job.id, preview: body.slice(0, 160) },
+    });
+    await recordUsageEvent(supabase, {
+      agencyId,
+      eventKey: `followup:${job.id}`,
+      category: "customer_reply",
+      operation: "followup_dispatch",
+      worker: "whatsapp",
+      success: true,
+      meta: { followup_id: job.id },
+    });
+    await logConversionEvent(supabase, {
+      agencyId,
+      stage: "followup_sent",
+      actor: "ai",
+      leadId: lead.id,
+      quotationId: job.quotation_id ?? null,
+      meta: { followup_id: job.id },
+    });
+
+    if (job.quotation_id) {
+      await supabase
+        .from("quotations")
+        .update({ status: "sent", sent_at: now })
+        .eq("id", job.quotation_id)
+        .in("status", ["ready"]);
+    }
+  }
+
+  return result;
+}
