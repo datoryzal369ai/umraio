@@ -35,6 +35,11 @@ import {
   type ObjectionRecord,
   type TravellerNeed,
 } from "@/lib/sales/hardening.core";
+import {
+  behavioralInstruction,
+  buildBehavioralProfile,
+  type BehavioralProfile,
+} from "@/lib/sales/behavioral.core";
 
 /* ------------------------------------------------------------------ *
  * 4-8. LANGUAGE INTELLIGENCE™
@@ -408,7 +413,11 @@ export type NextBestAction =
   | "NURTURE"
   | "STOP"
   /** Step 3.6 — answer from what is already known instead of re-asking. */
-  | "ANSWER_FROM_CONTEXT";
+  | "ANSWER_FROM_CONTEXT"
+  /** Step 3.7 — behavioural actions. */
+  | "SIMPLIFY_OPTIONS"
+  | "SUPPORT_DECISION_MAKER"
+  | "REDUCE_FRICTION";
 
 export type ConversationIntelligence = {
   state: ConversationState;
@@ -438,7 +447,10 @@ export type ConversationIntelligence = {
   travellerNeeds: TravellerNeed[];
   budget: BudgetReading;
   hotelProximityPreference: boolean;
+  /** Step 3.7 — behavioural sales psychology profile (observed behaviour only). */
+  behavior: BehavioralProfile;
 };
+
 
 
 const DEPOSIT_ASK = /\b(brp|berapa)?\s*deposit\b|\bhow\s+(much|do)\s+.{0,20}(deposit|pay)\b|\bmacam\s?mana\s+nak\s+(bayar|book|tempah)\b|\bhow\s+(do\s+i|to)\s+(book|pay)\b/i;
@@ -669,7 +681,45 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     if (signals.includes("FRUSTRATED") && !repetitionComplaint) nextBestAction = "ESCALATE";
   }
 
+  // ---- Step 3.7 behavioural layer (additive; never overrides safety) ----
+  const behavior = buildBehavioralProfile({
+    customerMessages,
+    agentMessages: input.messages.filter((m) => m.sender !== "customer").map((m) => m.body),
+    optedOut: Boolean(optOutReading.optedOut || lead.doNotContact),
+    humanTakeover: input.humanTakeover ?? false,
+    quotationStatus: input.quotation?.status ?? null,
+    bookingConfirmed: input.bookingConfirmed ?? false,
+    leadStage: lead.stage ?? null,
+    knownCount: known.length,
+  });
+
+  if (!controlled && nextBestAction !== "ESCALATE" && nextBestAction !== "ANSWER_FROM_CONTEXT") {
+    // Behavioural strategy only refines *how* to advance, never whether the
+    // conversion state machine allows advancing.
+    if (behavior.strategy === "SUPPORT_DECISION_PROCESS" && nextBestAction !== "CREATE_QUOTATION") {
+      nextBestAction = "SUPPORT_DECISION_MAKER";
+    } else if (
+      behavior.strategy === "SIMPLIFY_CHOICES" &&
+      (nextBestAction === "ASK_CLARIFYING_QUESTION" || nextBestAction === "RECOMMEND_PACKAGE")
+    ) {
+      nextBestAction = "SIMPLIFY_OPTIONS";
+    } else if (
+      behavior.strategy === "REDUCE_FRICTION" &&
+      nextBestAction === "ASK_CLARIFYING_QUESTION"
+    ) {
+      nextBestAction = "REDUCE_FRICTION";
+    } else if (
+      behavior.strategy === "VALUE_CLARIFICATION" &&
+      nextBestAction === "ASK_CLARIFYING_QUESTION"
+    ) {
+      nextBestAction = "EXPLAIN_VALUE";
+    } else if (behavior.strategy === "BUILD_TRUST" && nextBestAction === "ASK_CLARIFYING_QUESTION") {
+      nextBestAction = "BUILD_TRUST";
+    }
+  }
+
   return {
+
     state,
     language: lang.language,
     languageSource: lang.source,
@@ -692,6 +742,7 @@ export function buildConversationIntelligence(input: IntelligenceInput): Convers
     travellerNeeds,
     budget,
     hotelProximityPreference,
+    behavior,
   };
 }
 
@@ -749,7 +800,14 @@ const ACTION_DIRECTIVE: Record<NextBestAction, string> = {
   STOP: "A human is handling this conversation, or the customer asked not to be contacted. Do not send another sales message.",
   ANSWER_FROM_CONTEXT:
     "The customer says they already told you this. Do NOT ask another clarifying question. Acknowledge it honestly in one short line, then answer using the information already in this conversation and on the lead profile.",
+  SIMPLIFY_OPTIONS:
+    "The customer is carrying too much information. Narrow to one recommended verified package plus at most one alternative, one short reason each, then one clear question.",
+  SUPPORT_DECISION_MAKER:
+    "The customer must consult someone before deciding. Give a short forwardable summary of the verified key facts, and agree a specific time to check back. Never pressure them to decide alone.",
+  REDUCE_FRICTION:
+    "They are close but one thing is blocking them. Name and resolve that single blocker with verified facts, then ask for the next small commitment. Do not restart qualification.",
 };
+
 
 /** Prompt block injected into the sales system prompt. */
 export function conversationIntelligenceInstruction(intel: ConversationIntelligence): string {
@@ -830,6 +888,8 @@ export function conversationIntelligenceInstruction(intel: ConversationIntellige
     "HUMAN QUALITY: write like an experienced Umrah consultant on WhatsApp. No 'Thank you for your enquiry, how may I assist you today?'. No 'Please provide the following information.' No bullet-point forms. One or two short paragraphs, then one clear question or next step.",
     "NEVER create false urgency, fake scarcity, fake discounts, fake testimonials or religious pressure. If asked whether you are AI, answer truthfully.",
   );
+
+  lines.push(behavioralInstruction(intel.behavior));
 
   return lines.filter(Boolean).join("\n");
 }

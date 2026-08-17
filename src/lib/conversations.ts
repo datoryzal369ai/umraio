@@ -27,6 +27,20 @@ export type ConversationIntelligenceSnapshot = {
   next_best_action?: string;
   missing?: string[];
   quality_score?: number;
+  /** Step 3.7 — behavioural sales psychology snapshot (observed behaviour only). */
+  behavior?: {
+    strategy?: string;
+    trust?: { value?: string; confidence?: number };
+    hesitation?: { value?: string; confidence?: number };
+    price_sensitivity?: { value?: string; confidence?: number };
+    decision_readiness?: { value?: string; confidence?: number };
+    closing_readiness?: { value?: string; confidence?: number };
+    value_dimensions?: string[];
+    decision_makers?: string[];
+    decision_maker_dependency?: boolean;
+    information_load?: string;
+    communication_traits?: string[];
+  };
   updated_at?: string;
 };
 

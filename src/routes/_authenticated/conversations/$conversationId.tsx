@@ -366,6 +366,25 @@ const HUMANISED: Record<string, string> = {
   ESCALATE: "Escalate to a colleague",
   NURTURE: "Nurture",
   STOP: "Hold — human handling",
+  ANSWER_FROM_CONTEXT: "Answer from what is already known",
+  SIMPLIFY_OPTIONS: "Simplify the options",
+  SUPPORT_DECISION_MAKER: "Support their decision process",
+  REDUCE_FRICTION: "Remove the last blocker",
+};
+
+const STRATEGY_LABEL: Record<string, string> = {
+  MOVE_TO_CLOSE: "Move to close",
+  VALUE_CLARIFICATION: "Clarify value",
+  PACKAGE_ALTERNATIVE: "Offer an alternative",
+  BUILD_TRUST: "Build trust",
+  SIMPLIFY_CHOICES: "Simplify choices",
+  SUPPORT_DECISION_PROCESS: "Support decision process",
+  REDUCE_FRICTION: "Reduce friction",
+  FACILITATE_BOOKING: "Facilitate booking",
+  REPAIR_EXPERIENCE: "Repair experience",
+  STOP_CONTACT: "Stop contact",
+  HUMAN_ASSIST: "Human assist",
+  UNDERSTAND_NEED: "Understand the need",
 };
 
 function SalesIntelligencePanel({
@@ -418,6 +437,45 @@ function SalesIntelligencePanel({
       ) : null}
       {snapshot.missing?.length ? (
         <p className="mt-1 text-xs text-muted-foreground">Still unknown: {snapshot.missing.join(", ")}</p>
+      ) : null}
+      {snapshot.behavior?.strategy ? (
+        <div className="mt-4 border-t border-border/60 pt-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Behavioural read
+          </p>
+          <p className="mt-2 text-sm">
+            <span className="text-muted-foreground">Strategy: </span>
+            {STRATEGY_LABEL[snapshot.behavior.strategy] ?? snapshot.behavior.strategy}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {[
+              ["Readiness", snapshot.behavior.decision_readiness?.value],
+              ["Trust", snapshot.behavior.trust?.value],
+              ["Hesitation", snapshot.behavior.hesitation?.value],
+              ["Price sensitivity", snapshot.behavior.price_sensitivity?.value],
+              ["Closing readiness", snapshot.behavior.closing_readiness?.value],
+            ]
+              .filter(([, v]) => v && v !== "UNKNOWN" && v !== "NONE")
+              .map(([label, v]) => (
+                <span
+                  key={label as string}
+                  className="rounded-full bg-muted px-3 py-1 text-[11px] font-medium capitalize text-muted-foreground"
+                >
+                  {label}: {String(v).replaceAll("_", " ").toLowerCase()}
+                </span>
+              ))}
+          </div>
+          {snapshot.behavior.decision_maker_dependency && snapshot.behavior.decision_makers?.length ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Waiting on: {snapshot.behavior.decision_makers.join(", ").toLowerCase()}
+            </p>
+          ) : null}
+          {snapshot.behavior.value_dimensions?.length ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Cares about: {snapshot.behavior.value_dimensions.join(", ").toLowerCase().replaceAll("_", " ")}
+            </p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
