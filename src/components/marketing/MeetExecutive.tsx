@@ -34,6 +34,8 @@ import {
   buildMeetExecutiveBrief,
   deriveMeetEvents,
 } from "@/lib/meet/b2b-executive.core";
+import { useLocale } from "@/lib/i18n/locale";
+import { siteCopy } from "@/lib/i18n/site.i18n";
 import {
   analyzeConversion,
   buildConversionBrief,
@@ -42,18 +44,13 @@ import {
 
 type Intent = "trial" | "demo" | "human";
 
-const INTENT_LABEL: Record<Intent, string> = {
-  trial: "Start free trial",
-  demo: "Book live demo",
-  human: "Talk to our team",
-};
+type MeetCopy = ReturnType<typeof siteCopy>["meet"];
 
-const GAP_STATUS_LABEL = {
-  DETECTED: "Detected",
-  ASSESSING: "Assessing",
-  COVERED: "Covered",
-  NOT_YET_ESTABLISHED: "Not yet established",
-} as const;
+function intentLabel(intent: Intent, t: MeetCopy): string {
+  if (intent === "trial") return t.ctaTrial;
+  if (intent === "demo") return t.ctaDemo;
+  return t.ctaHuman;
+}
 
 const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
   auto: "Auto / Natural",
@@ -62,6 +59,7 @@ const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
 };
 
 export function MeetExecutive() {
+  const t = siteCopy(useLocale().locale).meet;
   const [language, setLanguage] = useState<MeetLanguagePreference>("auto");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { role: "executive", content: OPENING_MESSAGE },
@@ -133,7 +131,7 @@ export function MeetExecutive() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-      <section className="panel flex min-w-0 flex-col p-4 sm:p-6" aria-label="Conversation">
+      <section className="panel flex min-w-0 flex-col p-4 sm:p-6" aria-label={t.conversationLabel}>
         <div className="flex items-center gap-3 border-b border-border/60 pb-3">
           <img
             src={raioAsset.url}
@@ -149,7 +147,7 @@ export function MeetExecutive() {
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Label htmlFor="meet-language" className="hidden text-[11px] text-muted-foreground sm:block">
-              Language
+              {t.language}
             </Label>
             <Select value={language} onValueChange={(v) => changeLanguage(v as MeetLanguagePreference)}>
               <SelectTrigger
@@ -197,7 +195,7 @@ export function MeetExecutive() {
           ))}
           {sending ? (
             <p className="mr-auto flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" aria-hidden /> Analysing your workflow…
+              <Loader2 className="size-3.5 animate-spin" aria-hidden /> {t.analysing}
             </p>
           ) : null}
         </div>
@@ -217,7 +215,7 @@ export function MeetExecutive() {
         >
           <div className="min-w-0 flex-1">
             <Label htmlFor="meet-input" className="sr-only">
-              Tell RAIŌ how your agency works
+              {t.inputLabel}
             </Label>
             <Textarea
               id="meet-input"
@@ -231,14 +229,14 @@ export function MeetExecutive() {
               }}
               rows={2}
               maxLength={1500}
-              placeholder="Tell RAIŌ how your agency works…"
+              placeholder={t.inputPlaceholder}
 
               className="min-h-11 resize-none"
             />
           </div>
           <Button type="submit" size="icon" className="size-11 shrink-0 rounded-xl" disabled={sending}>
             <Send className="size-4" aria-hidden />
-            <span className="sr-only">Send message</span>
+            <span className="sr-only">{t.sendMessage}</span>
           </Button>
         </form>
       </section>
@@ -246,10 +244,10 @@ export function MeetExecutive() {
       <div className="flex min-w-0 flex-col gap-6">
         <section className="panel p-4 sm:p-6" aria-labelledby="snapshot-heading">
           <h2 id="snapshot-heading" className="text-sm font-semibold tracking-tight">
-            UMRAIO business opportunity snapshot
+            {t.snapshotHeading}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
-            Derived only from what you tell the executive. Nothing is estimated or invented.
+            {t.snapshotNote}
           </p>
 
           <dl className="mt-4 grid gap-2">
@@ -265,7 +263,7 @@ export function MeetExecutive() {
           </dl>
 
           <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Opportunities detected
+            {t.opportunities}
           </h3>
           {visibleGaps.length ? (
             <ul className="mt-2 grid gap-2">
@@ -280,7 +278,7 @@ export function MeetExecutive() {
                           : "rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
                       }
                     >
-                      {GAP_STATUS_LABEL[gap.status]}
+                      {t.gapStatus[gap.status]}
                     </span>
                   </div>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
@@ -296,15 +294,14 @@ export function MeetExecutive() {
             </ul>
           ) : (
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-              Nothing established yet — tell the executive how your agency handles enquiries and this
-              will update live.
+              {t.nothingYet}
             </p>
           )}
 
           {intel.diagnosis ? (
             <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
               <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
-                Your UMRAIO business diagnosis™
+                {t.diagnosisHeading}
               </h3>
               <p className="mt-1.5 text-xs leading-relaxed">
                 {intel.headline} {intel.diagnosis.commercialRelevance}
@@ -323,7 +320,7 @@ export function MeetExecutive() {
             <div className="mt-4 rounded-lg border border-border/60 bg-card/40 px-3 py-2.5">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Value bridge
+                  {t.valueBridge}
                 </h3>
                 <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
                   {conversion.stateLabel}
@@ -338,7 +335,7 @@ export function MeetExecutive() {
               </ul>
               {conversion.demonstration ? (
                 <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                  Suggested demonstration: {conversion.demonstration.headline}.
+                  {t.suggestedDemonstration}: {conversion.demonstration.headline}.
                 </p>
               ) : null}
             </div>
@@ -347,7 +344,7 @@ export function MeetExecutive() {
           {recommended.length ? (
             <>
               <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                Recommended UMRAIO capabilities
+                {t.recommendedHeading}
               </h3>
               <ul className="mt-2 grid gap-1.5">
                 {recommended.map((c) => (
@@ -361,8 +358,7 @@ export function MeetExecutive() {
                 ))}
               </ul>
               <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-                These capabilities are designed to work together as an autonomous AI workforce
-                rather than as isolated tools, subject to appropriate governance.
+                {t.recommendedNote}
               </p>
             </>
           ) : null}
@@ -370,7 +366,7 @@ export function MeetExecutive() {
 
         <section className="panel p-4 sm:p-6" aria-labelledby="flow-heading">
           <h2 id="flow-heading" className="text-sm font-semibold tracking-tight">
-            How UMRAIO would execute
+            {t.flowHeading}
           </h2>
           <ol className="mt-3 grid gap-1.5">
             {EXECUTION_FLOW.map((step, i) => (
@@ -389,7 +385,7 @@ export function MeetExecutive() {
 
         <section className="panel p-4 sm:p-6" aria-labelledby="capabilities-heading">
           <h2 id="capabilities-heading" className="text-sm font-semibold tracking-tight">
-            The AI workforce
+            {t.workforceHeading}
           </h2>
           <ul className="mt-3 grid gap-1.5">
             {CAPABILITIES.map((c) => (
@@ -399,10 +395,10 @@ export function MeetExecutive() {
               >
                 <span className="min-w-0 flex-1 truncate text-xs font-medium">{c.name}</span>
                 {c.status === "active" ? (
-                  <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-label="Active" />
+                  <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-label={t.active} />
                 ) : (
                   <span className="shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
-                    Upcoming
+                    {t.upcoming}
                   </span>
                 )}
               </li>
@@ -412,14 +408,14 @@ export function MeetExecutive() {
 
         <section id="book-demo" className="panel scroll-mt-24 p-4 sm:p-6" aria-labelledby="convert-heading">
           <h2 id="convert-heading" className="text-base font-semibold tracking-tight">
-            Ready to see UMRAIO working with your agency?
+            {t.convertHeading}
           </h2>
           <div className="mt-4 flex flex-col gap-2.5">
             <Button
               className="btn-premium h-11 rounded-xl text-sm font-semibold text-background hover:bg-transparent"
               onClick={() => setIntent("trial")}
             >
-              Start Free Trial
+              {t.ctaTrial}
               <ArrowRight className="ml-1 size-4" aria-hidden />
             </Button>
             <Button
@@ -427,14 +423,14 @@ export function MeetExecutive() {
               className="btn-glass h-11 rounded-xl text-sm font-medium"
               onClick={() => setIntent("demo")}
             >
-              Book Live Demo
+              {t.ctaDemo}
             </Button>
             <Button
               variant="ghost"
               className="h-11 rounded-xl text-sm font-medium"
               onClick={() => setIntent("human")}
             >
-              Talk to our team
+              {t.ctaHuman}
             </Button>
           </div>
         </section>
@@ -473,6 +469,7 @@ function RequestDialog({
   onClose: () => void;
   snapshot: Record<string, unknown>;
 }) {
+  const t = siteCopy(useLocale().locale).meet;
   const [status, setStatus] = useState<"idle" | "saving" | "done" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -507,13 +504,13 @@ function RequestDialog({
       const data = (await res.json()) as { ok?: boolean; error?: string };
       if (!res.ok || !data.ok) {
         setStatus("error");
-        setMessage(data.error ?? "We could not record your request. Please try again.");
+        setMessage(data.error ?? t.dialog.failed);
         return;
       }
       setStatus("done");
     } catch {
       setStatus("error");
-      setMessage("Connection problem. Please try again.");
+      setMessage(t.dialog.connection);
     }
   }
 
@@ -521,49 +518,47 @@ function RequestDialog({
     <Dialog open={Boolean(intent)} onOpenChange={(open) => (open ? null : onClose())}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>{intent ? INTENT_LABEL[intent] : ""}</DialogTitle>
+          <DialogTitle>{intent ? intentLabel(intent, t) : ""}</DialogTitle>
           <DialogDescription>
-            Share only what our team needs to contact you. Your details are recorded for this
-            request.
+            {t.dialog.description}
           </DialogDescription>
         </DialogHeader>
 
         {status === "done" ? (
           <div className="grid gap-3 py-2">
             <p className="text-sm">
-              Your request has been recorded. Our team will contact you using the details you
-              provided.
+              {t.dialog.done}
             </p>
             <Button onClick={onClose} className="rounded-xl">
-              Close
+              {t.dialog.close}
             </Button>
           </div>
         ) : (
           <form className="grid gap-3" onSubmit={submit}>
             <div className="grid gap-1.5">
-              <Label htmlFor="full_name">Name</Label>
+              <Label htmlFor="full_name">{t.dialog.name}</Label>
               <Input id="full_name" name="full_name" required autoComplete="name" />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="agency_name">Agency name</Label>
+              <Label htmlFor="agency_name">{t.dialog.agencyName}</Label>
               <Input id="agency_name" name="agency_name" autoComplete="organization" />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.dialog.email}</Label>
               <Input id="email" name="email" type="email" required autoComplete="email" />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="whatsapp">WhatsApp</Label>
+              <Label htmlFor="whatsapp">{t.dialog.whatsapp}</Label>
               <Input id="whatsapp" name="whatsapp" inputMode="tel" autoComplete="tel" />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="agency_size">Agency size</Label>
-                <Input id="agency_size" name="agency_size" placeholder="e.g. 8 staff" />
+                <Label htmlFor="agency_size">{t.dialog.agencySize}</Label>
+                <Input id="agency_size" name="agency_size" placeholder={t.dialog.agencySizePlaceholder} />
               </div>
               <div className="grid gap-1.5">
-                <Label htmlFor="monthly_enquiries">Monthly enquiries</Label>
-                <Input id="monthly_enquiries" name="monthly_enquiries" placeholder="e.g. 300" />
+                <Label htmlFor="monthly_enquiries">{t.dialog.monthlyEnquiries}</Label>
+                <Input id="monthly_enquiries" name="monthly_enquiries" placeholder={t.dialog.monthlyEnquiriesPlaceholder} />
               </div>
             </div>
 
@@ -578,7 +573,7 @@ function RequestDialog({
                 {status === "saving" ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden />
                 ) : null}
-                Submit request
+                {t.dialog.submit}
               </Button>
             </DialogFooter>
           </form>

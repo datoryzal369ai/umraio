@@ -34,6 +34,12 @@ type SectionCopy = {
   availablePlansNote: string;
   selectedPlan: string;
   currentPlanLabel: string;
+  selectedPlanHeading: string;
+  selectedPlanNote: string;
+  seats: string;
+  renews: string;
+  noActiveSubscription: string;
+  selectionRecorded: string;
 };
 
 export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
@@ -54,6 +60,15 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
       "Memilih pelan hanya merekod pilihan anda — ia bukan langganan berbayar yang aktif dan tiada bayaran dikutip di sini.",
     selectedPlan: "Pelan dipilih",
     currentPlanLabel: "Pelan semasa",
+    selectedPlanHeading: "Pelan dipilih",
+    selectedPlanNote:
+      "Pelan pilihan dan penggunaan anda. Pengaktifan langganan berbayar disahkan oleh pasukan UMRAIO.",
+    seats: "Seats",
+    renews: "Pembaharuan",
+    noActiveSubscription:
+      "Tiada langganan berbayar aktif — pembayaran belum dilaksanakan.",
+    selectionRecorded:
+      "Pilihan pelan direkod. Tiada bayaran dikutip — pasukan kami akan sahkan pengaktifan.",
   },
   en: {
     eyebrow: "Pricing",
@@ -72,6 +87,14 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
       "Selecting a plan records your selected plan only — it is not an active paid subscription and no payment is taken here.",
     selectedPlan: "Selected plan",
     currentPlanLabel: "Current plan",
+    selectedPlanHeading: "Selected plan",
+    selectedPlanNote:
+      "Your selected plan and usage. Paid subscription activation is confirmed by the UMRAIO team.",
+    seats: "Seats",
+    renews: "Renews",
+    noActiveSubscription: "No active paid subscription — payment is not yet implemented.",
+    selectionRecorded:
+      "Plan selection recorded. No payment has been taken — our team confirms activation.",
   },
 };
 

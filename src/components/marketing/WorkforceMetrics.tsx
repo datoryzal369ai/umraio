@@ -1,43 +1,26 @@
 import { BrainCircuit, BotMessageSquare, Clock3, TrendingUp, Zap } from "lucide-react";
 
+import { useLocale } from "@/lib/i18n/locale";
+import { siteCopy } from "@/lib/i18n/site.i18n";
 import { cn } from "@/lib/utils";
 
-type Metric = {
+/** Canonical figures — never translated. */
+const METRIC_VALUES = ["24/7", "3×", "85%", "100%"] as const;
+const METRIC_ICONS = [Clock3, TrendingUp, Zap, BrainCircuit];
+
+function MetricModule({
+  value,
+  label,
+  micro,
+  icon: Icon,
+  index,
+}: {
   value: string;
   label: string;
   micro: string;
   icon: React.ElementType;
-};
-
-const metrics: Metric[] = [
-  {
-    value: "24/7",
-    label: "Always working",
-    micro: "Your AI workforce never sleeps.",
-    icon: Clock3,
-  },
-  {
-    value: "3×",
-    label: "More leads",
-    micro: "Instant, intelligent engagement.",
-    icon: TrendingUp,
-  },
-  {
-    value: "85%",
-    label: "Time saved",
-    micro: "Repetitive work runs itself.",
-    icon: Zap,
-  },
-  {
-    value: "100%",
-    label: "AI-powered",
-    micro: "Always learning, always improving.",
-    icon: BrainCircuit,
-  },
-];
-
-function MetricModule({ metric, index }: { metric: Metric; index: number }) {
-  const Icon = metric.icon;
+  index: number;
+}) {
   return (
     <div
       className={cn(
@@ -51,15 +34,15 @@ function MetricModule({ metric, index }: { metric: Metric; index: number }) {
         </span>
         <div className="min-w-0">
           <p className="text-2xl font-extrabold leading-none tracking-tight text-primary sm:text-4xl">
-            {metric.value}
+            {value}
           </p>
           <p className="mt-1.5 text-[9px] font-medium uppercase tracking-[0.2em] text-foreground/80 sm:text-[11px]">
-            {metric.label}
+            {label}
           </p>
         </div>
       </div>
       <p className="mt-3 text-[11px] font-light leading-relaxed text-muted-foreground sm:text-xs">
-        {metric.micro}
+        {micro}
       </p>
     </div>
   );
@@ -67,9 +50,11 @@ function MetricModule({ metric, index }: { metric: Metric; index: number }) {
 
 /** Premium AI workforce intelligence panel: four performance signals around one AI core. */
 export function WorkforceMetrics({ className }: { className?: string }) {
+  const t = siteCopy(useLocale().locale).metrics;
+
   return (
     <section
-      aria-label="UMRAIO AI workforce performance signals"
+      aria-label={t.sectionLabel}
       className={cn("umr-reveal panel relative w-full overflow-hidden p-5 sm:p-8", className)}
       style={{ animationDelay: "360ms" }}
     >
@@ -101,10 +86,16 @@ export function WorkforceMetrics({ className }: { className?: string }) {
           className="umr-signal-line pointer-events-none absolute left-1/2 top-1/2 hidden h-px w-[26%] -translate-y-1/2 sm:block"
         />
 
-        <MetricModule metric={metrics[0]!} index={0} />
-        <MetricModule metric={metrics[1]!} index={1} />
-        <MetricModule metric={metrics[2]!} index={2} />
-        <MetricModule metric={metrics[3]!} index={3} />
+        {t.items.map((item, i) => (
+          <MetricModule
+            key={item.label}
+            value={METRIC_VALUES[i]!}
+            label={item.label}
+            micro={item.micro}
+            icon={METRIC_ICONS[i]!}
+            index={i}
+          />
+        ))}
 
         {/* central AI intelligence hub */}
         <span

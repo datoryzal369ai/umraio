@@ -1,6 +1,8 @@
 import umraioAsset from "@/assets/umraio-official-wordmark.png.asset.json";
 import umraverseAsset from "@/assets/umraverse-logo.png.asset.json";
 import renaioAsset from "@/assets/renaio-core-logo.png.asset.json";
+import { useLocale } from "@/lib/i18n/locale";
+import { siteCopy } from "@/lib/i18n/site.i18n";
 import { cn } from "@/lib/utils";
 
 function Connector() {
@@ -22,6 +24,8 @@ function Label({ children }: { children: React.ReactNode }) {
 
 /** Single source of truth for the UMRAIO brand architecture + corporate attribution. */
 export function BrandArchitecture({ className }: { className?: string }) {
+  const t = siteCopy(useLocale().locale).footer;
+
   return (
     <footer
       className={cn("border-t border-border/50 px-6 py-20 sm:px-10 sm:py-28", className)}
@@ -36,13 +40,13 @@ export function BrandArchitecture({ className }: { className?: string }) {
           className="h-auto w-full max-w-[260px] object-contain mix-blend-screen sm:max-w-[340px]"
         />
         <p className="mt-3 text-[10px] font-light uppercase leading-[1.6] tracking-[0.3em] text-muted-foreground sm:text-[11px]">
-          Autonomous AI Business Executive
+          {t.tagline}
         </p>
 
         <Connector />
 
         {/* SECONDARY — RÉNAIO.CORE */}
-        <Label>Powered by</Label>
+        <Label>{t.poweredBy}</Label>
         <img
           src={renaioAsset.url}
           alt="RÉNAIO.CORE™ — The Autonomous Intelligence Core"
@@ -53,18 +57,18 @@ export function BrandArchitecture({ className }: { className?: string }) {
         <Connector />
 
         {/* GOVERNANCE — ISLAMIC IMPLEMENTATION LAYER */}
-        <Label>Governed by</Label>
+        <Label>{t.governedBy}</Label>
         <p className="mt-3 text-sm font-semibold tracking-tight text-foreground/85">
           Islamic Implementation Layer™
         </p>
         <p className="mt-1.5 text-[10px] font-light uppercase tracking-[0.28em] text-muted-foreground/70">
-          Principles • Halal • Ethics • Governance
+          {t.governancePillars}
         </p>
 
         <Connector />
 
         {/* TERTIARY — UMRAVERSE */}
-        <Label>Part of</Label>
+        <Label>{t.partOf}</Label>
         <img
           src={umraverseAsset.url}
           alt="UMRAVERSE® — Your Umrah Universe"
@@ -72,11 +76,10 @@ export function BrandArchitecture({ className }: { className?: string }) {
           className="mt-6 h-auto w-full max-w-[200px] object-contain mix-blend-screen sm:max-w-[260px]"
         />
 
-
         <Connector />
 
         {/* CORPORATE OWNER */}
-        <Label>Developed and owned by</Label>
+        <Label>{t.ownedBy}</Label>
         <p className="mt-3 text-sm font-medium tracking-tight text-foreground/80">
           Digital Renaissance Metaverse
         </p>
@@ -86,25 +89,24 @@ export function BrandArchitecture({ className }: { className?: string }) {
             href="/privacy-policy"
             className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
           >
-            Privacy Policy
+            {t.privacy}
           </a>
           <a
             href="/terms"
             className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
           >
-            Terms of Service
+            {t.terms}
           </a>
           <a
             href="/data-deletion"
             className="transition-colors hover:text-primary hover:underline hover:underline-offset-4"
           >
-            Data Deletion
+            {t.dataDeletion}
           </a>
         </div>
 
-
         <p className="mt-8 text-xs font-light text-muted-foreground/60">
-          © {new Date().getFullYear()} UMRAIO®. All rights reserved.
+          © {new Date().getFullYear()} UMRAIO®. {t.rights}
         </p>
       </div>
     </footer>
