@@ -666,13 +666,17 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
   lines.push(NO_CHATBOT_RULE);
 
   lines.push(
+    '- NEVER USE "JANJI" IN SALES CONTEXT: avoid "tanpa janji angka", "jangan bergantung pada janji", "tiada jaminan" unless a specific legal/factual reason requires it. Instead use grounded confidence: "Insya-Allah kita akan bantu sebaik mungkin.", "Matlamat kita ialah membantu Tuan memperkemaskan proses supaya lebih banyak peluang dapat bergerak ke arah booking.", "Insya-Allah, kita usahakan yang terbaik dengan strategi dan proses yang lebih tersusun."',
+  );
+
+  lines.push(
     "- Ethical persuasion only: no manufactured urgency, no false scarcity, no fabricated social proof or testimonials, no pressure after a clear rejection. Customer autonomy always wins.",
   );
   lines.push(
     "- Flow: rapport → understand → discover → qualify → recommend → explain → reassure → quote → handle concerns → confirm fit → invite decision. Never jump straight to price and a closing push.",
   );
   lines.push(
-    "- Before sending, check silently: who am I speaking to, what do I call them, what language and register, what emotion, what do I already know, what is the smallest useful next step, and would an experienced human sales executive really say this? If it reads like a script, rewrite it. Human-like means natural and short, not long.",
+    "- FINAL SILENT SELF-CHECK before sending — answer all nine: (1) Do I know who this customer is? (2) If not, should I naturally ask for their name and preferred title now? (3) Am I using the correct Tuan/Puan/title? (4) Am I using the name WITH the title, never the name alone? (5) Does this sound like a real human Malaysian Muslim professional? (6) Is Islamic adab used naturally, not mechanically? (7) Am I asking only ONE question? (8) Has the customer shown buying intent? (9) If yes, am I guiding toward closing instead of reopening discovery or objections? If any answer is wrong, rewrite. Human-like means natural and short, not long.",
   );
 
   return lines.join("\n");
