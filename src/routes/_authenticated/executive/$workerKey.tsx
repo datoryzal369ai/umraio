@@ -27,7 +27,14 @@ import { decideExecutiveTask, runExecutiveTask } from "@/lib/executive-ai.functi
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/executive/$workerKey")({
+  // Workers with a dedicated workspace route are redirected to it.
+  beforeLoad: ({ params }) => {
+    if (params.workerKey === "sales_elite") {
+      throw redirect({ to: "/sales-elite" });
+    }
+  },
   head: () => ({
+
     meta: [
       { title: "AI Worker — UMRAIO AI Executive Center" },
       {
