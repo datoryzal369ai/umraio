@@ -160,52 +160,96 @@ function ExecutiveCenter() {
         />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        {workers.isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)
-          : (workers.data ?? []).map((worker) => {
-              const Icon = workerIcon[worker.worker_key] ?? Bot;
-              const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
-              return (
-                <article key={worker.id} className="panel flex min-w-0 flex-col gap-4 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
-                      <div className="rounded-xl border border-border/60 bg-surface p-2.5">
-                        <Icon className="size-5 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <h2 className="truncate text-base font-semibold">{worker.name}</h2>
-                        <p className="text-xs text-muted-foreground">{worker.description}</p>
-                      </div>
-                    </div>
-                    <Badge className={cn("shrink-0 border-0", STATUS_TONE[status])}>
-                      {STATUS_LABEL[status]}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="min-w-0 text-xs text-muted-foreground">
-                      {worker.last_run_at ? copy.lastRun(relative(worker.last_run_at)) : copy.notRunYet}
-                      {" · "}
-                      {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
-                    </p>
-                    <Button asChild size="sm" variant="outline">
-                      {WORKER_ROUTES[worker.worker_key] ? (
-                        <Link to={WORKER_ROUTES[worker.worker_key]!}>{copy.openWorker}</Link>
-                      ) : (
-                        <Link
-                          to="/executive/$workerKey"
-                          params={{ workerKey: worker.worker_key }}
-                        >
-                          {copy.openWorker}
-                        </Link>
-                      )}
-                    </Button>
+      <section className="bg-premium-workforce relative rounded-3xl p-5 sm:p-8">
+        <div className="relative">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/85">
+                {copy.workforceEyebrow ?? "AI Workforce"}
+              </p>
+              <h2 className="mt-1 font-display text-2xl font-extrabold tracking-tight text-gradient-premium sm:text-3xl">
+                {copy.workforceTitle ?? "Elite Autonomous Workforce"}
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm font-light text-muted-foreground">
+                {copy.workforceSubtitle ??
+                  "Specialist AI executives working around the clock — precise, professional, and aligned with your agency."}
+              </p>
+            </div>
+            <div className="hidden items-center gap-2 text-xs font-medium text-primary/90 sm:flex">
+              <span className="relative flex size-2">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-70" />
+                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+              </span>
+              {copy.workforceLiveLabel ?? "Live Operations"}
+            </div>
+          </div>
 
-                  </div>
-                </article>
-              );
-            })}
+          <div className="grid gap-4 md:grid-cols-2">
+            {workers.isLoading
+              ? Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-48 rounded-2xl" />
+                ))
+              : (workers.data ?? []).map((worker) => {
+                  const Icon = workerIcon[worker.worker_key] ?? Bot;
+                  const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
+                  return (
+                    <article
+                      key={worker.id}
+                      className="panel-premium flex min-w-0 flex-col gap-4 p-5"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <div className="icon-premium grid size-11 shrink-0 place-items-center rounded-xl">
+                            <Icon className="size-5 text-primary" />
+                          </div>
+                          <div className="min-w-0">
+                            <h3 className="truncate text-base font-bold">{worker.name}</h3>
+                            <p className="text-xs leading-relaxed text-muted-foreground">
+                              {worker.description}
+                            </p>
+                          </div>
+                        </div>
+                        <Badge
+                          className={cn(
+                            "shrink-0 border-0 px-2.5 py-0.5 text-[11px] font-semibold",
+                            STATUS_TONE[status],
+                          )}
+                        >
+                          {STATUS_LABEL[status]}
+                        </Badge>
+                      </div>
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="min-w-0 text-xs text-muted-foreground">
+                          {worker.last_run_at
+                            ? copy.lastRun(relative(worker.last_run_at))
+                            : copy.notRunYet}
+                          {" · "}
+                          {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
+                        </p>
+                        <Button
+                          asChild
+                          size="sm"
+                          className="rounded-full border-primary/40 bg-primary/10 px-4 text-primary hover:bg-primary/20 hover:text-primary"
+                        >
+                          {WORKER_ROUTES[worker.worker_key] ? (
+                            <Link to={WORKER_ROUTES[worker.worker_key]!}>{copy.openWorker}</Link>
+                          ) : (
+                            <Link
+                              to="/executive/$workerKey"
+                              params={{ workerKey: worker.worker_key }}
+                            >
+                              {copy.openWorker}
+                            </Link>
+                          )}
+                        </Button>
+                      </div>
+                    </article>
+                  );
+                })}
+          </div>
+        </div>
       </section>
+
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="panel min-w-0 p-5">
