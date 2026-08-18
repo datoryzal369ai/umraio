@@ -217,7 +217,7 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
           : null,
       } as EliteDeskItem;
     })
-    .filter((x) => x !== null)
+    .filter((x): x is EliteDeskItem => x !== null)
     .sort((a, b) => {
       const rank = (i: EliteDeskItem) =>
         (i.read.escalate ? 0 : i.read.psychology.readiness === "high" ? 1 : 2) * 1000 - i.score;
