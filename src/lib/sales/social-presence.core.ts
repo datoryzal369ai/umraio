@@ -393,9 +393,14 @@ export type SocialProfile = {
   needsIntroduction: boolean;
   /** Facts already stated by the customer that must never be re-asked. */
   rememberedFacts: string[];
+  /** True when the customer opened with salam — the reply must return it. */
+  greetedWithSalam: boolean;
+  /** Where an Islamic expression would land naturally in this turn, if anywhere. */
+  adabOpenings: AdabOpening[];
 };
 
 const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+
 
 export function buildSocialProfile(input: {
   messages: SocialMessage[];
