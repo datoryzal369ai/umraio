@@ -27,13 +27,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { useCopy } from "@/lib/i18n/dict";
+import { EXECUTIVE_DICT } from "@/lib/i18n/app/executive.i18n";
 
-const relative = (iso: string) => {
+const relative = (
+  iso: string,
+  t: { justNow: string; minAgo: (n: number) => string; hAgo: (n: number) => string; dAgo: (n: number) => string },
+) => {
   const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
-  return `${Math.round(mins / 1440)}d ago`;
+  if (mins < 1) return t.justNow;
+  if (mins < 60) return t.minAgo(mins);
+  if (mins < 1440) return t.hAgo(Math.round(mins / 60));
+  return t.dAgo(Math.round(mins / 1440));
 };
 
 type GovernedOutcome =
@@ -42,6 +47,7 @@ type GovernedOutcome =
   | { status: "failed"; error: string };
 
 export function OrchestrationPanel() {
+  const t = useCopy(EXECUTIVE_DICT).orchestration;
   const queryClient = useQueryClient();
   const runCycle = useServerFn(runExecutiveCycle);
   const changeMode = useServerFn(setAutonomyMode);
@@ -61,7 +67,7 @@ export function OrchestrationPanel() {
   const modeMutation = useMutation({
     mutationFn: async (mode: AutonomyMode) => await changeMode({ data: { mode } }),
     onSuccess: (_res, mode) => {
-      toast.success(`AI autonomy set to ${AUTONOMY_LABEL[mode]}.`);
+      toast.success(t.toastAutonomySet(AUTONOMY_LABEL[mode]));
       void queryClient.invalidateQueries({ queryKey: ["executive-autonomy"] });
     },
     onError: (error: unknown) =>
@@ -73,11 +79,9 @@ export function OrchestrationPanel() {
     onSuccess: (outcome) => {
       if (outcome.status === "completed") {
         setLive(outcome.cycle);
-        toast.success(
-          `Orchestration cycle finished — ${outcome.cycle.actionsExecuted} action(s) executed of ${outcome.cycle.actionsAttempted} attempted.`,
-        );
+        toast.success(t.toastCycleFinished(outcome.cycle.actionsExecuted, outcome.cycle.actionsAttempted));
       } else if (outcome.status === "skipped") {
-        toast.info(SKIP_LABEL[outcome.reason] ?? `Cycle skipped — ${outcome.reason}`);
+        toast.info(SKIP_LABEL[outcome.reason] ?? `${outcome.reason}`);
       } else {
         toast.error(outcome.error);
       }
@@ -88,7 +92,7 @@ export function OrchestrationPanel() {
       void queryClient.invalidateQueries({ queryKey: ["sales-opportunities"] });
     },
     onError: (error: unknown) => {
-      toast.error(error instanceof Error ? error.message : "Orchestration cycle failed.");
+      toast.error(error instanceof Error ? error.message : t.toastCycleFailedFallback);
     },
   });
 
@@ -107,18 +111,18 @@ export function OrchestrationPanel() {
       : null;
 
   const status = running || state?.runningCycle
-    ? { label: "Orchestrating", tone: "bg-primary/15 text-primary" }
+    ? { label: t.runningCycle.replace("…", ""), tone: "bg-primary/15 text-primary" }
     : cycle && cycle.decisions.some((d) => d.result === "failed")
-      ? { label: "Failed", tone: "bg-destructive/15 text-destructive" }
+      ? { label: RESULT_LABEL.failed, tone: "bg-destructive/15 text-destructive" }
       : cycle && cycle.decisions.some((d) => d.result === "escalated")
-        ? { label: "Escalated", tone: "bg-chart-4/15 text-chart-4" }
+        ? { label: RESULT_LABEL.escalated, tone: "bg-chart-4/15 text-chart-4" }
         : cycle && cycle.actionsExecuted > 0
-          ? { label: "Completed", tone: "bg-success/15 text-success" }
+          ? { label: RESULT_LABEL.executed, tone: "bg-success/15 text-success" }
           : mode === "assisted"
-            ? { label: "Advisory", tone: "bg-muted text-muted-foreground" }
+            ? { label: t.autonomyAssisted.split(" —")[0], tone: "bg-muted text-muted-foreground" }
             : cycle
-              ? { label: "No action taken", tone: "bg-muted text-muted-foreground" }
-              : { label: "Idle", tone: "bg-muted text-muted-foreground" };
+              ? { label: t.noPermittedAction, tone: "bg-muted text-muted-foreground" }
+              : { label: t.autonomyOff.split(" —")[0], tone: "bg-muted text-muted-foreground" };
 
   return (
     <section aria-labelledby="orchestration-heading" className="panel min-w-0 p-5">
