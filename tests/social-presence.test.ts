@@ -104,3 +104,41 @@ describe("STEP 3D — Human Presence & Social Intelligence Engine", () => {
     expect(text).toMatch(/never invent verification/i);
   });
 });
+
+describe("STEP 3D.1 — name & honorific evidence rules", () => {
+  it("keeps the plain name when no title was given", () => {
+    const a = resolveAddress({ customerMessages: ["Nama saya Rizal"] });
+    expect(a.name).toBe("Rizal");
+    expect(a.honorific).toBeNull();
+    expect(a.addressForm).toBe("Rizal");
+  });
+
+  it("echoes a self-stated honorific with the real name", () => {
+    const a = resolveAddress({ customerMessages: ["Saya Dato' Rizal"] });
+    expect(a.addressForm).toBe("Dato' Rizal");
+    expect(a.honorificSource).toBe("self_stated");
+  });
+
+  it("uses a trusted-context honorific when only the name is given", () => {
+    const a = resolveAddress({ customerMessages: ["Nama saya Rizal"], trustedHonorific: "Dato'" });
+    expect(a.addressForm).toBe("Dato' Rizal");
+    expect(a.honorificSource).toBe("trusted_context");
+  });
+
+  it("respects an explicit name-only preference", () => {
+    const a = resolveAddress({ customerMessages: ["Panggil saya Rizal sahaja"], trustedHonorific: "Dato'" });
+    expect(a.honorificDeclined).toBe(true);
+    expect(a.addressForm).toBe("Rizal");
+  });
+
+  it("keeps compound formal titles intact", () => {
+    const a = resolveAddress({ customerMessages: ["Saya Tuan Haji Ahmad"] });
+    expect(a.addressForm).toBe("Tuan Haji Ahmad");
+  });
+
+  it("asks for the name first at first contact", () => {
+    const profile = buildSocialProfile({ messages: [{ sender: "customer", body: "Assalamualaikum" }] });
+    expect(profile.needsIntroduction).toBe(true);
+    expect(socialPresenceInstruction(profile)).toContain("FIRST CONTACT");
+  });
+});
