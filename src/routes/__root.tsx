@@ -251,12 +251,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <AuthSync />
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <Toaster position="top-right" richColors />
-      </AuthProvider>
+      <LocaleProvider>
+        <AuthProvider>
+          <AuthSync />
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <Toaster position="top-right" richColors />
+        </AuthProvider>
+      </LocaleProvider>
     </QueryClientProvider>
   );
 }
