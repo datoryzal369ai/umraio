@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/meet")({
   head: () => ({
     meta: [
-      { title: "Meet Your AI Business Executive™ | UMRAIO®" },
+      { title: "Meet Your UMRAIO Executive™ | UMRAIO®" },
       {
         name: "description",
         content:
           "Tell UMRAIO about your Umrah agency and let its AI Autonomous Business Executive™ identify where automation can improve your sales workflow — before you subscribe.",
       },
-      { property: "og:title", content: "Meet Your AI Business Executive™ | UMRAIO®" },
+      { property: "og:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
       {
         property: "og:description",
         content:
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/meet")({
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://umraio.com/meet" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Meet Your AI Business Executive™ | UMRAIO®" },
+      { name: "twitter:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
       {
         name: "twitter:description",
         content:
@@ -55,7 +55,7 @@ function MeetPage() {
         <main className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
           <section className="mx-auto max-w-3xl text-center">
             <h1 className="text-balance text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-              Meet Your <span className="text-gradient-brand">AI Business Executive</span>
+              Meet Your <span className="text-gradient-brand">UMRAIO Executive</span>
               <sup className="ml-0.5 align-super text-[0.5em] leading-none">™</sup>
             </h1>
             <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground sm:text-base">

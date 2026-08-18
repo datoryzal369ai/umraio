@@ -17,9 +17,13 @@ import {
   CAPABILITIES,
   EXECUTION_FLOW,
   OPENING_MESSAGE,
-  deriveSnapshot,
   type DemoMessage,
 } from "@/lib/meet-executive.core";
+import {
+  analyzeMeetConversation,
+  buildMeetExecutiveBrief,
+  deriveMeetEvents,
+} from "@/lib/meet/b2b-executive.core";
 
 type Intent = "trial" | "demo" | "human";
 
@@ -28,6 +32,13 @@ const INTENT_LABEL: Record<Intent, string> = {
   demo: "Book live demo",
   human: "Talk to our team",
 };
+
+const GAP_STATUS_LABEL = {
+  DETECTED: "Detected",
+  ASSESSING: "Assessing",
+  COVERED: "Covered",
+  NOT_YET_ESTABLISHED: "Not yet established",
+} as const;
 
 export function MeetExecutive() {
   const [messages, setMessages] = useState<DemoMessage[]>([
@@ -39,9 +50,10 @@ export function MeetExecutive() {
   const [intent, setIntent] = useState<Intent | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  const snapshot = useMemo(() => deriveSnapshot(messages), [messages]);
+  const intel = useMemo(() => analyzeMeetConversation(messages), [messages]);
+  const visibleGaps = intel.gaps.filter((g) => g.status !== "NOT_YET_ESTABLISHED");
   const recommended = CAPABILITIES.filter(
-    (c) => c.status === "active" && snapshot.recommended.includes(c.key),
+    (c) => c.status === "active" && intel.recommendedCapabilities.includes(c.key),
   );
 
   useEffect(() => {
@@ -83,7 +95,7 @@ export function MeetExecutive() {
             <Sparkles className="size-4 text-primary" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">AI Autonomous Business Executive™</p>
+            <p className="truncate text-sm font-semibold">Meet Your UMRAIO Executive™</p>
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               Demonstration mode · AI, not a human
             </p>
@@ -171,9 +183,9 @@ export function MeetExecutive() {
           </p>
 
           <dl className="mt-4 grid gap-2">
-            {snapshot.state.map((row) => (
+            {intel.snapshot.map((row) => (
               <div
-                key={row.label}
+                key={row.key}
                 className="flex items-center justify-between gap-3 rounded-lg border border-border/50 px-3 py-2"
               >
                 <dt className="text-xs text-muted-foreground">{row.label}</dt>
@@ -185,37 +197,55 @@ export function MeetExecutive() {
           <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Opportunities detected
           </h3>
-          <ul className="mt-2 grid gap-2">
-            {snapshot.gaps.map((gap) => (
-              <li key={gap.key} className="rounded-lg border border-border/50 px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium">{gap.label}</span>
-                  <span
-                    className={
-                      gap.status === "opportunity"
-                        ? "rounded-full border border-primary/40 px-2 py-0.5 text-[9px] uppercase tracking-wider text-primary"
-                        : "rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
-                    }
-                  >
-                    {gap.status === "opportunity"
-                      ? "Opportunity"
-                      : gap.status === "partial"
-                        ? "Partial"
-                        : "Insufficient data"}
-                  </span>
-                </div>
-                {gap.status === "insufficient" ? null : (
+          {visibleGaps.length ? (
+            <ul className="mt-2 grid gap-2">
+              {visibleGaps.map((gap) => (
+                <li key={gap.key} className="rounded-lg border border-border/50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium">{gap.label}</span>
+                    <span
+                      className={
+                        gap.status === "DETECTED"
+                          ? "rounded-full border border-primary/40 px-2 py-0.5 text-[9px] uppercase tracking-wider text-primary"
+                          : "rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
+                      }
+                    >
+                      {GAP_STATUS_LABEL[gap.status]}
+                    </span>
+                  </div>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
                     {gap.detail}
                   </p>
-                )}
-              </li>
-            ))}
-          </ul>
+                  {gap.status === "DETECTED" && gap.consequence ? (
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      {gap.consequence}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Nothing established yet — tell the executive how your agency handles enquiries and this
+              will update live.
+            </p>
+          )}
 
-          {snapshot.headline ? (
+          {intel.diagnosis ? (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Your UMRAIO business diagnosis™
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed">
+                {intel.headline} {intel.diagnosis.commercialRelevance}
+              </p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                {intel.diagnosis.nextStep}
+              </p>
+            </div>
+          ) : intel.headline ? (
             <p className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs leading-relaxed">
-              {snapshot.headline}
+              {intel.headline}
             </p>
           ) : null}
 
@@ -319,10 +349,13 @@ export function MeetExecutive() {
         intent={intent}
         onClose={() => setIntent(null)}
         snapshot={{
-          state: snapshot.state,
-          opportunities: snapshot.gaps
-            .filter((g) => g.status === "opportunity")
-            .map((g) => g.label),
+          state: intel.snapshot,
+          opportunities: intel.detectedGaps.map((g) => g.label),
+          stage: intel.stage,
+          next_best_action: intel.nextBestAction,
+          language: intel.language,
+          events: [...deriveMeetEvents(intel), "conversion_cta_clicked"],
+          executive_brief: buildMeetExecutiveBrief(intel),
         }}
       />
     </div>
