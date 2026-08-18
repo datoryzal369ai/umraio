@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-import raioAsset from "@/assets/raio-executive.png.asset.json";
+import raioAsset from "@/assets/raio-robot.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MeetExecutive } from "@/components/marketing/MeetExecutive";
 import { Button } from "@/components/ui/button";
