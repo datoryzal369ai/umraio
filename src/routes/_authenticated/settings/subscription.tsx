@@ -6,14 +6,17 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { UsagePanel } from "@/components/settings/UsagePanel";
+import { publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 import {
-  formatPlanPrice,
-  foundingSavings,
-  foundingNote,
-  publicPlans,
-  resolveDisplayPlan,
-} from "@/lib/billing/pricing.core";
+  PRICING_SECTION_COPY,
+  localizedPlanPrice,
+  localizedReferencePrice,
+  localizedSavings,
+  planCopy,
+} from "@/lib/billing/pricing.i18n";
+import { useLocale } from "@/lib/i18n/locale";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +41,8 @@ export const Route = createFileRoute("/_authenticated/settings/subscription")({
 
 function SubscriptionPage() {
   const queryClient = useQueryClient();
+  const { locale } = useLocale();
+  const copy = PRICING_SECTION_COPY[locale];
   const { data: agency } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
   const { data: settings, isLoading } = useQuery({
     queryKey: ["agency-settings", agency?.id],
@@ -116,20 +121,23 @@ function SubscriptionPage() {
           <div className="rounded-xl border border-border/60 bg-surface p-2.5">
             <Sparkles className="size-4 text-primary" />
           </div>
-          <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
-            <p className="text-xs text-muted-foreground">
-              Selecting a plan records your <strong>selected plan</strong> only — it is not an
-              active paid subscription and no payment is taken here. Usage limits stay governed by
-              your confirmed entitlement.
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <h2 className="font-display text-base font-semibold tracking-tight">
+                {copy.availablePlans}
+              </h2>
+              <LanguageSelector />
+            </div>
+            <p className="text-xs text-muted-foreground">{copy.availablePlansNote}</p>
           </div>
         </header>
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {publicPlans().map((plan) => {
             const active = plan.id === settings.plan;
-            const note = foundingNote(plan);
+            const text = planCopy(plan, locale);
+            const reference = localizedReferencePrice(plan, locale);
+            const savings = localizedSavings(plan, locale);
             return (
               <div
                 key={plan.id}
@@ -139,21 +147,18 @@ function SubscriptionPage() {
                 )}
               >
                 <p className="font-display text-lg font-bold">{plan.baseName}</p>
-                <p className="text-xs text-muted-foreground">{plan.subtitle}</p>
-                <p className="mt-2 text-sm text-muted-foreground">{formatPlanPrice(plan)}</p>
-                {note ? (
-                  <p className="text-xs text-muted-foreground">
-                    {note}
-                    <span className="ml-1 line-through">RM{plan.referencePriceMyrMonthly}/month</span>
-                  </p>
+                <p className="text-xs text-muted-foreground">{text.subtitle}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {localizedPlanPrice(plan, locale)}
+                </p>
+                {reference ? (
+                  <p className="text-xs text-muted-foreground line-through">{reference}</p>
                 ) : null}
-                {foundingSavings(plan) ? (
-                  <p className="mt-1 text-xs font-semibold text-primary">
-                    Jimat RM{foundingSavings(plan)}/bulan
-                  </p>
+                {savings ? (
+                  <p className="mt-1 text-xs font-semibold text-primary">{savings}</p>
                 ) : null}
                 <ul className="mt-4 flex-1 space-y-2 text-sm">
-                  {plan.features.map((feature) => (
+                  {text.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
                       <Check className="mt-0.5 size-4 shrink-0 text-primary" />
                       <span className="text-muted-foreground">{feature}</span>
@@ -166,7 +171,7 @@ function SubscriptionPage() {
                   disabled={active || choose.isPending || plan.cta === "talk_to_team"}
                   onClick={() => choose.mutate(plan.id)}
                 >
-                  {active ? "Selected plan" : plan.ctaLabel}
+                  {active ? copy.selectedPlan : text.ctaLabel}
                 </Button>
               </div>
             );
