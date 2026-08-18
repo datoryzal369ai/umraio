@@ -30,41 +30,13 @@ import { toast } from "sonner";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { Button } from "@/components/ui/button";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 import { cn } from "@/lib/utils";
-
-const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/executive", label: "AI Executive Center", icon: BrainCircuit },
-  { to: "/tasks", label: "AI Task Center", icon: ListChecks },
-  { to: "/crm", label: "CRM Pipeline", icon: KanbanSquare },
-  { to: "/leads", label: "Leads", icon: Users },
-  { to: "/conversations", label: "AI Inbox", icon: MessagesSquare },
-  { to: "/analytics", label: "AI Analytics", icon: BarChart3 },
-  { to: "/knowledge", label: "Knowledge Base", icon: BookOpen },
-  { to: "/settings/whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { to: "/settings/agency", label: "Settings", icon: Settings },
-  { to: "/profile", label: "Profile", icon: UserRound },
-] as const;
-
-/** Live AI workers, managed from the AI Executive Center. */
-const activeWorkers = [
-  { key: "whatsapp", label: "AI WhatsApp Executive", icon: MessageCircle },
-  { key: "marketing", label: "AI Marketing Executive", icon: Megaphone },
-  { key: "content", label: "AI Content Executive", icon: PenLine },
-  { key: "lead_intel", label: "AI Lead Intelligence", icon: Radar },
-] as const;
-
-/** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
-const futureModules = [
-  { label: "AI Sales Executive", icon: Handshake },
-  { label: "AI Quotation Executive", icon: FileText },
-  { label: "AI Follow-up Executive", icon: Repeat },
-  { label: "AI Customer Success Executive", icon: HeartHandshake },
-  { label: "AI Business Insights", icon: LineChart },
-] as const;
 
 /** Highlights the nav entry that owns the current pathname, including nested routes. */
 function isActive(pathname: string, to: string) {
@@ -80,12 +52,44 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const t = useCopy(shellCopy).shell;
+
+  const navItems = [
+    { to: "/dashboard", label: t.nav.dashboard, icon: LayoutDashboard },
+    { to: "/executive", label: t.nav.executive, icon: BrainCircuit },
+    { to: "/tasks", label: t.nav.tasks, icon: ListChecks },
+    { to: "/crm", label: t.nav.crm, icon: KanbanSquare },
+    { to: "/leads", label: t.nav.leads, icon: Users },
+    { to: "/conversations", label: t.nav.conversations, icon: MessagesSquare },
+    { to: "/analytics", label: t.nav.analytics, icon: BarChart3 },
+    { to: "/knowledge", label: t.nav.knowledge, icon: BookOpen },
+    { to: "/settings/whatsapp", label: t.nav.whatsapp, icon: MessageCircle },
+    { to: "/settings/agency", label: t.nav.settings, icon: Settings },
+    { to: "/profile", label: t.nav.profile, icon: UserRound },
+  ] as const;
+
+  /** Live AI workers, managed from the AI Executive Center. */
+  const activeWorkers = [
+    { key: "whatsapp", label: t.workers.whatsapp, icon: MessageCircle },
+    { key: "marketing", label: t.workers.marketing, icon: Megaphone },
+    { key: "content", label: t.workers.content, icon: PenLine },
+    { key: "lead_intel", label: t.workers.lead_intel, icon: Radar },
+  ] as const;
+
+  /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
+  const futureModules = [
+    { label: t.futureModules.sales, icon: Handshake },
+    { label: t.futureModules.quotation, icon: FileText },
+    { label: t.futureModules.followup, icon: Repeat },
+    { label: t.futureModules.customerSuccess, icon: HeartHandshake },
+    { label: t.futureModules.insights, icon: LineChart },
+  ] as const;
 
   async function handleSignOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
-    toast.success("Signed out.");
+    toast.success(t.signedOutToast);
     navigate({ to: "/auth", search: { mode: "login" }, replace: true });
   }
 
@@ -114,7 +118,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       })}
 
       <p className="mb-1 mt-5 px-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground/70">
-        AI Workforce
+        {t.aiWorkforce}
       </p>
       <ul className="flex flex-col gap-0.5">
         {activeWorkers.map((worker) => (
@@ -149,7 +153,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <module.icon aria-hidden="true" className="size-4 shrink-0" />
             <span className="truncate">{module.label}</span>
             <span className="ml-auto shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider">
-              Upcoming
+              {t.upcoming}
             </span>
           </li>
         ))}
@@ -164,7 +168,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
       >
-        Skip to content
+        {t.skipToContent}
       </a>
 
       <aside className="hidden w-64 shrink-0 flex-col justify-between gap-4 border-r border-sidebar-border bg-sidebar px-4 py-5 lg:flex">
@@ -172,7 +176,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <BrandLogo showTagline className="mb-5 px-1" />
           {nav}
         </div>
-        <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} />
+        <div className="space-y-3">
+          <LanguageSelector className="w-full justify-center" />
+          <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} signOutLabel={t.signOut} />
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -184,7 +191,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 variant="ghost"
                 size="icon"
                 className="min-h-11 min-w-11"
-                aria-label="Open navigation menu"
+                aria-label={t.openNav}
               >
                 <Menu className="size-5" />
               </Button>
@@ -194,7 +201,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               showCloseButton={false}
               className="flex w-[min(22rem,100vw)] flex-col justify-between gap-4 bg-sidebar px-5 pb-5 pt-[max(16px,env(safe-area-inset-top))]"
             >
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetTitle className="sr-only">{t.navigation}</SheetTitle>
               <div className="min-h-0 flex-1 overflow-y-auto">
                 <div className="mb-5 flex items-start justify-between gap-6">
                   <BrandLogo showTagline className="min-w-0" />
@@ -204,7 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                       variant="ghost"
                       size="icon"
                       className="relative z-10 size-11 shrink-0 rounded-xl"
-                      aria-label="Close navigation menu"
+                      aria-label={t.closeNav}
                     >
                       <X aria-hidden="true" className="size-5" />
                     </Button>
@@ -212,7 +219,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </div>
                 {nav}
               </div>
-              <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} />
+              <div className="space-y-3">
+                <LanguageSelector className="w-full justify-center" />
+                <SignOutBlock email={user?.email ?? ""} onSignOut={handleSignOut} signOutLabel={t.signOut} />
+              </div>
             </SheetContent>
           </Sheet>
         </header>
@@ -225,13 +235,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   );
 }
 
-function SignOutBlock({ email, onSignOut }: { email: string; onSignOut: () => void }) {
+function SignOutBlock({
+  email,
+  onSignOut,
+  signOutLabel,
+}: {
+  email: string;
+  onSignOut: () => void;
+  signOutLabel: string;
+}) {
   return (
     <div className="space-y-3 border-t border-sidebar-border pt-4">
       <p className="truncate text-xs text-muted-foreground">{email}</p>
       <Button variant="outline" size="sm" className="w-full" onClick={onSignOut}>
         <LogOut aria-hidden="true" className="size-4" />
-        Sign out
+        {signOutLabel}
       </Button>
     </div>
   );

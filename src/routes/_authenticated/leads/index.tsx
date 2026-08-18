@@ -40,6 +40,8 @@ import {
   type Lead,
   type LeadInput,
 } from "@/lib/leads";
+import { useCopy } from "@/lib/i18n/dict";
+import { leadsCopy } from "@/lib/i18n/app/leads.i18n";
 
 export const Route = createFileRoute("/_authenticated/leads/")({
   head: () => ({
@@ -61,6 +63,7 @@ export const Route = createFileRoute("/_authenticated/leads/")({
 });
 
 function LeadsPage() {
+  const t = useCopy(leadsCopy);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -103,7 +106,7 @@ function LeadsPage() {
       return createLead(agencyId, input);
     },
     onSuccess: async () => {
-      toast.success(editing ? "Lead updated." : "Lead created.");
+      toast.success(editing ? t.leadUpdated : t.leadCreated);
       setFormOpen(false);
       setEditing(null);
       await invalidate();
@@ -114,7 +117,7 @@ function LeadsPage() {
   const deleteMutation = useMutation({
     mutationFn: (lead: Lead) => deleteLead(lead.id),
     onSuccess: async () => {
-      toast.success("Lead deleted.");
+      toast.success(t.leadDeleted);
       setPendingDelete(null);
       await invalidate();
     },
@@ -133,9 +136,9 @@ function LeadsPage() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <PageHeader
-        eyebrow="Pipeline"
-        title="Lead management"
-        description={`${leads.length} leads · ${counts.hot} hot · ${counts.warm} warm · ${counts.cold} cold`}
+        eyebrow={t.pageEyebrow}
+        title={t.pageTitle}
+        description={t.pageDescription(leads.length, counts.hot, counts.warm, counts.cold)}
         actions={
           <Button
             onClick={() => {
@@ -144,7 +147,7 @@ function LeadsPage() {
             }}
           >
             <Plus aria-hidden="true" className="size-4" />
-            New lead
+            {t.newLead}
           </Button>
         }
       />
@@ -153,28 +156,33 @@ function LeadsPage() {
         <SearchInput
           value={search}
           onChange={setSearch}
-          label="Search leads"
-          placeholder="Search name, phone, email, tag"
+          label={t.searchLabel}
+          placeholder={t.searchPlaceholder}
         />
         <FilterSelect
-          label="Status"
+          label={t.filterStatus}
           value={temperature}
           onChange={setTemperature}
           options={[...LEAD_TEMPERATURES]}
+          optionLabels={t.temperatureLabels}
         />
-        <FilterSelect label="Stage" value={stage} onChange={setStage} options={[...LEAD_STAGES]} />
-        <FilterSelect label="Tag" value={tag} onChange={setTag} options={allTags} />
+        <FilterSelect
+          label={t.filterStage}
+          value={stage}
+          onChange={setStage}
+          options={[...LEAD_STAGES]}
+          optionLabels={t.stageLabels}
+        />
+        <FilterSelect label={t.filterTag} value={tag} onChange={setTag} options={allTags} />
       </div>
 
       {isLoading ? (
-        <div className="panel p-10 text-center text-sm text-muted-foreground">Loading leads…</div>
+        <div className="panel p-10 text-center text-sm text-muted-foreground">{t.loadingLeads}</div>
       ) : filtered.length === 0 ? (
         <div className="panel flex flex-col items-center gap-3 p-12 text-center">
           <Users className="size-8 text-muted-foreground" />
-          <p className="font-semibold">No leads match your filters</p>
-          <p className="text-sm text-muted-foreground">
-            Adjust the search or add a new prospect to get started.
-          </p>
+          <p className="font-semibold">{t.noLeadsTitle}</p>
+          <p className="text-sm text-muted-foreground">{t.noLeadsDescription}</p>
         </div>
       ) : (
         <>
@@ -183,12 +191,12 @@ function LeadsPage() {
             <table className="w-full text-sm">
               <thead className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3 font-medium">Lead</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Stage</th>
-                  <th className="px-4 py-3 font-medium">Budget</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
+                  <th className="px-4 py-3 font-medium">{t.tableLead}</th>
+                  <th className="px-4 py-3 font-medium">{t.tableStatus}</th>
+                  <th className="px-4 py-3 font-medium">{t.tableStage}</th>
+                  <th className="px-4 py-3 font-medium">{t.tableBudget}</th>
+                  <th className="px-4 py-3 font-medium">{t.tableCreated}</th>
+                  <th className="px-4 py-3 font-medium text-right">{t.tableActions}</th>
                 </tr>
               </thead>
               <tbody>
@@ -203,7 +211,7 @@ function LeadsPage() {
                         {lead.full_name}
                       </Link>
                       <p className="text-xs text-muted-foreground">
-                        {lead.phone ?? lead.email ?? "No contact"} · {lead.pax} pax
+                        {lead.phone ?? lead.email ?? t.noContact} · {t.pax(lead.pax)}
                       </p>
                       <TagList tags={lead.tags ?? []} className="mt-1.5" />
                     </td>
@@ -222,7 +230,7 @@ function LeadsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`Edit ${lead.full_name}`}
+                          aria-label={t.editLead(lead.full_name)}
                           onClick={() => {
                             setEditing(lead);
                             setFormOpen(true);
@@ -233,7 +241,7 @@ function LeadsPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label={`Delete ${lead.full_name}`}
+                          aria-label={t.deleteLead(lead.full_name)}
                           onClick={() => setPendingDelete(lead)}
                         >
                           <Trash2 className="size-4 text-destructive" />
@@ -260,7 +268,7 @@ function LeadsPage() {
                       {lead.full_name}
                     </Link>
                     <p className="truncate text-xs text-muted-foreground">
-                      {lead.phone ?? lead.email ?? "No contact"} · {lead.pax} pax ·{" "}
+                      {lead.phone ?? lead.email ?? t.noContact} · {t.pax(lead.pax)} ·{" "}
                       {formatMyr(lead.budget_myr)}
                     </p>
                   </div>
@@ -268,7 +276,7 @@ function LeadsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Edit ${lead.full_name}`}
+                      aria-label={t.editLead(lead.full_name)}
                       onClick={() => {
                         setEditing(lead);
                         setFormOpen(true);
@@ -279,7 +287,7 @@ function LeadsPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`Delete ${lead.full_name}`}
+                      aria-label={t.deleteLead(lead.full_name)}
                       onClick={() => setPendingDelete(lead)}
                     >
                       <Trash2 className="size-4 text-destructive" />
@@ -317,18 +325,17 @@ function LeadsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this lead?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteLeadTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.full_name} and all related notes, conversations and reminders will be
-              permanently removed.
+              {t.deleteLeadDescription(pendingDelete?.full_name)}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => pendingDelete && deleteMutation.mutate(pendingDelete)}
             >
-              Delete
+              {t.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -342,24 +349,27 @@ function FilterSelect({
   value,
   onChange,
   options,
+  optionLabels,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   options: string[];
+  optionLabels?: Record<string, string>;
 }) {
+  const t = useCopy(leadsCopy);
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label={`Filter by ${label}`}>
+      <SelectTrigger aria-label={t.filterByLabel(label)}>
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="all">
-          All {label === "Status" ? "statuses" : `${label.toLowerCase()}s`}
+          {label === t.filterStatus ? t.allStatuses : t.allOf(label)}
         </SelectItem>
         {options.map((option) => (
           <SelectItem key={option} value={option} className="capitalize">
-            {option}
+            {optionLabels?.[option] ?? option}
           </SelectItem>
         ))}
       </SelectContent>

@@ -18,6 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
+import { useCopy } from "@/lib/i18n/dict";
 import {
   AI_LANGUAGES,
   AI_PERSONALITIES,
@@ -100,6 +102,7 @@ function ToggleRow({
 }
 
 function AiSettingsPage() {
+  const copy = useCopy(settingsCopy).ai;
   const queryClient = useQueryClient();
   const { data: agency } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
   const { data: settings, isLoading } = useQuery({
@@ -141,7 +144,7 @@ function AiSettingsPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!settings) throw new Error("Settings not loaded.");
+      if (!settings) throw new Error(copy.toasts.settingsNotLoaded);
       return updateSettings(settings.id, {
         ...form,
         ai_name: form.ai_name.trim().slice(0, 60) || "UMRAIO",
@@ -149,7 +152,7 @@ function AiSettingsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("AI settings saved.");
+      toast.success(copy.toasts.saved);
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -161,11 +164,11 @@ function AiSettingsPage() {
     <div className="space-y-6">
       <Panel
         icon={Bot}
-        title="AI personality"
-        description="How your Autonomous AI Business Executive sounds to customers."
+        title={copy.personality.title}
+        description={copy.personality.description}
       >
         <div className="space-y-1.5">
-          <Label htmlFor="ai-name">Assistant name</Label>
+          <Label htmlFor="ai-name">{copy.personality.assistantName}</Label>
           <Input
             id="ai-name"
             maxLength={60}
@@ -195,7 +198,7 @@ function AiSettingsPage() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label>Tone</Label>
+            <Label>{copy.personality.tone}</Label>
             <Select
               value={form.ai_tone}
               onValueChange={(value) => setForm({ ...form, ai_tone: value })}
@@ -213,7 +216,7 @@ function AiSettingsPage() {
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label>Reply length</Label>
+            <Label>{copy.personality.replyLength}</Label>
             <Select
               value={form.ai_reply_length}
               onValueChange={(value) => setForm({ ...form, ai_reply_length: value })}
@@ -233,29 +236,32 @@ function AiSettingsPage() {
         </div>
 
         <ToggleRow
-          title="Allow emojis"
-          description="Light, respectful emoji use in WhatsApp replies."
+          title={copy.personality.allowEmojis}
+          description={copy.personality.allowEmojisDescription}
           checked={form.ai_emoji}
           onChange={(value) => setForm({ ...form, ai_emoji: value })}
         />
 
         <div className="space-y-1.5">
-          <Label htmlFor="instructions">Custom instructions</Label>
+          <Label htmlFor="instructions">{copy.personality.instructions}</Label>
           <Textarea
             id="instructions"
             rows={5}
             maxLength={2000}
-            placeholder="e.g. Always mention our free Umrah kit for bookings above RM 8,000."
+            placeholder={copy.personality.instructionsPlaceholder}
             value={form.ai_custom_instructions}
             onChange={(e) => setForm({ ...form, ai_custom_instructions: e.target.value })}
           />
           <p className="text-xs text-muted-foreground">
-            {form.ai_custom_instructions.length}/2000 characters
+            {copy.personality.charactersCount.replace(
+              "{count}",
+              String(form.ai_custom_instructions.length),
+            )}
           </p>
         </div>
       </Panel>
 
-      <Panel icon={Languages} title="Language" description="Default language for AI replies.">
+      <Panel icon={Languages} title={copy.language.title} description={copy.language.description}>
         <div className="grid gap-3 sm:grid-cols-2">
           {AI_LANGUAGES.map((language) => (
             <button
@@ -277,30 +283,30 @@ function AiSettingsPage() {
 
       <Panel
         icon={BookOpen}
-        title="Knowledge settings"
-        description="How the AI uses your knowledge base before answering."
+        title={copy.knowledge.title}
+        description={copy.knowledge.description}
       >
         <ToggleRow
-          title="Use knowledge base automatically"
-          description="Search articles before answering factual questions."
+          title={copy.knowledge.autoUse}
+          description={copy.knowledge.autoUseDescription}
           checked={form.kb_auto_use}
           onChange={(value) => setForm({ ...form, kb_auto_use: value })}
         />
         <ToggleRow
-          title="Strict mode"
-          description="Answer only from knowledge base content — never improvise facts."
+          title={copy.knowledge.strictMode}
+          description={copy.knowledge.strictModeDescription}
           checked={form.kb_strict_mode}
           onChange={(value) => setForm({ ...form, kb_strict_mode: value })}
         />
         <ToggleRow
-          title="Escalate when unknown"
-          description="Hand over to a human instead of guessing when nothing matches."
+          title={copy.knowledge.escalate}
+          description={copy.knowledge.escalateDescription}
           checked={form.kb_escalate_when_unknown}
           onChange={(value) => setForm({ ...form, kb_escalate_when_unknown: value })}
         />
         <div className="rounded-xl border border-border bg-surface px-4 py-3">
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium">Articles per lookup</p>
+            <p className="text-sm font-medium">{copy.knowledge.articlesPerLookup}</p>
             <span className="text-sm font-semibold text-primary">{form.kb_max_articles}</span>
           </div>
           <Slider
@@ -311,13 +317,13 @@ function AiSettingsPage() {
             onValueChange={([value]) => setForm({ ...form, kb_max_articles: value ?? 4 })}
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            More articles give richer answers but slower replies.
+            {copy.knowledge.articlesHint}
           </p>
         </div>
       </Panel>
 
       <Button onClick={() => save.mutate()} disabled={save.isPending}>
-        {save.isPending ? "Saving…" : "Save AI settings"}
+        {save.isPending ? copy.saving : copy.save}
       </Button>
     </div>
   );

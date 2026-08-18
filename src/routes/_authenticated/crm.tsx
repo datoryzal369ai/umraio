@@ -25,12 +25,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/app/PageHeader";
+import { useCopy } from "@/lib/i18n/dict";
+import { WORKSPACE_COPY } from "@/lib/i18n/app/workspace.i18n";
 import { SearchInput } from "@/components/app/SearchInput";
 import { TemperatureBadge } from "@/components/leads/LeadBadges";
 import { useAuth } from "@/hooks/useAuth";
 import {
   LEAD_STAGES,
-  STAGE_LABELS,
   addLeadNote,
   completeReminder,
   createReminder,
@@ -69,9 +70,14 @@ export const Route = createFileRoute("/_authenticated/crm")({
       {error.message}
     </div>
   ),
-  notFoundComponent: () => <div className="panel p-8 text-sm">Not found.</div>,
+  notFoundComponent: () => <NotFoundPanel />,
   component: CrmPage,
 });
+
+function NotFoundPanel() {
+  const t = useCopy(WORKSPACE_COPY).crm;
+  return <div className="panel p-8 text-sm">{t.notFound}</div>;
+}
 
 const stageAccent: Record<LeadStage, string> = {
   new: "bg-muted-foreground/40",
@@ -84,6 +90,8 @@ const stageAccent: Record<LeadStage, string> = {
 };
 
 function CrmPage() {
+  const copy = useCopy(WORKSPACE_COPY);
+  const t = copy.crm;
   const queryClient = useQueryClient();
   const [query, setQuery] = useState("");
   const [dragId, setDragId] = useState<string | null>(null);
@@ -118,7 +126,7 @@ function CrmPage() {
   const moveMutation = useMutation({
     mutationFn: ({ lead, stage }: { lead: Lead; stage: LeadStage }) => updateLeadStage(lead, stage),
     onSuccess: async (_data, variables) => {
-      toast.success(`${variables.lead.full_name} → ${STAGE_LABELS[variables.stage]}`);
+      toast.success(t.moveSuccessToast(variables.lead.full_name, copy.stageLabels[variables.stage]));
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
       await queryClient.invalidateQueries({ queryKey: ["lead-activity", variables.lead.id] });
     },
@@ -135,21 +143,21 @@ function CrmPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Pipeline"
-        title="CRM Pipeline"
-        description="Drag a card between columns to move a prospect. Tap a card for notes, tasks and timeline."
+        eyebrow={t.eyebrow}
+        title={t.title}
+        description={t.description}
         actions={
           <SearchInput
             value={query}
             onChange={setQuery}
-            label="Search pipeline"
+            label={t.searchLabel}
             className="w-full sm:w-72"
           />
         }
       />
 
       {isLoading ? (
-        <div className="panel p-8 text-sm text-muted-foreground">Loading pipeline…</div>
+        <div className="panel p-8 text-sm text-muted-foreground">{t.loading}</div>
       ) : (
         <div className="-mx-1 flex snap-x gap-4 overflow-x-auto px-1 pb-4">
           {columns.map(({ stage, items }) => (
@@ -175,7 +183,7 @@ function CrmPage() {
               <header className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <span className={cn("size-2 rounded-full", stageAccent[stage])} />
-                  <h2 className="text-sm font-semibold">{STAGE_LABELS[stage]}</h2>
+                  <h2 className="text-sm font-semibold">{copy.stageLabels[stage]}</h2>
                 </div>
                 <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                   {items.length}
@@ -185,7 +193,7 @@ function CrmPage() {
               <div className="flex min-h-24 flex-1 flex-col gap-2 p-2">
                 {items.length === 0 ? (
                   <p className="px-1 py-6 text-center text-xs text-muted-foreground">
-                    No leads here
+                    {t.noLeadsHere}
                   </p>
                 ) : (
                   items.map((lead) => (
@@ -220,7 +228,7 @@ function CrmPage() {
                               size="sm"
                               className="h-7 px-2 text-xs text-muted-foreground"
                             >
-                              Move
+                              {t.move}
                               <ArrowRight className="size-3" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -233,7 +241,7 @@ function CrmPage() {
                                   move(lead, s);
                                 }}
                               >
-                                {STAGE_LABELS[s]}
+                                {copy.stageLabels[s]}
                               </DropdownMenuItem>
                             ))}
                           </DropdownMenuContent>
@@ -258,6 +266,8 @@ function CrmPage() {
 }
 
 function LeadPanel({ lead }: { lead: Lead }) {
+  const copy = useCopy(WORKSPACE_COPY);
+  const t = copy.crm;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
@@ -287,9 +297,9 @@ function LeadPanel({ lead }: { lead: Lead }) {
 
   const noteMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Not signed in");
+      if (!user) throw new Error(t.notSignedInError);
       const body = note.trim();
-      if (body.length < 2) throw new Error("Write a note first");
+      if (body.length < 2) throw new Error(t.writeNoteFirstError);
       await addLeadNote({
         agencyId: lead.agency_id,
         leadId: lead.id,
@@ -299,7 +309,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
     },
     onSuccess: async () => {
       setNote("");
-      toast.success("Note added.");
+      toast.success(t.noteAddedToast);
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -308,8 +318,8 @@ function LeadPanel({ lead }: { lead: Lead }) {
   const taskMutation = useMutation({
     mutationFn: async () => {
       const title = taskTitle.trim();
-      if (title.length < 2) throw new Error("Give the task a title");
-      if (!taskAt) throw new Error("Pick a date and time");
+      if (title.length < 2) throw new Error(t.giveTaskTitleError);
+      if (!taskAt) throw new Error(t.pickDateTimeError);
       await createReminder({
         agencyId: lead.agency_id,
         leadId: lead.id,
@@ -321,7 +331,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
     onSuccess: async () => {
       setTaskTitle("");
       setTaskAt("");
-      toast.success("Task scheduled.");
+      toast.success(t.taskScheduledToast);
       await refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -336,37 +346,37 @@ function LeadPanel({ lead }: { lead: Lead }) {
             to="/leads/$leadId"
             params={{ leadId: lead.id }}
             className="text-muted-foreground transition hover:text-primary"
-            aria-label="Open full lead record"
+            aria-label={t.openFullLeadRecord}
           >
             <ExternalLink className="size-4" />
           </Link>
         </SheetTitle>
         <p className="text-left text-xs text-muted-foreground">
-          {STAGE_LABELS[lead.stage]} · {formatMyr(lead.budget_myr)} · {lead.pax} pax
+          {copy.stageLabels[lead.stage]} · {formatMyr(lead.budget_myr)} · {lead.pax} pax
           {lead.phone ? ` · ${lead.phone}` : ""}
         </p>
       </SheetHeader>
 
       <Tabs defaultValue="notes" className="mt-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="notes">Notes</TabsTrigger>
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          <TabsTrigger value="notes">{t.notes}</TabsTrigger>
+          <TabsTrigger value="tasks">{t.tasks}</TabsTrigger>
+          <TabsTrigger value="timeline">{t.timeline}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="notes" className="space-y-3">
           <Textarea
             value={note}
             onChange={(event) => setNote(event.target.value)}
-            placeholder="Add a note about this prospect…"
+            placeholder={t.addNotePlaceholder}
             rows={3}
           />
           <Button size="sm" onClick={() => noteMutation.mutate()} disabled={noteMutation.isPending}>
-            Add note
+            {t.addNote}
           </Button>
           <ul className="space-y-2">
             {notes.length === 0 ? (
-              <li className="text-sm text-muted-foreground">No notes yet.</li>
+              <li className="text-sm text-muted-foreground">{t.noNotesYet}</li>
             ) : (
               notes.map((item) => (
                 <li key={item.id} className="rounded-lg border border-border p-3">
@@ -378,7 +388,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Delete note"
+                      aria-label={t.deleteNote}
                       onClick={async () => {
                         await deleteLeadNote(item.id);
                         await refresh();
@@ -395,14 +405,14 @@ function LeadPanel({ lead }: { lead: Lead }) {
 
         <TabsContent value="tasks" className="space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="task-title">Task</Label>
+            <Label htmlFor="task-title">{t.taskLabel}</Label>
             <Input
               id="task-title"
               value={taskTitle}
               onChange={(event) => setTaskTitle(event.target.value)}
-              placeholder="Call to confirm deposit"
+              placeholder={t.taskTitlePlaceholder}
             />
-            <Label htmlFor="task-at">Due</Label>
+            <Label htmlFor="task-at">{t.dueLabel}</Label>
             <Input
               id="task-at"
               type="datetime-local"
@@ -415,12 +425,12 @@ function LeadPanel({ lead }: { lead: Lead }) {
               disabled={taskMutation.isPending}
             >
               <BellPlus className="size-4" />
-              Schedule task
+              {t.scheduleTask}
             </Button>
           </div>
           <ul className="space-y-2">
             {tasks.length === 0 ? (
-              <li className="text-sm text-muted-foreground">No tasks scheduled.</li>
+              <li className="text-sm text-muted-foreground">{t.noTasksScheduled}</li>
             ) : (
               tasks.map((task) => (
                 <li
@@ -439,7 +449,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label="Complete task"
+                        aria-label={t.completeTask}
                         onClick={async () => {
                           await completeReminder(task.id);
                           await refresh();
@@ -451,7 +461,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      aria-label="Delete task"
+                      aria-label={t.deleteTask}
                       onClick={async () => {
                         await deleteReminder(task.id);
                         await refresh();
@@ -469,7 +479,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
         <TabsContent value="timeline">
           <ol className="relative space-y-4 border-l border-border pl-5">
             {activity.length === 0 ? (
-              <li className="text-sm text-muted-foreground">No activity yet.</li>
+              <li className="text-sm text-muted-foreground">{t.noActivityYet}</li>
             ) : (
               activity.map((item) => (
                 <li key={item.id} className="relative">
@@ -479,7 +489,7 @@ function LeadPanel({ lead }: { lead: Lead }) {
                     <p className="text-xs text-muted-foreground">{item.meta["detail"] as string}</p>
                   ) : null}
                   <p className="text-xs text-muted-foreground">
-                    {item.actor === "ai" ? "AI" : "Team"} · {relativeTime(item.created_at)}
+                    {item.actor === "ai" ? t.actorAi : t.actorTeam} · {relativeTime(item.created_at)}
                   </p>
                 </li>
               ))

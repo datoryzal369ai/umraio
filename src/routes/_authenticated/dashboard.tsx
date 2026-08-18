@@ -25,6 +25,8 @@ import { MonthlyAnalyticsChart, SalesPerformanceChart } from "@/components/dashb
 import { WhatsappExecutiveCard } from "@/components/dashboard/WhatsappExecutiveCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 import {
   fetchDashboard,
   monthlySeries,
@@ -76,6 +78,7 @@ const stageTone: Record<string, string> = {
 
 function Dashboard() {
   const { user } = useAuth();
+  const t = useCopy(shellCopy).dashboard;
 
   const profileQuery = useQuery({
     queryKey: ["profile", user?.id],
@@ -107,15 +110,15 @@ function Dashboard() {
       options: { emailRedirectTo: `${window.location.origin}/dashboard` },
     });
     if (error) toast.error(error.message);
-    else toast.success("Verification email sent.");
+    else toast.success(t.verificationSentToast);
   }
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <PageHeader
-        eyebrow={agency?.name ?? "Your agency"}
-        title={`Welcome${profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}`}
-        description="Here is what your Autonomous AI Business Executive handled today."
+        eyebrow={agency?.name ?? t.eyebrowFallback}
+        title={`${t.welcome}${profileQuery.data?.full_name ? `, ${profileQuery.data.full_name.split(" ")[0]}` : ""}`}
+        description={t.description}
         actions={
           <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
             <span className="relative flex size-2">
@@ -123,7 +126,9 @@ function Dashboard() {
               <span className="relative inline-flex size-2 rounded-full bg-primary" />
             </span>
             <Bot className="size-4 text-primary" />
-            <span className="text-xs font-medium">AI active · {agency?.plan ?? "trial"} plan</span>
+            <span className="text-xs font-medium">
+              {t.aiActive} · {agency?.plan ?? t.trial} {t.plan}
+            </span>
           </div>
         }
       />
@@ -133,14 +138,14 @@ function Dashboard() {
           <div className="flex items-start gap-3">
             <MailWarning className="mt-0.5 size-5 text-primary" />
             <div>
-              <p className="text-sm font-semibold">Verify your email address</p>
+              <p className="text-sm font-semibold">{t.verifyTitle}</p>
               <p className="text-sm text-muted-foreground">
-                Confirm {user?.email} to unlock full workspace access.
+                {t.verifyBody.replace("{email}", user?.email ?? "")}
               </p>
             </div>
           </div>
           <Button size="sm" variant="outline" onClick={resendVerification}>
-            Resend email
+            {t.resendEmail}
           </Button>
         </div>
       ) : null}
@@ -155,6 +160,7 @@ function Dashboard() {
 }
 
 function DashboardBody({ data }: { data: DashboardData }) {
+  const t = useCopy(shellCopy).dashboard;
   const today = startOfToday().getTime();
   const isToday = (iso?: string | null) => Boolean(iso && new Date(iso).getTime() >= today);
 
@@ -177,28 +183,33 @@ function DashboardBody({ data }: { data: DashboardData }) {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={UserPlus}
-          label="Today's leads"
+          label={t.kpi.todaysLeads}
           value={String(todaysLeads.length)}
-          hint={`${data.leads.length} leads in the last 12 months`}
+          hint={t.kpi.leadsIn12Months.replace("{count}", String(data.leads.length))}
         />
         <KpiCard
           icon={MessageSquare}
-          label="Today's conversations"
+          label={t.kpi.todaysConversations}
           value={String(todaysConversations.length)}
-          hint={`${data.conversations.filter((c) => c.status === "open").length} open threads`}
+          hint={t.kpi.openThreads.replace(
+            "{count}",
+            String(data.conversations.filter((c) => c.status === "open").length),
+          )}
         />
         <KpiCard
           icon={TicketCheck}
-          label="Bookings this month"
+          label={t.kpi.bookingsThisMonth}
           value={String(monthBookings.length)}
-          hint={`${myr(monthRevenue)} booked value`}
+          hint={t.kpi.bookedValue.replace("{amount}", myr(monthRevenue))}
         />
         <KpiCard
           icon={Percent}
-          label="Conversion rate"
+          label={t.kpi.conversionRate}
           value={`${conversion.toFixed(1)}%`}
-          hint={`${bookedLeads} of ${data.leads.length} leads booked`}
-          trend={{ value: `${aiHandled} AI actions`, positive: true }}
+          hint={t.kpi.leadsBooked
+            .replace("{booked}", String(bookedLeads))
+            .replace("{total}", String(data.leads.length))}
+          trend={{ value: t.kpi.aiActions.replace("{count}", String(aiHandled)), positive: true }}
         />
       </section>
 
@@ -209,8 +220,8 @@ function DashboardBody({ data }: { data: DashboardData }) {
         <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={TrendingUp}
-            title="Sales performance"
-            subtitle="Revenue and bookings, last 6 months"
+            title={t.salesPerformance}
+            subtitle={t.salesPerformanceSubtitle}
           />
           <div className="mt-4 min-w-0 overflow-hidden">
             <SalesPerformanceChart data={series} />
@@ -218,10 +229,10 @@ function DashboardBody({ data }: { data: DashboardData }) {
         </div>
 
         <div className="panel p-5">
-          <PanelHeader icon={Flame} title="Hot leads" subtitle="Score 70+ and still open" />
+          <PanelHeader icon={Flame} title={t.hotLeads} subtitle={t.hotLeadsSubtitle} />
           <ul className="mt-4 space-y-3">
             {hotLeads.length === 0 ? (
-              <Empty text="No hot leads right now." />
+              <Empty text={t.noHotLeads} />
             ) : (
               hotLeads.map((lead) => (
                 <li key={lead.id} className="rounded-xl border border-border/60 bg-surface p-3">
@@ -229,8 +240,8 @@ function DashboardBody({ data }: { data: DashboardData }) {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold">{lead.full_name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {lead.pax} pax · {lead.preferred_month ?? "flexible"} ·{" "}
-                        {lead.budget_myr ? myr(Number(lead.budget_myr)) : "budget TBD"}
+                        {lead.pax} {t.pax} · {lead.preferred_month ?? t.flexible} ·{" "}
+                        {lead.budget_myr ? myr(Number(lead.budget_myr)) : t.budgetTbd}
                       </p>
                     </div>
                     <Badge className={cn("shrink-0 border-0", stageTone[lead.stage])}>
@@ -252,8 +263,8 @@ function DashboardBody({ data }: { data: DashboardData }) {
         <div className="panel min-w-0 p-5 lg:col-span-2">
           <PanelHeader
             icon={Activity}
-            title="Monthly analytics"
-            subtitle="Leads vs bookings trend"
+            title={t.monthlyAnalytics}
+            subtitle={t.monthlyAnalyticsSubtitle}
           />
           <div className="mt-4 min-w-0 overflow-hidden">
             <MonthlyAnalyticsChart data={series} />
@@ -263,12 +274,12 @@ function DashboardBody({ data }: { data: DashboardData }) {
         <div className="panel p-5">
           <PanelHeader
             icon={CalendarClock}
-            title="Follow-up tasks"
-            subtitle={`${data.followups.length} scheduled`}
+            title={t.followUpTasks}
+            subtitle={t.followUpScheduled.replace("{count}", String(data.followups.length))}
           />
           <ul className="mt-4 space-y-2">
             {data.followups.length === 0 ? (
-              <Empty text="No follow-ups queued." />
+              <Empty text={t.noFollowUps} />
             ) : (
               data.followups.slice(0, 6).map((task) => {
                 const overdue = new Date(task.run_at).getTime() < Date.now();
@@ -286,7 +297,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{task.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {overdue ? "Overdue · " : "Due "}
+                        {overdue ? t.overdue : t.due}
                         {relative(task.run_at)}
                       </p>
                     </div>
@@ -301,12 +312,12 @@ function DashboardBody({ data }: { data: DashboardData }) {
       <section className="panel p-5">
         <PanelHeader
           icon={BadgeCheck}
-          title="Recent activities"
-          subtitle="What the AI and your team did"
+          title={t.recentActivities}
+          subtitle={t.recentActivitiesSubtitle}
         />
         <ul className="mt-4 space-y-1">
           {data.activities.length === 0 ? (
-            <Empty text="No activity recorded yet." />
+            <Empty text={t.noActivity} />
           ) : (
             data.activities.slice(0, 8).map((item) => (
               <li
@@ -334,7 +345,7 @@ function DashboardBody({ data }: { data: DashboardData }) {
           )}
         </ul>
         <Button asChild variant="outline" size="sm" className="mt-4">
-          <Link to="/profile">Manage your profile</Link>
+          <Link to="/profile">{t.manageProfile}</Link>
         </Button>
       </section>
     </>

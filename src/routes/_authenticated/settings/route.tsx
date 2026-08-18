@@ -1,18 +1,9 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 
 import { PageHeader } from "@/components/app/PageHeader";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
+import { useCopy } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
-
-const tabs = [
-  { to: "/settings/agency", label: "Agency" },
-  { to: "/settings/ai", label: "AI & Knowledge" },
-  { to: "/settings/whatsapp", label: "WhatsApp" },
-  { to: "/settings/governance", label: "Governance" },
-  { to: "/settings/notifications", label: "Notifications" },
-
-  { to: "/settings/api-keys", label: "API Keys" },
-  { to: "/settings/subscription", label: "Subscription" },
-] as const;
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsLayout,
@@ -20,17 +11,29 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 function SettingsLayout() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const copy = useCopy(settingsCopy).layout;
+
+  const tabs = [
+    { to: "/settings/agency", label: copy.tabs.agency },
+    { to: "/settings/ai", label: copy.tabs.ai },
+    { to: "/settings/whatsapp", label: copy.tabs.whatsapp },
+    { to: "/settings/governance", label: copy.tabs.governance },
+    { to: "/settings/notifications", label: copy.tabs.notifications },
+
+    { to: "/settings/api-keys", label: copy.tabs.apiKeys },
+    { to: "/settings/subscription", label: copy.tabs.subscription },
+  ] as const;
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <PageHeader
-        eyebrow="Workspace"
-        title="Settings"
-        description="Configure your agency profile, Autonomous AI Business Executive, channels and plan."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
       />
 
       <nav
-        aria-label="Settings sections"
+        aria-label={copy.navLabel}
         className="-mx-1 flex gap-1 overflow-x-auto rounded-xl border border-border bg-surface p-1"
       >
         {tabs.map((tab) => (

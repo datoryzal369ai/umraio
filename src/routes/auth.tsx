@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { SubmitButton } from "@/components/app/SubmitButton";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { accountCopy } from "@/lib/i18n/app/account.i18n";
 
 type Mode = "login" | "register" | "forgot";
 
@@ -47,12 +50,6 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const emailSchema = z.string().trim().email("Enter a valid email address").max(255);
-const passwordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters")
-  .max(72, "Password must be less than 72 characters");
-
 function safeRedirect(value: string | undefined) {
   if (!value) return "/dashboard";
   return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
@@ -62,12 +59,16 @@ function AuthPage() {
   const search = Route.useSearch();
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const copy = useCopy(accountCopy).auth;
   const [mode, setMode] = useState<Mode>(search.mode ?? "login");
   const [pending, setPending] = useState(false);
   const [emailSent, setEmailSent] = useState<null | "verify" | "reset">(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
   const destination = safeRedirect(search.redirect);
+
+  const emailSchema = z.string().trim().email(copy.invalidEmail).max(255);
+  const passwordSchema = z.string().min(8, copy.passwordMin).max(72, copy.passwordMax);
 
   useEffect(() => {
     if (!loading && user) {
@@ -83,10 +84,10 @@ function AuthPage() {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const parsed = z
-      .object({ email: emailSchema, password: z.string().min(1, "Enter your password") })
+      .object({ email: emailSchema, password: z.string().min(1, copy.enterPassword) })
       .safeParse({ email: form.get("email"), password: form.get("password") });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid details");
+      toast.error(parsed.error.issues[0]?.message ?? copy.invalidDetails);
       return;
     }
 
@@ -96,13 +97,11 @@ function AuthPage() {
 
     if (error) {
       toast.error(
-        error.message === "Email not confirmed"
-          ? "Please confirm your email address first."
-          : "Invalid email or password.",
+        error.message === "Email not confirmed" ? copy.emailNotConfirmed : copy.invalidLogin,
       );
       return;
     }
-    toast.success("Welcome back.");
+    toast.success(copy.welcomeBack);
     navigate({ to: destination, replace: true });
   }
 
@@ -111,8 +110,8 @@ function AuthPage() {
     const form = new FormData(event.currentTarget);
     const parsed = z
       .object({
-        fullName: z.string().trim().min(2, "Enter your full name").max(100),
-        agencyName: z.string().trim().min(2, "Enter your agency name").max(120),
+        fullName: z.string().trim().min(2, copy.enterFullName).max(100),
+        agencyName: z.string().trim().min(2, copy.enterAgencyName).max(120),
         email: emailSchema,
         password: passwordSchema,
       })
@@ -123,7 +122,7 @@ function AuthPage() {
         password: form.get("password"),
       });
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid details");
+      toast.error(parsed.error.issues[0]?.message ?? copy.invalidDetails);
       return;
     }
 
@@ -140,9 +139,7 @@ function AuthPage() {
 
     if (error) {
       toast.error(
-        error.message.toLowerCase().includes("already")
-          ? "That email is already registered. Try signing in."
-          : error.message,
+        error.message.toLowerCase().includes("already") ? copy.alreadyRegistered : error.message,
       );
       return;
     }
@@ -159,7 +156,7 @@ function AuthPage() {
     const form = new FormData(event.currentTarget);
     const parsed = emailSchema.safeParse(form.get("email"));
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Enter a valid email");
+      toast.error(parsed.error.issues[0]?.message ?? copy.enterValidEmail);
       return;
     }
 
@@ -183,7 +180,7 @@ function AuthPage() {
     });
     if (result.error) {
       setPending(false);
-      toast.error("Google sign-in failed. Please try again.");
+      toast.error(copy.googleFailed);
       return;
     }
     if (result.redirected) return;
@@ -195,11 +192,9 @@ function AuthPage() {
       <AuthLayout>
         <div className="text-center">
           <MailCheck className="mx-auto size-9 text-primary" />
-          <h1 className="mt-5 text-2xl font-bold">Check your inbox</h1>
+          <h1 className="mt-5 text-2xl font-bold">{copy.checkInbox}</h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            {emailSent === "verify"
-              ? "We've sent a verification link to your email. Confirm it to activate your agency workspace."
-              : "We've sent a password reset link to your email. Open it to set a new password."}
+            {emailSent === "verify" ? copy.verifyBody : copy.resetBody}
           </p>
           <Button
             variant="outline"
@@ -209,7 +204,7 @@ function AuthPage() {
               setMode("login");
             }}
           >
-            Back to sign in
+            {copy.backToSignIn}
           </Button>
         </div>
       </AuthLayout>
@@ -220,15 +215,13 @@ function AuthPage() {
     <AuthLayout>
       <h1 className="text-2xl font-bold">
         {mode === "register"
-          ? "Create your agency account"
+          ? copy.createAccountTitle
           : mode === "forgot"
-            ? "Reset your password"
-            : "Sign in to UMRAIO"}
+            ? copy.resetPasswordTitle
+            : copy.signInTitle}
       </h1>
       <p className="mt-2 text-sm text-muted-foreground">
-        {mode === "forgot"
-          ? "We'll email you a secure link to set a new password."
-          : "Your Autonomous AI Business Executive workspace for Umrah agencies."}
+        {mode === "forgot" ? copy.resetPasswordDescription : copy.workspaceDescription}
       </p>
 
       {mode !== "forgot" ? (
@@ -238,16 +231,16 @@ function AuthPage() {
           className="mt-6 w-full"
         >
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login">Sign in</TabsTrigger>
-            <TabsTrigger value="register">Register</TabsTrigger>
+            <TabsTrigger value="login">{copy.signInTab}</TabsTrigger>
+            <TabsTrigger value="register">{copy.registerTab}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="login" className="mt-6">
             <form onSubmit={handleLogin} className="space-y-4">
-              <Field label="Work email">
+              <Field label={copy.workEmail}>
                 <Input ref={emailRef} name="email" type="email" autoComplete="email" required />
               </Field>
-              <Field label="Password">
+              <Field label={copy.password}>
                 <Input name="password" type="password" autoComplete="current-password" required />
               </Field>
               <button
@@ -255,24 +248,24 @@ function AuthPage() {
                 onClick={() => setMode("forgot")}
                 className="text-xs text-primary hover:underline"
               >
-                Forgot password?
+                {copy.forgotPassword}
               </button>
-              <SubmitButton pending={pending}>Sign in</SubmitButton>
+              <SubmitButton pending={pending}>{copy.signIn}</SubmitButton>
             </form>
           </TabsContent>
 
           <TabsContent value="register" className="mt-6">
             <form onSubmit={handleRegister} className="space-y-4">
-              <Field label="Full name">
+              <Field label={copy.fullName}>
                 <Input name="fullName" autoComplete="name" required maxLength={100} />
               </Field>
-              <Field label="Agency name">
+              <Field label={copy.agencyName}>
                 <Input name="agencyName" autoComplete="organization" required maxLength={120} />
               </Field>
-              <Field label="Work email">
+              <Field label={copy.workEmail}>
                 <Input name="email" type="email" autoComplete="email" required />
               </Field>
-              <Field label="Password">
+              <Field label={copy.password}>
                 <Input
                   name="password"
                   type="password"
@@ -281,18 +274,18 @@ function AuthPage() {
                   minLength={8}
                 />
               </Field>
-              <SubmitButton pending={pending}>Create account</SubmitButton>
+              <SubmitButton pending={pending}>{copy.createAccount}</SubmitButton>
             </form>
           </TabsContent>
         </Tabs>
       ) : (
         <form onSubmit={handleForgot} className="mt-6 space-y-4">
-          <Field label="Work email">
+          <Field label={copy.workEmail}>
             <Input ref={emailRef} name="email" type="email" autoComplete="email" required />
           </Field>
-          <SubmitButton pending={pending}>Send reset link</SubmitButton>
+          <SubmitButton pending={pending}>{copy.sendResetLink}</SubmitButton>
           <Button type="button" variant="ghost" className="w-full" onClick={() => setMode("login")}>
-            Back to sign in
+            {copy.backToSignIn}
           </Button>
         </form>
       )}
@@ -301,7 +294,7 @@ function AuthPage() {
         <>
           <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-widest text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
-            or
+            {copy.or}
             <span className="h-px flex-1 bg-border" />
           </div>
           <Button
@@ -311,14 +304,14 @@ function AuthPage() {
             disabled={pending}
             onClick={handleGoogle}
           >
-            Continue with Google
+            {copy.continueWithGoogle}
           </Button>
         </>
       ) : null}
 
       <p className="mt-8 text-center text-xs text-muted-foreground">
         <Link to="/" className="hover:text-foreground">
-          Back to umraio.com
+          {copy.backToUmraio}
         </Link>
       </p>
     </AuthLayout>
@@ -328,6 +321,9 @@ function AuthPage() {
 function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-aurora px-5 py-12">
+      <div className="mb-4 flex w-full max-w-md justify-end">
+        <LanguageSelector />
+      </div>
       <BrandLogo showTagline className="mb-8" />
       <div className="panel w-full max-w-md p-7 shadow-elevated sm:p-9">{children}</div>
     </div>

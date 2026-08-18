@@ -12,6 +12,8 @@ import {
 } from "recharts";
 
 import { myr } from "@/lib/dashboard";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 
 type Point = { month: string; leads: number; bookings: number; revenue: number };
 
@@ -48,6 +50,7 @@ function ChartTooltip({
 }
 
 export function SalesPerformanceChart({ data }: { data: Point[] }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260} minWidth={0}>
       <ComposedChart data={data} margin={{ top: 8, right: 4, left: -18, bottom: 0 }}>
@@ -57,14 +60,14 @@ export function SalesPerformanceChart({ data }: { data: Point[] }) {
         <Tooltip content={<ChartTooltip />} cursor={{ fill: "var(--color-muted)", opacity: 0.3 }} />
         <Bar
           dataKey="revenue"
-          name="Revenue"
+          name={t.revenue}
           fill="var(--color-chart-1)"
           radius={[6, 6, 0, 0]}
           maxBarSize={38}
         />
         <Line
           dataKey="bookings"
-          name="Bookings"
+          name={t.bookings}
           type="monotone"
           stroke="var(--color-chart-2)"
           strokeWidth={2}
@@ -77,6 +80,7 @@ export function SalesPerformanceChart({ data }: { data: Point[] }) {
 }
 
 export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260} minWidth={0}>
       <AreaChart data={data} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
@@ -96,7 +100,7 @@ export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
         <Tooltip content={<ChartTooltip />} />
         <Area
           dataKey="leads"
-          name="Leads"
+          name={t.leads}
           type="monotone"
           stroke="var(--color-chart-1)"
           strokeWidth={2}
@@ -104,7 +108,7 @@ export function MonthlyAnalyticsChart({ data }: { data: Point[] }) {
         />
         <Area
           dataKey="bookings"
-          name="Bookings"
+          name={t.bookings}
           type="monotone"
           stroke="var(--color-chart-2)"
           strokeWidth={2}

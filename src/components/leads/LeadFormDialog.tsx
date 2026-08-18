@@ -30,16 +30,20 @@ import {
   type LeadTemperature,
 } from "@/lib/leads";
 import { CUSTOMER_LANGUAGES } from "@/lib/sales/conversation-intelligence.core";
+import { useCopy } from "@/lib/i18n/dict";
+import { leadFormCopy, leadsCopy } from "@/lib/i18n/app/leads.i18n";
 
-const schema = z.object({
-  full_name: z.string().trim().min(2, "Enter the lead's name").max(120),
-  phone: z.string().trim().max(30).optional().or(z.literal("")),
-  email: z.string().trim().email("Invalid email").max(255).optional().or(z.literal("")),
-  preferred_month: z.string().trim().max(40).optional().or(z.literal("")),
-  pax: z.coerce.number().int().min(1).max(500),
-  budget_myr: z.coerce.number().min(0).max(10_000_000).optional(),
-  tags: z.string().trim().max(200).optional().or(z.literal("")),
-});
+function buildSchema(t: ReturnType<typeof useCopy<typeof leadFormCopy.en>>) {
+  return z.object({
+    full_name: z.string().trim().min(2, t.enterLeadName).max(120),
+    phone: z.string().trim().max(30).optional().or(z.literal("")),
+    email: z.string().trim().email(t.invalidEmail).max(255).optional().or(z.literal("")),
+    preferred_month: z.string().trim().max(40).optional().or(z.literal("")),
+    pax: z.coerce.number().int().min(1).max(500),
+    budget_myr: z.coerce.number().min(0).max(10_000_000).optional(),
+    tags: z.string().trim().max(200).optional().or(z.literal("")),
+  });
+}
 
 type FormState = {
   full_name: string;
@@ -82,6 +86,8 @@ export function LeadFormDialog({
   saving: boolean;
   onSubmit: (input: LeadInput) => void;
 }) {
+  const t = useCopy(leadFormCopy);
+  const tLeads = useCopy(leadsCopy);
   const [form, setForm] = useState<FormState>(empty);
   const [error, setError] = useState<string | null>(null);
 
@@ -113,6 +119,7 @@ export function LeadFormDialog({
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    const schema = buildSchema(t);
     const parsed = schema.safeParse({
       full_name: form.full_name,
       phone: form.phone,
@@ -123,7 +130,7 @@ export function LeadFormDialog({
       tags: form.tags,
     });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Please check the form");
+      setError(parsed.error.issues[0]?.message ?? t.pleaseCheckForm);
       return;
     }
     setError(null);
@@ -150,65 +157,65 @@ export function LeadFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{lead ? "Edit lead" : "New lead"}</DialogTitle>
+          <DialogTitle>{lead ? t.editLeadTitle : t.newLeadTitle}</DialogTitle>
           <DialogDescription>
-            {lead
-              ? "Update the prospect's details and pipeline status."
-              : "Add a prospect to your pipeline so the AI sales executive can work it."}
+            {lead ? t.editLeadDescription : t.newLeadDescription}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="full_name">Full name</Label>
+            <Label htmlFor="full_name">{t.fullNameLabel}</Label>
             <Input
               id="full_name"
               value={form.full_name}
               maxLength={120}
               onChange={(e) => set("full_name", e.target.value)}
-              placeholder="Nurul Aisyah"
+              placeholder={t.fullNamePlaceholder}
             />
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
+              <Label htmlFor="phone">{t.phoneLabel}</Label>
               <Input
                 id="phone"
                 value={form.phone}
                 maxLength={30}
                 onChange={(e) => set("phone", e.target.value)}
-                placeholder="+60 12-345 6789"
+                placeholder={t.phonePlaceholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.emailLabel}</Label>
               <Input
                 id="email"
                 type="email"
                 value={form.email}
                 maxLength={255}
                 onChange={(e) => set("email", e.target.value)}
-                placeholder="name@email.com"
+                placeholder={t.emailPlaceholder}
               />
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-3">
             <FieldSelect
-              label="Status"
+              label={t.statusLabel}
               value={form.temperature}
               options={[...LEAD_TEMPERATURES]}
+              optionLabels={tLeads.temperatureLabels}
               onChange={(v) => set("temperature", v as LeadTemperature)}
             />
             <FieldSelect
-              label="Stage"
+              label={t.stageLabel}
               value={form.stage}
               options={[...LEAD_STAGES]}
+              optionLabels={tLeads.stageLabels}
               onChange={(v) => set("stage", v as LeadStage)}
             />
             <FieldSelect
-              label="Source"
+              label={t.sourceLabel}
               value={form.source}
               options={[...LEAD_SOURCES]}
               onChange={(v) => set("source", v)}
@@ -217,7 +224,7 @@ export function LeadFormDialog({
 
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="pax">Pax</Label>
+              <Label htmlFor="pax">{t.paxLabel}</Label>
               <Input
                 id="pax"
                 inputMode="numeric"
@@ -226,29 +233,29 @@ export function LeadFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="budget">Budget (MYR)</Label>
+              <Label htmlFor="budget">{t.budgetLabel}</Label>
               <Input
                 id="budget"
                 inputMode="decimal"
                 value={form.budget_myr}
                 onChange={(e) => set("budget_myr", e.target.value)}
-                placeholder="12000"
+                placeholder={t.budgetPlaceholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="month">Preferred month</Label>
+              <Label htmlFor="month">{t.monthLabel}</Label>
               <Input
                 id="month"
                 value={form.preferred_month}
                 maxLength={40}
                 onChange={(e) => set("preferred_month", e.target.value)}
-                placeholder="Ramadan 2027"
+                placeholder={t.monthPlaceholder}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="lead-language">Conversation language</Label>
+            <Label htmlFor="lead-language">{t.languageLabel}</Label>
             <Select
               value={form.preferred_language}
               onValueChange={(v) => set("preferred_language", v)}
@@ -264,32 +271,30 @@ export function LeadFormDialog({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Auto detect follows the customer&apos;s own messages.
-            </p>
+            <p className="text-xs text-muted-foreground">{t.languageHint}</p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
+            <Label htmlFor="tags">{t.tagsLabel}</Label>
             <Input
               id="tags"
               value={form.tags}
               maxLength={200}
               onChange={(e) => set("tags", e.target.value)}
-              placeholder="vip, family, ramadan"
+              placeholder={t.tagsPlaceholder}
             />
-            <p className="text-xs text-muted-foreground">Comma separated, up to 12 tags.</p>
+            <p className="text-xs text-muted-foreground">{t.tagsHint}</p>
           </div>
 
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              {t.cancel}
             </Button>
             <Button type="submit" disabled={saving}>
               {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-              {lead ? "Save changes" : "Create lead"}
+              {lead ? t.saveChanges : t.createLead}
             </Button>
           </DialogFooter>
         </form>
@@ -302,11 +307,13 @@ function FieldSelect({
   label,
   value,
   options,
+  optionLabels,
   onChange,
 }: {
   label: string;
   value: string;
   options: string[];
+  optionLabels?: Record<string, string>;
   onChange: (value: string) => void;
 }) {
   return (
@@ -319,7 +326,7 @@ function FieldSelect({
         <SelectContent>
           {options.map((option) => (
             <SelectItem key={option} value={option} className="capitalize">
-              {option}
+              {optionLabels?.[option] ?? option}
             </SelectItem>
           ))}
         </SelectContent>

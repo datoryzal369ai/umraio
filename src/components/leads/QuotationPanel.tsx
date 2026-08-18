@@ -25,17 +25,19 @@ import {
   formatMyrAmount,
   type QuotationStatus,
 } from "@/lib/quotations/pricing.core";
+import { useCopy } from "@/lib/i18n/dict";
+import { quotationPanelCopy } from "@/lib/i18n/app/leads.i18n";
 
 const NEXT_ACTIONS: Partial<
-  Record<QuotationStatus, Array<{ to: QuotationStatus; label: string }>>
+  Record<QuotationStatus, Array<{ to: QuotationStatus; labelKey: keyof typeof quotationPanelCopy.en }>>
 > = {
-  ready: [{ to: "sent", label: "Mark as sent" }],
-  sent: [{ to: "accepted", label: "Customer accepted" }],
-  viewed: [{ to: "accepted", label: "Customer accepted" }],
-  discussing: [{ to: "accepted", label: "Customer accepted" }],
-  accepted: [{ to: "deposit_pending", label: "Awaiting deposit" }],
-  deposit_pending: [{ to: "deposit_paid", label: "Deposit received" }],
-  deposit_paid: [{ to: "booked", label: "Confirm booking" }],
+  ready: [{ to: "sent", labelKey: "markAsSent" }],
+  sent: [{ to: "accepted", labelKey: "customerAccepted" }],
+  viewed: [{ to: "accepted", labelKey: "customerAccepted" }],
+  discussing: [{ to: "accepted", labelKey: "customerAccepted" }],
+  accepted: [{ to: "deposit_pending", labelKey: "awaitingDeposit" }],
+  deposit_pending: [{ to: "deposit_paid", labelKey: "depositReceived" }],
+  deposit_paid: [{ to: "booked", labelKey: "confirmBooking" }],
 };
 
 export function QuotationPanel({
@@ -51,6 +53,7 @@ export function QuotationPanel({
   pax: number | null;
   preferredMonth: string | null;
 }) {
+  const t = useCopy(quotationPanelCopy);
   const queryClient = useQueryClient();
   const [packageId, setPackageId] = useState("");
   const [pilgrims, setPilgrims] = useState(String(pax && pax > 0 ? pax : 1));
@@ -90,7 +93,7 @@ export function QuotationPanel({
         },
       }),
     onSuccess: () => {
-      toast.success("Quotation created");
+      toast.success(t.quotationCreated);
       setPackageId("");
       invalidate();
     },
@@ -101,7 +104,7 @@ export function QuotationPanel({
     mutationFn: (input: { quotationId: string; status: QuotationStatus }) =>
       transitionQuotationFn({ data: input }),
     onSuccess: () => {
-      toast.success("Quotation updated");
+      toast.success(t.quotationUpdated);
       invalidate();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -110,15 +113,15 @@ export function QuotationPanel({
   return (
     <section className="panel p-5" aria-labelledby="quotations-heading">
       <h2 id="quotations-heading" className="flex items-center gap-2 text-sm font-semibold">
-        <FileText className="h-4 w-4 text-primary" aria-hidden /> Quotations
+        <FileText className="h-4 w-4 text-primary" aria-hidden /> {t.heading}
       </h2>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_110px_auto] sm:items-end">
         <div className="space-y-1.5">
-          <Label htmlFor="quotation-package">Package</Label>
+          <Label htmlFor="quotation-package">{t.packageLabel}</Label>
           <Select value={packageId} onValueChange={setPackageId}>
             <SelectTrigger id="quotation-package">
-              <SelectValue placeholder="Choose a package" />
+              <SelectValue placeholder={t.choosePackage} />
             </SelectTrigger>
             <SelectContent>
               {packages.map((p: any) => (
@@ -130,7 +133,7 @@ export function QuotationPanel({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="quotation-pax">Pilgrims</Label>
+          <Label htmlFor="quotation-pax">{t.pilgrimsLabel}</Label>
           <Input
             id="quotation-pax"
             type="number"
@@ -145,19 +148,18 @@ export function QuotationPanel({
           onClick={() => create.mutate()}
           className="sm:mb-0"
         >
-          Create
+          {t.create}
         </Button>
       </div>
       {selected ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          Estimated total {formatMyrAmount(estimate)} · final figures and deposit are calculated
-          from your agency settings.
+          {t.estimatedTotal(formatMyrAmount(estimate))}
         </p>
       ) : null}
 
       <ul className="mt-5 space-y-3">
         {quotations.length === 0 ? (
-          <li className="text-sm text-muted-foreground">No quotation issued yet.</li>
+          <li className="text-sm text-muted-foreground">{t.noQuotationYet}</li>
         ) : null}
         {quotations.map((q: any) => {
           const status = q.status as QuotationStatus;
@@ -172,7 +174,7 @@ export function QuotationPanel({
                   <p className="text-xs text-muted-foreground">
                     {QUOTATION_STATUS_LABELS[status] ?? status}
                     {q.deposit_amount !== null
-                      ? ` · deposit ${formatMyrAmount(Number(q.deposit_amount))}`
+                      ? t.depositSuffix(formatMyrAmount(Number(q.deposit_amount)))
                       : ""}
                   </p>
                 </div>
@@ -182,10 +184,10 @@ export function QuotationPanel({
                     variant="ghost"
                     onClick={() => {
                       void navigator.clipboard.writeText(link);
-                      toast.success("Customer link copied");
+                      toast.success(t.customerLinkCopied);
                     }}
                   >
-                    <Link2 className="mr-1 h-3.5 w-3.5" aria-hidden /> Copy link
+                    <Link2 className="mr-1 h-3.5 w-3.5" aria-hidden /> {t.copyLink}
                   </Button>
                   {(NEXT_ACTIONS[status] ?? []).map((action) => (
                     <Button
@@ -195,7 +197,7 @@ export function QuotationPanel({
                       disabled={move.isPending}
                       onClick={() => move.mutate({ quotationId: q.id, status: action.to })}
                     >
-                      <Send className="mr-1 h-3.5 w-3.5" aria-hidden /> {action.label}
+                      <Send className="mr-1 h-3.5 w-3.5" aria-hidden /> {t[action.labelKey] as string}
                     </Button>
                   ))}
                 </div>

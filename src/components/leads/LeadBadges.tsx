@@ -1,5 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { LeadStage, LeadTemperature } from "@/lib/leads";
+import { useCopy } from "@/lib/i18n/dict";
+import { leadsCopy } from "@/lib/i18n/app/leads.i18n";
 
 const stageStyles: Record<LeadStage, string> = {
   new: "bg-muted text-muted-foreground",
@@ -18,6 +20,7 @@ const tempStyles: Record<LeadTemperature, string> = {
 };
 
 export function StageBadge({ stage }: { stage: LeadStage }) {
+  const t = useCopy(leadsCopy);
   return (
     <span
       className={cn(
@@ -25,12 +28,13 @@ export function StageBadge({ stage }: { stage: LeadStage }) {
         stageStyles[stage] ?? stageStyles.new,
       )}
     >
-      {stage}
+      {t.stageLabels[stage] ?? stage}
     </span>
   );
 }
 
 export function TemperatureBadge({ value }: { value: LeadTemperature }) {
+  const t = useCopy(leadsCopy);
   return (
     <span
       className={cn(
@@ -39,7 +43,7 @@ export function TemperatureBadge({ value }: { value: LeadTemperature }) {
       )}
     >
       <span className="size-1.5 rounded-full bg-current" />
-      {value}
+      {t.temperatureLabels[value] ?? value}
     </span>
   );
 }

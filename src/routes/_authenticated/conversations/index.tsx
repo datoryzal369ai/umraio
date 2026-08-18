@@ -5,6 +5,8 @@ import { Bot, MessageSquarePlus, User } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";
+import { useCopy } from "@/lib/i18n/dict";
+import { WORKSPACE_COPY } from "@/lib/i18n/app/workspace.i18n";
 import { SearchInput } from "@/components/app/SearchInput";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +48,7 @@ export const Route = createFileRoute("/_authenticated/conversations/")({
 });
 
 function ConversationsPage() {
+  const t = useCopy(WORKSPACE_COPY).conversationsList;
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -61,7 +64,7 @@ function ConversationsPage() {
   const createMutation = useMutation({
     mutationFn: async () => {
       const agencyId = await fetchMyAgencyId();
-      if (!agencyId) throw new Error("No agency linked to your profile.");
+      if (!agencyId) throw new Error(t.noAgencyError);
       return createConversation({ agencyId, fullName: name.trim(), phone: phone.trim() || null });
     },
     onSuccess: (id) => {
@@ -87,37 +90,37 @@ function ConversationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Inbox"
-        title="AI Inbox"
-        description="Every WhatsApp enquiry, answered and qualified by your Autonomous AI Business Executive."
+        eyebrow={t.eyebrow}
+        title={t.title}
+        description={t.description}
         actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button className="gap-2">
-                <MessageSquarePlus className="size-4" /> New conversation
+                <MessageSquarePlus className="size-4" /> {t.newConversation}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Start a conversation</DialogTitle>
+                <DialogTitle>{t.startConversation}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="c-name">Customer name</Label>
+                  <Label htmlFor="c-name">{t.customerName}</Label>
                   <Input
                     id="c-name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Nur Aisyah binti Rahman"
+                    placeholder={t.customerNamePlaceholder}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="c-phone">WhatsApp number</Label>
+                  <Label htmlFor="c-phone">{t.whatsappNumber}</Label>
                   <Input
                     id="c-phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+60 12-345 6789"
+                    placeholder={t.whatsappNumberPlaceholder}
                   />
                 </div>
               </div>
@@ -126,7 +129,7 @@ function ConversationsPage() {
                   onClick={() => createMutation.mutate()}
                   disabled={!name.trim() || createMutation.isPending}
                 >
-                  {createMutation.isPending ? "Creating…" : "Create"}
+                  {createMutation.isPending ? t.creating : t.create}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -137,16 +140,16 @@ function ConversationsPage() {
       <SearchInput
         value={search}
         onChange={setSearch}
-        label="Search conversations"
-        placeholder="Search by name, number or message"
+        label={t.searchLabel}
+        placeholder={t.searchPlaceholder}
       />
 
       <div className="panel divide-y divide-border/60 overflow-hidden">
         {isLoading ? (
-          <div className="p-8 text-sm text-muted-foreground">Loading conversations…</div>
+          <div className="p-8 text-sm text-muted-foreground">{t.loading}</div>
         ) : filtered.length === 0 ? (
           <div className="p-8 text-sm text-muted-foreground">
-            No conversations yet. Start one to see the Autonomous AI Business Executive in action.
+            {t.empty}
           </div>
         ) : (
           filtered.map((c) => (
@@ -162,7 +165,7 @@ function ConversationsPage() {
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2">
                   <span className="truncate font-medium">
-                    {c.lead?.full_name ?? "Unknown contact"}
+                    {c.lead?.full_name ?? t.unknownContact}
                   </span>
                   {c.ai_enabled && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-primary">

@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import { PageHeader } from "@/components/app/PageHeader";
+import { useCopy } from "@/lib/i18n/dict";
+import { EXECUTIVE_DICT } from "@/lib/i18n/app/executive.i18n";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { ExecutiveCommandPanel } from "@/components/executive/ExecutiveCommandPanel";
 import { OrchestrationPanel } from "@/components/executive/OrchestrationPanel";
@@ -63,14 +65,16 @@ const workerIcon: Record<string, typeof Bot> = {
   lead_intel: Radar,
 };
 
-const relative = (iso: string) => {
-  const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (mins < 60) return `${Math.max(mins, 1)}m ago`;
-  if (mins < 1440) return `${Math.round(mins / 60)}h ago`;
-  return `${Math.round(mins / 1440)}d ago`;
-};
-
 function ExecutiveCenter() {
+  const copy = useCopy(EXECUTIVE_DICT).overview;
+
+  const relative = (iso: string) => {
+    const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
+    if (mins < 60) return copy.minAgo(Math.max(mins, 1));
+    if (mins < 1440) return copy.hAgo(Math.round(mins / 60));
+    return copy.dAgo(Math.round(mins / 1440));
+  };
+
   const workers = useQuery({ queryKey: ["ai-workers"], queryFn: fetchWorkers });
   const metrics = useQuery({
     queryKey: ["ai-metrics"],
@@ -85,9 +89,9 @@ function ExecutiveCenter() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <PageHeader
-        eyebrow="AI Executive Center"
-        title="Your AI workforce"
-        description="Think, plan, decide, execute, report — every AI worker in one control room."
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
         actions={
           <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5">
             <span className="relative flex size-2">
@@ -96,7 +100,7 @@ function ExecutiveCenter() {
             </span>
             <Bot className="size-4 text-primary" />
             <span className="text-xs font-medium">
-              {m ? `${m.pendingApprovals} waiting for approval` : "Syncing…"}
+              {m ? copy.waitingApproval(m.pendingApprovals) : copy.syncing}
             </span>
           </div>
         }
@@ -112,39 +116,39 @@ function ExecutiveCenter() {
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           icon={CheckCircle2}
-          label="Tasks completed today"
+          label={copy.tasksCompletedLabel}
           value={m ? String(m.tasksToday) : "—"}
-          hint="AI worker jobs executed"
+          hint={copy.tasksCompletedHint}
         />
         <KpiCard
           icon={MessageSquare}
-          label="Messages answered"
+          label={copy.messagesAnsweredLabel}
           value={m ? String(m.messagesAnswered) : "—"}
-          hint="AI replies sent today"
+          hint={copy.messagesAnsweredHint}
         />
         <KpiCard
           icon={UserPlus}
-          label="Leads generated"
+          label={copy.leadsGeneratedLabel}
           value={m ? String(m.leadsGenerated) : "—"}
-          hint="New leads captured today"
+          hint={copy.leadsGeneratedHint}
         />
         <KpiCard
           icon={TicketCheck}
-          label="Bookings assisted"
+          label={copy.bookingsAssistedLabel}
           value={m ? String(m.bookingsAssisted) : "—"}
-          hint="Bookings created today"
+          hint={copy.bookingsAssistedHint}
         />
         <KpiCard
           icon={TrendingUp}
-          label="Revenue influenced"
+          label={copy.revenueInfluencedLabel}
           value={m ? myr(m.revenueInfluenced) : "—"}
-          hint="Value of today's bookings"
+          hint={copy.revenueInfluencedHint}
         />
         <KpiCard
           icon={Clock}
-          label="Hours saved"
+          label={copy.hoursSavedLabel}
           value={m ? `${m.hoursSaved.toFixed(1)}h` : "—"}
-          hint="Human hours replaced today"
+          hint={copy.hoursSavedHint}
         />
       </section>
 
@@ -172,16 +176,16 @@ function ExecutiveCenter() {
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="min-w-0 text-xs text-muted-foreground">
-                      {worker.last_run_at ? `Last run ${relative(worker.last_run_at)}` : "Not run yet"}
+                      {worker.last_run_at ? copy.lastRun(relative(worker.last_run_at)) : copy.notRunYet}
                       {" · "}
-                      {worker.autonomy === "auto" ? "Autonomous" : "Approval required"}
+                      {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
                     </p>
                     <Button asChild size="sm" variant="outline">
                       <Link
                         to="/executive/$workerKey"
                         params={{ workerKey: worker.worker_key }}
                       >
-                        Open worker
+                        {copy.openWorker}
                       </Link>
                     </Button>
                   </div>
@@ -192,12 +196,12 @@ function ExecutiveCenter() {
 
       <section className="grid gap-4 lg:grid-cols-2">
         <div className="panel min-w-0 p-5">
-          <h2 className="text-base font-semibold">Latest AI tasks</h2>
-          <p className="text-xs text-muted-foreground">What the workforce produced recently</p>
+          <h2 className="text-base font-semibold">{copy.latestTasksTitle}</h2>
+          <p className="text-xs text-muted-foreground">{copy.latestTasksSubtitle}</p>
           <ul className="mt-4 space-y-2">
             {(tasks.data ?? []).length === 0 ? (
               <li className="rounded-xl border border-dashed border-border/70 p-6 text-center text-sm text-muted-foreground">
-                No AI tasks yet. Open a worker to run one.
+                {copy.noTasksYet}
               </li>
             ) : (
               (tasks.data ?? []).map((task) => (
@@ -208,7 +212,7 @@ function ExecutiveCenter() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{task.title}</p>
                     <p className="line-clamp-2 text-xs text-muted-foreground">
-                      {task.summary ?? task.error ?? "Processing…"}
+                      {task.summary ?? task.error ?? copy.processing}
                     </p>
                   </div>
                   <span className="shrink-0 text-xs text-muted-foreground">
@@ -224,14 +228,14 @@ function ExecutiveCenter() {
           <div className="flex items-center gap-3">
             <CalendarClock className="size-4 text-primary" />
             <div>
-              <h2 className="text-base font-semibold">Activity log</h2>
-              <p className="text-xs text-muted-foreground">Every AI and human action</p>
+              <h2 className="text-base font-semibold">{copy.activityLogTitle}</h2>
+              <p className="text-xs text-muted-foreground">{copy.activityLogSubtitle}</p>
             </div>
           </div>
           <ul className="mt-4 space-y-1">
             {(activity.data ?? []).length === 0 ? (
               <li className="rounded-xl border border-dashed border-border/70 p-6 text-center text-sm text-muted-foreground">
-                Nothing logged yet.
+                {copy.nothingLoggedYet}
               </li>
             ) : (
               (activity.data ?? []).map((item) => (

@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { useCopy } from "@/lib/i18n/dict";
+import { accountCopy } from "@/lib/i18n/app/account.i18n";
 
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
@@ -29,6 +31,7 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPassword() {
   const navigate = useNavigate();
+  const copy = useCopy(accountCopy).resetPassword;
   const [pending, setPending] = useState(false);
   const [ready, setReady] = useState(false);
   const passwordRef = useRef<HTMLInputElement>(null);
@@ -57,16 +60,16 @@ function ResetPassword() {
     const form = new FormData(event.currentTarget);
     const parsed = z
       .object({
-        password: z.string().min(8, "Password must be at least 8 characters").max(72),
+        password: z.string().min(8, copy.passwordMin).max(72),
         confirm: z.string(),
       })
       .refine((values) => values.password === values.confirm, {
-        message: "Passwords do not match",
+        message: copy.passwordsDoNotMatch,
       })
       .safeParse({ password: form.get("password"), confirm: form.get("confirm") });
 
     if (!parsed.success) {
-      toast.error(parsed.error.issues[0]?.message ?? "Invalid password");
+      toast.error(parsed.error.issues[0]?.message ?? copy.invalidPassword);
       return;
     }
 
@@ -78,7 +81,7 @@ function ResetPassword() {
       toast.error(error.message);
       return;
     }
-    toast.success("Password updated.");
+    toast.success(copy.passwordUpdated);
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -87,17 +90,15 @@ function ResetPassword() {
       <BrandLogo showTagline className="mb-8" />
       <div className="panel w-full max-w-md p-7 shadow-elevated sm:p-9">
         <ShieldCheck className="size-8 text-primary" />
-        <h1 className="mt-5 text-2xl font-bold">Set a new password</h1>
+        <h1 className="mt-5 text-2xl font-bold">{copy.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {ready
-            ? "Choose a strong password of at least 8 characters."
-            : "Open the reset link from your email to continue."}
+          {ready ? copy.readyDescription : copy.notReadyDescription}
         </p>
 
         {ready ? (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div className="space-y-2">
-              <Label>New password</Label>
+              <Label>{copy.newPassword}</Label>
               <Input
                 ref={passwordRef}
                 name="password"
@@ -108,7 +109,7 @@ function ResetPassword() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Confirm password</Label>
+              <Label>{copy.confirmPassword}</Label>
               <Input
                 name="confirm"
                 type="password"
@@ -118,7 +119,7 @@ function ResetPassword() {
               />
             </div>
             <SubmitButton pending={pending} className="w-full">
-              Update password
+              {copy.updatePassword}
             </SubmitButton>
           </form>
         ) : (
@@ -127,7 +128,7 @@ function ResetPassword() {
             className="mt-6 w-full"
             onClick={() => navigate({ to: "/auth", search: { mode: "forgot" } })}
           >
-            Request a new link
+            {copy.requestNewLink}
           </Button>
         )}
       </div>

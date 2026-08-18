@@ -18,6 +18,8 @@ import {
   fetchWhatsappExecutiveStats,
   formatResponseTime,
 } from "@/lib/whatsapp-executive";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 import { cn } from "@/lib/utils";
 
 function Metric({
@@ -44,6 +46,7 @@ function Metric({
 }
 
 export function WhatsappExecutiveCard() {
+  const t = useCopy(shellCopy).whatsappExecutive;
   const { data, isLoading } = useQuery({
     queryKey: ["whatsapp-executive-stats"],
     queryFn: fetchWhatsappExecutiveStats,
@@ -58,16 +61,14 @@ export function WhatsappExecutiveCard() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold">AI WhatsApp Executive</h2>
-              <Badge className="border-0 bg-success/15 text-success">Live</Badge>
+              <h2 className="text-base font-semibold">{t.title}</h2>
+              <Badge className="border-0 bg-success/15 text-success">{t.live}</Badge>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Your 24/7 Umrah consultant on WhatsApp — today&apos;s performance
-            </p>
+            <p className="text-xs text-muted-foreground">{t.subtitle}</p>
           </div>
         </div>
         <Button asChild size="sm" variant="outline">
-          <Link to="/conversations">Open AI Inbox</Link>
+          <Link to="/conversations">{t.openInbox}</Link>
         </Button>
       </div>
 
@@ -82,32 +83,32 @@ export function WhatsappExecutiveCard() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <Metric
               icon={MessageCircle}
-              label="Conversations today"
+              label={t.conversationsToday}
               value={String(data.conversationsToday)}
             />
             <Metric
               icon={Gauge}
-              label="AI reply rate"
+              label={t.aiReplyRate}
               value={`${data.aiReplyRate.toFixed(0)}%`}
-              hint="Customer messages answered by AI"
+              hint={t.aiReplyRateHint}
             />
             <Metric
               icon={UserRoundCog}
-              label="Human takeovers"
+              label={t.humanTakeovers}
               value={String(data.humanTakeovers)}
-              hint={`${data.openEscalations} awaiting staff`}
+              hint={t.awaitingStaff.replace("{count}", String(data.openEscalations))}
             />
-            <Metric icon={UserPlus} label="Leads generated" value={String(data.leadsGenerated)} />
+            <Metric icon={UserPlus} label={t.leadsGenerated} value={String(data.leadsGenerated)} />
             <Metric
               icon={TicketCheck}
-              label="Bookings generated"
+              label={t.bookingsGenerated}
               value={String(data.bookingsGenerated)}
             />
             <Metric
               icon={Timer}
-              label="Response time"
+              label={t.responseTime}
               value={formatResponseTime(data.avgResponseMs)}
-              hint="Average first AI reply"
+              hint={t.responseTimeHint}
             />
           </div>
           <p
@@ -118,8 +119,8 @@ export function WhatsappExecutiveCard() {
           >
             <BadgeCheck className="size-3.5" />
             {data.openEscalations > 0
-              ? `${data.openEscalations} conversation(s) escalated and waiting for a human.`
-              : "No escalations pending — the AI is handling every chat."}
+              ? t.escalatedWaiting.replace("{count}", String(data.openEscalations))
+              : t.noEscalations}
           </p>
         </>
       )}

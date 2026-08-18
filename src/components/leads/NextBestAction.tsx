@@ -13,9 +13,12 @@ import {
   fetchLeadOpportunity,
 } from "@/lib/sales-opportunities";
 import { cn } from "@/lib/utils";
+import { useCopy } from "@/lib/i18n/dict";
+import { nextBestActionCopy } from "@/lib/i18n/app/leads.i18n";
 
 /** Advisory only. Nothing here writes to the database or executes an AI action. */
 export function NextBestAction({ lead }: { lead: Lead }) {
+  const t = useCopy(nextBestActionCopy);
   const query = useQuery({
     queryKey: ["lead-opportunity", lead.id, lead.score, lead.stage, lead.last_contact_at],
     queryFn: () => fetchLeadOpportunity(lead),
@@ -31,11 +34,9 @@ export function NextBestAction({ lead }: { lead: Lead }) {
         </div>
         <div className="min-w-0">
           <h2 id="next-action-heading" className="text-base font-semibold">
-            Recommended next action
+            {t.heading}
           </h2>
-          <p className="text-xs text-muted-foreground">
-            Derived from this lead&apos;s score, conversation and follow-ups
-          </p>
+          <p className="text-xs text-muted-foreground">{t.subheading}</p>
         </div>
         {opp ? (
           <Badge className={cn("ml-auto shrink-0 border-0", INTENT_TONE[opp.intent])}>
@@ -47,9 +48,7 @@ export function NextBestAction({ lead }: { lead: Lead }) {
       {query.isLoading ? (
         <Skeleton className="mt-4 h-16 rounded-xl" />
       ) : query.isError || !opp ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Could not derive a recommendation right now.
-        </p>
+        <p className="mt-4 text-sm text-muted-foreground">{t.couldNotDerive}</p>
       ) : (
         <>
           <p className="mt-4 flex items-start gap-2 text-sm">
@@ -73,14 +72,14 @@ export function NextBestAction({ lead }: { lead: Lead }) {
           <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span>
               {opp.pendingFollowupAt
-                ? `Follow-up scheduled for ${new Date(opp.pendingFollowupAt).toLocaleString()}`
-                : "No pending follow-up"}
+                ? t.followUpScheduledFor(new Date(opp.pendingFollowupAt).toLocaleString())
+                : t.noPendingFollowUp}
             </span>
             {opp.humanAttention ? (
-              <Badge className="border-0 bg-chart-4/15 text-chart-4">Human attention required</Badge>
+              <Badge className="border-0 bg-chart-4/15 text-chart-4">{t.humanAttentionRequired}</Badge>
             ) : null}
             {opp.aiPaused ? (
-              <Badge className="border-0 bg-destructive/15 text-destructive">AI paused</Badge>
+              <Badge className="border-0 bg-destructive/15 text-destructive">{t.aiPaused}</Badge>
             ) : null}
           </div>
 
@@ -90,7 +89,7 @@ export function NextBestAction({ lead }: { lead: Lead }) {
                 to="/conversations/$conversationId"
                 params={{ conversationId: opp.conversationId }}
               >
-                Open conversation
+                {t.openConversation}
               </Link>
             </Button>
           ) : null}
