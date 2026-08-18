@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
 
-import raioAsset from "@/assets/raio-executive.png.asset.json";
+import raioAsset from "@/assets/raio-robot.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -139,7 +139,7 @@ export function MeetExecutive() {
             src={raioAsset.url}
             alt="RAIŌ"
             aria-hidden
-            className="size-9 shrink-0 rounded-full bg-surface object-cover object-top ring-1 ring-border/70"
+            className="size-9 shrink-0 rounded-full bg-surface object-contain ring-1 ring-border/70"
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">RAIŌ</p>
