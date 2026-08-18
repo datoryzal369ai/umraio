@@ -373,7 +373,12 @@ export function extractAgencyFacts(visitorMessages: string[]): AgencyFacts {
     );
 
   const prioritisationGap =
-    /\b(tak\s+tahu|tidak\s+tahu|susah|hard|cannot|can'?t|don'?t\s+know)\b[^.?!]{0,40}\b(mana|which|serious|high[\s-]?intent|priorit|hot)\b/i.test(
+    // STEP 3E — must be about which ENQUIRY to act on, not any vague uncertainty
+    // ("tak tahu dekat mana masalah" is not a prioritisation gap).
+    /\b(tak\s+tahu|tidak\s+tahu|susah|hard|cannot|can'?t|don'?t\s+know)\b[^.?!]{0,40}\b(mana|which|siapa|who)\b[^.?!]{0,30}\b(lead|leads|enquiry|enquiries|customer|pelanggan|prospek|serious|betul[\s-]?betul|nak\s+beli|priorit|hot)\b/i.test(
+      joined,
+    ) ||
+    /\b(tak\s+tahu|tidak\s+tahu|susah|hard|cannot|can'?t|don'?t\s+know)\b[^.?!]{0,40}\b(serious|high[\s-]?intent|priorit|hot\s+lead)\b/i.test(
       joined,
     ) || /\b(semua\s+lead|all\s+leads)\b[^.?!]{0,25}\b(sama|same)\b/i.test(joined);
   const prioritisationExists = /\b(lead\s*scor|priorit\w+\s+(by|ikut)|hot\s+lead\s+list)\b/i.test(masked);
@@ -820,8 +825,10 @@ export function analyzeMeetConversation(messages: DemoMessage[]): MeetIntelligen
   else if (facts.salesTeam !== null || facts.monthlyEnquiries !== null) nextBestAction = "DISCOVER_PAIN";
   else nextBestAction = "DISCOVER_AGENCY_PROFILE";
 
+  // STEP 3E — a demonstration is grounded as soon as a real gap is evidenced;
+  // it stays personalised because the path always follows the detected gap.
   const demoPath =
-    nextBestAction === "RUN_DEMONSTRATION" || diagnosis
+    nextBestAction === "RUN_DEMONSTRATION" || diagnosis || primary
       ? primary
         ? DEMO_FOR_GAP[primary.key]
         : "WHATSAPP_LEAD_HANDLING"
