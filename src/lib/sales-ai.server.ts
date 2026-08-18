@@ -35,6 +35,10 @@ import {
 import { applySafetyGate } from "./sales/safety-gate.server";
 import { buildSocialProfile, socialPresenceInstruction } from "./sales/social-presence.core";
 import {
+  buildConfidenceRead,
+  confidentPresenceInstruction,
+} from "./sales/confident-presence.core";
+import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
   redactSuppressedTopics,
@@ -351,6 +355,13 @@ function systemPrompt(
     ),
     conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
     conversationIntelligenceInstruction(intel),
+    confidentPresenceInstruction(
+      buildConfidenceRead({
+        customerMessages: ctx.messages
+          .filter((m) => m.sender === "customer")
+          .map((m) => m.body),
+      }),
+    ),
     socialPresenceInstruction(
       buildSocialProfile({
         messages: ctx.messages.map((m) => ({ sender: m.sender, body: m.body })),
