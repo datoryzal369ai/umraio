@@ -15,19 +15,32 @@ import { z } from "zod";
  * STEP 3E.1 — a legitimate long sales conversation must never be rejected.
  * The ceiling is only an abuse guard; anything above the model window is
  * compacted server-side (see compactMeetConversation) instead of erroring.
+ *
+ * The schema is deliberately FORGIVING: content is trimmed and clamped and
+ * unusable turns are dropped, so a valid conversation can never surface a raw
+ * "Invalid request" to a customer mid-conversation.
  */
+const MESSAGE_MAX_CHARS = 4000;
+
 const bodySchema = z.object({
-  language: z.enum(["auto", "ms", "en"]).optional(),
+  language: z.enum(["auto", "ms", "en"]).catch("auto").optional(),
   messages: z
     .array(
       z.object({
         role: z.enum(["visitor", "executive"]),
-        content: z.string().min(1).max(4000),
+        content: z.preprocess(
+          (v) => (typeof v === "string" ? v.trim().slice(0, MESSAGE_MAX_CHARS) : ""),
+          z.string(),
+        ),
       }),
     )
-    .min(1)
-    .max(400),
+    .max(400)
+    .transform((rows) => rows.filter((m) => m.content.length > 0)),
 });
+
+const GENERIC_FAILURE =
+  "Maaf, saya tak dapat proses mesej itu seketika tadi. Boleh cuba sekali lagi? / Sorry, I couldn't process that just now — please try again.";
+
 
 const SYSTEM = [
   "You are RAIŌ — UMRAIO's Autonomous AI Business Executive™ — speaking with a prospective Umrah agency on the public UMRAIO® website. UMRAIO® is the platform, RAIŌ is your executive persona, Autonomous AI Business Executive™ is your role.",
