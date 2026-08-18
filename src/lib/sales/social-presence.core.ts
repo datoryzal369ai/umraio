@@ -105,7 +105,7 @@ const NAME_PATTERNS: RegExp[] = [
   /(?:panggil\s+(?:saya|sy|aku)|call\s+me)\s+([A-Za-z' -]{2,40})/i,
   /(?:my\s+name\s+is|i\s*am|i'?m|this\s+is)\s+([A-Za-z' -]{2,40})/i,
   /\b(?:[Ss]aya|[Ss]y|[Aa]ku)\s+([A-Z][A-Za-z']{1,20}(?:\s+[A-Z][A-Za-z']{1,20})?)\b/,
-  /\b(?:encik|puan|tuan|cik|dato'?|datuk|datin|haji|hajah|ustaz|ustazah|dr\.?|mr\.?|mrs\.?|ms\.?)\s+([A-Z][A-Za-z']{1,20}(?:\s+[A-Z][A-Za-z']{1,20})?)\b/,
+  /\b(?:[Ee]ncik|[Pp]uan|[Tt]uan|[Cc]ik|[Dd]ato'?|[Dd]atuk|[Dd]atin|[Hh]aji|[Hh]ajah|[Uu]staz|[Uu]stazah|[Dd]r\.?|[Mm]r\.?|[Mm]rs\.?|[Mm]s\.?)\s+([A-Z][A-Za-z']{1,20}(?:\s+[A-Z][A-Za-z']{1,20})?)\b/,
 ];
 
 export type AddressReading = {
