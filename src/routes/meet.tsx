@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
-import raioAsset from "@/assets/raio-robot.png.asset.json";
+import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MeetExecutive } from "@/components/marketing/MeetExecutive";
 import { Button } from "@/components/ui/button";
@@ -71,17 +71,16 @@ function MeetPage() {
             <div className="flex flex-col items-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
               <img
                 src={raioAsset.url}
-                alt="RAIŌ — UMRAIO Autonomous AI Business Executive"
-                className="w-full max-w-[190px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[300px]"
-                width={1259}
-                height={1259}
+                alt="RAIŌ — UMRAIO's Autonomous AI Business Executive™"
+                className="w-full max-w-[260px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[340px]"
+                width={1159}
+                height={1332}
               />
               <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
               <p className="text-center text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                Autonomous AI Business Executive™
+                The Autonomous AI Business Executive™
               </p>
             </div>
-
 
             <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
               <p className="text-balance text-base font-light text-muted-foreground sm:text-lg">
