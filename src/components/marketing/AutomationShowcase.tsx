@@ -12,7 +12,11 @@ import {
   Users,
 } from "lucide-react";
 
+import { useLocale } from "@/lib/i18n/locale";
+import { siteCopy } from "@/lib/i18n/site.i18n";
 import { cn } from "@/lib/utils";
+
+type ShowcaseCopy = ReturnType<typeof siteCopy>["showcase"];
 
 /** Tiny uppercase system metadata label. */
 function SysLabel({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -82,22 +86,18 @@ function ModuleShell({
 }
 
 /* 01 — Answers enquiries */
-function AnswersEnquiries() {
+function AnswersEnquiries({ t }: { t: ShowcaseCopy }) {
+  const m = t.modules.enquiries;
   return (
     <ModuleShell delay={0} className="lg:col-span-7">
-      <ModuleHead
-        index="01"
-        icon={BotMessageSquare}
-        title="Answers enquiries"
-        body="Responds instantly using your agency knowledge base, package information, customer context and Umrah-specific intelligence."
-      />
+      <ModuleHead index="01" icon={BotMessageSquare} title={m.title} body={m.body} />
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <SysLabel>
           <Sparkles className="size-3" />
-          Real-time AI
+          {m.realtime}
         </SysLabel>
-        <SysLabel>AI response &lt; 1 sec</SysLabel>
+        <SysLabel>{m.latency}</SysLabel>
       </div>
 
       <div className="chat-canvas mt-5 rounded-2xl border border-border/70 p-4 sm:p-5">
@@ -123,38 +123,33 @@ function AnswersEnquiries() {
             <i className="umr-dot" style={{ animationDelay: "160ms" }} />
             <i className="umr-dot" style={{ animationDelay: "320ms" }} />
           </span>
-          <span className="text-xs font-light text-muted-foreground">UMRAIO AI is typing…</span>
+          <span className="text-xs font-light text-muted-foreground">{m.typing}</span>
         </div>
       </div>
       <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
-        Illustrative demonstration
+        {t.illustrative}
       </p>
     </ModuleShell>
   );
 }
 
 /* 02 — Qualifies prospects */
-const qualifiers = [
-  { icon: CalendarClock, label: "Travel window", value: "Dec 2026" },
-  { icon: Users, label: "Pax", value: "4" },
-  { icon: DollarSign, label: "Budget", value: "RM18,000" },
-  { icon: Gauge, label: "Intent", value: "High" },
-];
-
-function QualifiesProspects() {
+function QualifiesProspects({ t }: { t: ShowcaseCopy }) {
+  const m = t.modules.qualify;
+  const qualifiers = [
+    { icon: CalendarClock, label: m.travelWindow, value: "Dec 2026" },
+    { icon: Users, label: m.pax, value: "4" },
+    { icon: DollarSign, label: m.budget, value: "RM18,000" },
+    { icon: Gauge, label: m.intent, value: m.intentValue },
+  ];
   const r = 46;
   const c = 2 * Math.PI * r;
   return (
     <ModuleShell delay={90} className="lg:col-span-5">
-      <ModuleHead
-        index="02"
-        icon={Users}
-        title="Qualifies prospects"
-        body="Understands travel intent, pax, budget, timing and customer needs while operating within defined agency policies."
-      />
+      <ModuleHead index="02" icon={Users} title={m.title} body={m.body} />
 
       <div className="mt-6">
-        <SysLabel>Lead intelligence</SysLabel>
+        <SysLabel>{m.label}</SysLabel>
       </div>
 
       <div className="mt-5 grid gap-5 rounded-2xl border border-border/70 bg-surface/40 p-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
@@ -195,24 +190,19 @@ function QualifiesProspects() {
             <p className="text-[10px] text-muted-foreground/70">/100</p>
           </div>
           <p className="mt-9 text-[9px] uppercase tracking-[0.24em] text-muted-foreground/60">
-            Lead score
+            {m.leadScore}
           </p>
           <span className="mt-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary">
-            QUALIFIED
+            {m.qualified}
           </span>
         </div>
       </div>
 
       <ul className="mt-4 grid gap-2 sm:grid-cols-2">
-        {[
-          "Budget identified",
-          "Travel date identified",
-          "Pax identified",
-          "Purchase intent detected",
-        ].map((t) => (
-          <li key={t} className="flex items-center gap-2 text-xs font-light text-muted-foreground">
+        {m.checks.map((text) => (
+          <li key={text} className="flex items-center gap-2 text-xs font-light text-muted-foreground">
             <CheckCircle2 className="size-3.5 shrink-0 text-primary" />
-            {t}
+            {text}
           </li>
         ))}
       </ul>
@@ -221,18 +211,14 @@ function QualifiesProspects() {
 }
 
 /* 03 — Recommends packages */
-function RecommendsPackages() {
+function RecommendsPackages({ t }: { t: ShowcaseCopy }) {
+  const m = t.modules.packages;
   return (
     <ModuleShell delay={180} className="lg:col-span-5">
-      <ModuleHead
-        index="03"
-        icon={Sparkles}
-        title="Recommends packages"
-        body="Matches customer requirements with relevant Umrah packages and available agency information."
-      />
+      <ModuleHead index="03" icon={Sparkles} title={m.title} body={m.body} />
 
       <div className="mt-6">
-        <SysLabel>Package match</SysLabel>
+        <SysLabel>{m.label}</SysLabel>
       </div>
 
       <div className="mt-5 space-y-3">
@@ -244,15 +230,19 @@ function RecommendsPackages() {
           <div className="relative flex items-start justify-between gap-3">
             <div className="min-w-0">
               <span className="rounded-md border border-primary/30 bg-primary/15 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-primary">
-                Best match
+                {m.bestMatch}
               </span>
               <h4 className="mt-3 truncate text-base font-semibold tracking-tight">
                 Makkah + Madinah Premium
               </h4>
-              <p className="text-xs text-muted-foreground">12 Days · Premium Hotel</p>
+              <p className="text-xs text-muted-foreground">
+                {m.days(12)} · {m.premiumHotel}
+              </p>
             </div>
             <div className="shrink-0 text-right">
-              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">Match</p>
+              <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+                {m.match}
+              </p>
               <p className="text-xl font-extrabold text-primary">94%</p>
             </div>
           </div>
@@ -261,11 +251,11 @@ function RecommendsPackages() {
           </div>
           <div className="relative mt-4 flex items-end justify-between gap-3">
             <p className="text-lg font-extrabold tracking-tight">
-              RM 6,890 <span className="text-xs font-light text-muted-foreground">/ pax</span>
+              RM 6,890 <span className="text-xs font-light text-muted-foreground">{m.perPax}</span>
             </p>
             <div className="text-right">
               <p className="text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
-                Departure
+                {m.departure}
               </p>
               <p className="text-xs font-medium">18 Dec 2026</p>
             </div>
@@ -273,8 +263,8 @@ function RecommendsPackages() {
         </div>
 
         {[
-          { n: "Makkah Economy", d: "10 Days", p: "RM 4,890", m: "86%" },
-          { n: "Madinah Deluxe", d: "9 Days", p: "RM 5,590", m: "82%" },
+          { n: "Makkah Economy", days: 10, p: "RM 4,890", m: "86%" },
+          { n: "Madinah Deluxe", days: 9, p: "RM 5,590", m: "82%" },
         ].map((pkg) => (
           <div
             key={pkg.n}
@@ -282,48 +272,40 @@ function RecommendsPackages() {
           >
             <div className="min-w-0">
               <p className="truncate text-sm font-medium tracking-tight">{pkg.n}</p>
-              <p className="text-[11px] text-muted-foreground">{pkg.d}</p>
+              <p className="text-[11px] text-muted-foreground">{m.days(pkg.days)}</p>
             </div>
             <div className="shrink-0 text-right">
               <p className="text-sm font-semibold">
-                {pkg.p} <span className="text-[10px] font-light text-muted-foreground">/ pax</span>
+                {pkg.p} <span className="text-[10px] font-light text-muted-foreground">{m.perPax}</span>
               </p>
               <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground/60">
-                Match {pkg.m}
+                {m.match} {pkg.m}
               </p>
             </div>
           </div>
         ))}
       </div>
       <p className="mt-3 text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50">
-        Illustrative demonstration
+        {t.illustrative}
       </p>
     </ModuleShell>
   );
 }
 
 /* 04 — Follows up */
-const timeline = [
-  { t: "Now", icon: MessageCircle, title: "Initial enquiry", sub: "Message received" },
-  { t: "+1 day", icon: Send, title: "Package reminder", sub: "Automated WhatsApp message" },
-  { t: "+3 days", icon: Users, title: "Personalised follow-up", sub: "AI personalised message" },
-  { t: "+7 days", icon: Flag, title: "Final follow-up", sub: "Last touch before closing" },
-];
+const TIMELINE_ICONS = [MessageCircle, Send, Users, Flag];
 
-function FollowsUp() {
+function FollowsUp({ t }: { t: ShowcaseCopy }) {
+  const m = t.modules.followUp;
+  const times = [m.now, m.day(1), m.days(3), m.days(7)];
   return (
     <ModuleShell delay={270} className="lg:col-span-7">
-      <ModuleHead
-        index="04"
-        icon={CalendarClock}
-        title="Follows up"
-        body="Runs structured follow-up while respecting customer preferences, agency policies and responsible communication practices."
-      />
+      <ModuleHead index="04" icon={CalendarClock} title={m.title} body={m.body} />
 
       <div className="mt-6">
         <SysLabel>
           <Clock3 className="size-3" />
-          Automated follow-up
+          {m.label}
         </SysLabel>
       </div>
 
@@ -333,27 +315,30 @@ function FollowsUp() {
             aria-hidden
             className="absolute bottom-3 left-1 top-3 w-px bg-gradient-to-b from-primary/50 via-primary/25 to-transparent"
           />
-          {timeline.map((s, i) => (
-            <li key={s.title} className="relative flex items-center gap-3">
-              <span
-                aria-hidden
-                className="umr-pulse absolute -left-[1.13rem] size-2 rounded-full bg-primary"
-                style={{ animationDelay: `${i * 600}ms` }}
-              />
-              <span className="w-16 shrink-0 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
-                {s.t}
-              </span>
-              <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-primary/8">
-                <s.icon className="size-3.5 text-primary" />
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium tracking-tight">{s.title}</span>
-                <span className="block truncate text-[11px] font-light text-muted-foreground">
-                  {s.sub}
+          {m.steps.map((s, i) => {
+            const Icon = TIMELINE_ICONS[i] ?? MessageCircle;
+            return (
+              <li key={s.title} className="relative flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className="umr-pulse absolute -left-[1.13rem] size-2 rounded-full bg-primary"
+                  style={{ animationDelay: `${i * 600}ms` }}
+                />
+                <span className="w-16 shrink-0 text-[9px] uppercase tracking-[0.2em] text-muted-foreground/60">
+                  {times[i]}
                 </span>
-              </span>
-            </li>
-          ))}
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-border/70 bg-primary/8">
+                  <Icon className="size-3.5 text-primary" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium tracking-tight">{s.title}</span>
+                  <span className="block truncate text-[11px] font-light text-muted-foreground">
+                    {s.sub}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
         </ol>
 
         <div className="flex flex-col items-center justify-center rounded-2xl border border-border/70 bg-surface/40 px-6 py-6">
@@ -361,9 +346,9 @@ function FollowsUp() {
             <BotMessageSquare className="size-7 text-primary" />
           </span>
           <p className="mt-4 text-center text-[9px] uppercase leading-relaxed tracking-[0.24em] text-muted-foreground/70">
-            Follow-up
+            {m.automatedLine1}
             <br />
-            automated
+            {m.automatedLine2}
           </p>
           <p className="mt-1 text-2xl font-extrabold text-primary">24/7</p>
         </div>
@@ -372,10 +357,10 @@ function FollowsUp() {
   );
 }
 
-const pipeline = ["Enquiry", "Qualification", "Recommendation", "Follow-up", "Conversion"];
-
 /** Premium autonomous-workforce showcase for the "What UMRAIO® Automates" section. */
 export function AutomationShowcase() {
+  const t = siteCopy(useLocale().locale).showcase;
+
   return (
     <section className="relative mt-14 sm:mt-20" aria-labelledby="automates-heading">
       <span
@@ -390,40 +375,41 @@ export function AutomationShowcase() {
 
       <header className="relative mx-auto mt-10 max-w-2xl text-center sm:mt-14">
         <p className="text-[10px] font-medium uppercase tracking-[0.36em] text-primary/80">
-          The autonomous AI workforce
+          {t.eyebrow}
         </p>
         <h2
           id="automates-heading"
           className="mt-5 text-balance text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl"
         >
-          What <span className="text-primary">UMRAIO<sup className="align-super text-[0.5em] leading-none">®</sup></span> Automates
+          {t.headingLead}{" "}
+          <span className="text-primary">
+            UMRAIO<sup className="align-super text-[0.5em] leading-none">®</sup>
+          </span>{" "}
+          {t.headingAutomates}
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-sm font-light leading-[1.75] text-muted-foreground sm:text-base">
-          From the first WhatsApp message to the next best action — UMRAIO® keeps your agency
-          moving.
+          {t.intro}
         </p>
       </header>
 
-
       <div className="relative mt-12 grid gap-5 lg:grid-cols-12">
-        <AnswersEnquiries />
-        <QualifiesProspects />
-        <RecommendsPackages />
-        <FollowsUp />
+        <AnswersEnquiries t={t} />
+        <QualifiesProspects t={t} />
+        <RecommendsPackages t={t} />
+        <FollowsUp t={t} />
       </div>
 
       <div className="umr-reveal panel mt-8 px-6 py-10 text-center" style={{ animationDelay: "360ms" }}>
         <p className="mx-auto max-w-2xl text-balance text-base font-light leading-relaxed text-foreground/90 sm:text-lg">
-          UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> doesn't just answer
-          leads. It understands them, acts on them and keeps moving the conversation forward.
+          UMRAIO<sup className="align-super text-[0.55em] leading-none">®</sup> {t.closing}
         </p>
         <ol className="mt-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-          {pipeline.map((step, i) => (
+          {t.pipeline.map((step, i) => (
             <li key={step} className="flex items-center gap-3">
               <span className="rounded-full border border-border/70 bg-surface/50 px-3 py-1.5 text-[9px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
                 {step}
               </span>
-              {i < pipeline.length - 1 ? (
+              {i < t.pipeline.length - 1 ? (
                 <span aria-hidden className="text-primary/50">
                   →
                 </span>
