@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
+import { useCopy } from "@/lib/i18n/dict";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/_authenticated/settings/notifications")({
@@ -30,40 +32,14 @@ export const Route = createFileRoute("/_authenticated/settings/notifications")({
   component: NotificationSettingsPage,
 });
 
-const EVENTS = [
-  { key: "notify_new_lead", title: "New lead", description: "A new enquiry enters the pipeline." },
-  {
-    key: "notify_hot_lead",
-    title: "Hot lead detected",
-    description: "The AI marks a prospect as hot and ready to close.",
-  },
-  {
-    key: "notify_booking",
-    title: "Booking confirmed",
-    description: "A lead converts to a booking.",
-  },
-  {
-    key: "notify_followup_due",
-    title: "Follow-up due",
-    description: "A scheduled follow-up task reaches its run time.",
-  },
-  {
-    key: "notify_daily_summary",
-    title: "Daily summary",
-    description: "End-of-day recap of leads, replies and bookings.",
-  },
-] as const;
-
-const CHANNELS = [
-  { key: "notify_email", title: "Email", description: "Send alerts to your agency contact email." },
-  {
-    key: "notify_whatsapp",
-    title: "WhatsApp",
-    description: "Send alerts to your connected WhatsApp Business number.",
-  },
-] as const;
-
-type Keys = (typeof EVENTS)[number]["key"] | (typeof CHANNELS)[number]["key"];
+type Keys =
+  | "notify_new_lead"
+  | "notify_hot_lead"
+  | "notify_booking"
+  | "notify_followup_due"
+  | "notify_daily_summary"
+  | "notify_email"
+  | "notify_whatsapp";
 
 function Row({
   title,
@@ -88,6 +64,7 @@ function Row({
 }
 
 function NotificationSettingsPage() {
+  const copy = useCopy(settingsCopy).notifications;
   const queryClient = useQueryClient();
   const { data: agency } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
   const { data: settings, isLoading } = useQuery({
@@ -95,6 +72,31 @@ function NotificationSettingsPage() {
     queryFn: () => fetchSettings(agency!.id),
     enabled: Boolean(agency?.id),
   });
+
+  const EVENTS: { key: Keys; title: string; description: string }[] = [
+    { key: "notify_new_lead", title: copy.events.newLead.title, description: copy.events.newLead.description },
+    { key: "notify_hot_lead", title: copy.events.hotLead.title, description: copy.events.hotLead.description },
+    { key: "notify_booking", title: copy.events.booking.title, description: copy.events.booking.description },
+    {
+      key: "notify_followup_due",
+      title: copy.events.followupDue.title,
+      description: copy.events.followupDue.description,
+    },
+    {
+      key: "notify_daily_summary",
+      title: copy.events.dailySummary.title,
+      description: copy.events.dailySummary.description,
+    },
+  ];
+
+  const CHANNELS: { key: Keys; title: string; description: string }[] = [
+    { key: "notify_email", title: copy.channels.email.title, description: copy.channels.email.description },
+    {
+      key: "notify_whatsapp",
+      title: copy.channels.whatsapp.title,
+      description: copy.channels.whatsapp.description,
+    },
+  ];
 
   const [form, setForm] = useState<Record<Keys, boolean>>({
     notify_new_lead: true,
@@ -121,11 +123,11 @@ function NotificationSettingsPage() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!settings) throw new Error("Settings not loaded.");
+      if (!settings) throw new Error(copy.toasts.settingsNotLoaded);
       return updateSettings(settings.id, form);
     },
     onSuccess: () => {
-      toast.success("Notification preferences saved.");
+      toast.success(copy.toasts.saved);
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -141,9 +143,9 @@ function NotificationSettingsPage() {
             <Bell className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Events</h2>
+            <h2 className="font-display text-base font-semibold tracking-tight">{copy.events.title}</h2>
             <p className="text-xs text-muted-foreground">
-              Pick what deserves your team's attention.
+              {copy.events.description}
             </p>
           </div>
         </header>
@@ -164,8 +166,8 @@ function NotificationSettingsPage() {
             <Send className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Channels</h2>
-            <p className="text-xs text-muted-foreground">Where alerts are delivered.</p>
+            <h2 className="font-display text-base font-semibold tracking-tight">{copy.channels.title}</h2>
+            <p className="text-xs text-muted-foreground">{copy.channels.description}</p>
           </div>
         </header>
         {CHANNELS.map((channel) => (
@@ -180,7 +182,7 @@ function NotificationSettingsPage() {
       </section>
 
       <Button onClick={() => save.mutate()} disabled={save.isPending}>
-        {save.isPending ? "Saving…" : "Save notifications"}
+        {save.isPending ? copy.saving : copy.save}
       </Button>
     </div>
   );

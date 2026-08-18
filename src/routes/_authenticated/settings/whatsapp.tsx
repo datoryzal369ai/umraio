@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
 import { currentAgencyId } from "@/lib/leads";
 import {
   disconnectWhatsapp,
@@ -41,7 +43,17 @@ export const Route = createFileRoute("/_authenticated/settings/whatsapp")({
   component: WhatsappSettings,
 });
 
-function CopyField({ label, value }: { label: string; value: string }) {
+function CopyField({
+  label,
+  value,
+  copyAriaLabel,
+  copiedLabel,
+}: {
+  label: string;
+  value: string;
+  copyAriaLabel: (label: string) => string;
+  copiedLabel: (label: string) => string;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="space-y-1.5">
@@ -52,11 +64,11 @@ function CopyField({ label, value }: { label: string; value: string }) {
           type="button"
           variant="outline"
           size="icon"
-          aria-label={`Copy ${label}`}
+          aria-label={copyAriaLabel(label)}
           onClick={async () => {
             await navigator.clipboard.writeText(value);
             setCopied(true);
-            toast.success(`${label} copied`);
+            toast.success(copiedLabel(label));
             setTimeout(() => setCopied(false), 1500);
           }}
         >
@@ -69,6 +81,7 @@ function CopyField({ label, value }: { label: string; value: string }) {
 
 function WhatsappSettings() {
   const { user } = useAuth();
+  const copy = useCopy(settingsCopy).whatsapp;
   const queryClient = useQueryClient();
   const { data: config, isLoading } = useQuery({
     queryKey: ["whatsapp-config"],
@@ -97,7 +110,7 @@ function WhatsappSettings() {
 
   const save = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Not signed in.");
+      if (!user) throw new Error(copy.toasts.notSignedIn);
       const agencyId = await currentAgencyId(user.id);
       return saveWhatsappConfig(
         agencyId,
@@ -112,7 +125,7 @@ function WhatsappSettings() {
       );
     },
     onSuccess: () => {
-      toast.success("WhatsApp settings saved.");
+      toast.success(copy.toasts.saved);
       queryClient.invalidateQueries({ queryKey: ["whatsapp-config"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -124,7 +137,7 @@ function WhatsappSettings() {
       await disconnectWhatsapp(config.id);
     },
     onSuccess: () => {
-      toast.success("WhatsApp disconnected.");
+      toast.success(copy.toasts.disconnected);
       queryClient.invalidateQueries({ queryKey: ["whatsapp-config"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -136,9 +149,9 @@ function WhatsappSettings() {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6">
       <PageHeader
-        eyebrow="Integration"
-        title="WhatsApp Business"
-        description="Connect the WhatsApp Cloud API so inbound enquiries create leads and the Autonomous AI Business Executive replies instantly."
+        eyebrow={copy.header.eyebrow}
+        title={copy.header.title}
+        description={copy.header.description}
       />
 
       {isLoading ? (
@@ -152,11 +165,14 @@ function WhatsappSettings() {
                   <MessageCircle className="size-4 text-primary" />
                 </div>
                 <div>
-                  <h2 className="font-display text-base font-semibold">Connection status</h2>
+                  <h2 className="font-display text-base font-semibold">{copy.status.title}</h2>
                   <p className="text-xs text-muted-foreground">
                     {config?.last_inbound_at
-                      ? `Last inbound message ${new Date(config.last_inbound_at).toLocaleString("en-MY")}`
-                      : "No inbound messages received yet."}
+                      ? copy.status.lastInbound.replace(
+                          "{date}",
+                          new Date(config.last_inbound_at).toLocaleString("en-MY"),
+                        )
+                      : copy.status.noInbound}
                   </p>
                 </div>
               </div>
@@ -167,16 +183,16 @@ function WhatsappSettings() {
                     : "bg-muted text-muted-foreground"
                 }
               >
-                {config?.is_connected ? "Connected" : "Not connected"}
+                {config?.is_connected ? copy.status.connected : copy.status.notConnected}
               </Badge>
             </div>
           </section>
 
           <section className="panel space-y-4 p-5">
-            <h2 className="font-display text-base font-semibold">Meta credentials</h2>
+            <h2 className="font-display text-base font-semibold">{copy.credentials.title}</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="display">Display phone number</Label>
+                <Label htmlFor="display">{copy.credentials.displayNumber}</Label>
                 <Input
                   id="display"
                   placeholder="+60 12-345 6789"
@@ -185,7 +201,7 @@ function WhatsappSettings() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pnid">Phone number ID</Label>
+                <Label htmlFor="pnid">{copy.credentials.phoneNumberId}</Label>
                 <Input
                   id="pnid"
                   placeholder="1234567890"
@@ -194,7 +210,7 @@ function WhatsappSettings() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="waba">Business account ID</Label>
+                <Label htmlFor="waba">{copy.credentials.businessAccountId}</Label>
                 <Input
                   id="waba"
                   placeholder="0987654321"
@@ -203,28 +219,28 @@ function WhatsappSettings() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="token">Permanent access token</Label>
+                <Label htmlFor="token">{copy.credentials.accessToken}</Label>
                 <Input
                   id="token"
                   type="password"
                   autoComplete="off"
-                  placeholder={config?.has_access_token ? "•••••• stored — leave blank to keep" : "EAAG..."}
+                  placeholder={config?.has_access_token ? copy.credentials.tokenPlaceholderStored : copy.credentials.tokenPlaceholderNew}
                   value={form.access_token ?? ""}
                   onChange={(e) => setForm({ ...form, access_token: e.target.value })}
                 />
                 <p className="text-xs text-muted-foreground">
                   {config?.has_access_token
-                    ? "A token is securely stored. It is never shown again — enter a new one only to replace it."
-                    : "Stored server-side only; it is never returned to your browser."}
+                    ? copy.credentials.tokenStoredNote
+                    : copy.credentials.tokenNotStoredNote}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3">
               <div>
-                <p className="text-sm font-medium">AI auto-reply</p>
+                <p className="text-sm font-medium">{copy.credentials.autoReply}</p>
                 <p className="text-xs text-muted-foreground">
-                  Let the Autonomous AI Business Executive answer inbound WhatsApp messages automatically.
+                  {copy.credentials.autoReplyDescription}
                 </p>
               </div>
               <Switch
@@ -235,7 +251,7 @@ function WhatsappSettings() {
 
             <div className="flex flex-wrap gap-2">
               <Button onClick={() => save.mutate()} disabled={save.isPending}>
-                {save.isPending ? "Saving…" : "Save connection"}
+                {save.isPending ? copy.credentials.saving : copy.credentials.save}
               </Button>
               {config?.is_connected ? (
                 <Button
@@ -243,7 +259,7 @@ function WhatsappSettings() {
                   onClick={() => disconnect.mutate()}
                   disabled={disconnect.isPending}
                 >
-                  Disconnect
+                  {copy.credentials.disconnect}
                 </Button>
               ) : null}
             </div>
@@ -252,17 +268,21 @@ function WhatsappSettings() {
           <section className="panel space-y-4 p-5">
             <div className="flex items-center gap-2">
               <ShieldCheck className="size-4 text-primary" />
-              <h2 className="font-display text-base font-semibold">Webhook setup</h2>
+              <h2 className="font-display text-base font-semibold">{copy.webhook.title}</h2>
             </div>
             <p className="text-xs text-muted-foreground">
-              In Meta for Developers → WhatsApp → Configuration, paste the callback URL below, then
-              subscribe to the <span className="font-mono">messages</span> field. The verify token is
-              held server-side and never shown in the browser — contact support to retrieve it
-              securely.
+              {copy.webhook.instructions.split("{field}")[0]}
+              <span className="font-mono">{copy.webhook.field}</span>
+              {copy.webhook.instructions.split("{field}")[1]}
             </p>
-            <CopyField label="Callback URL" value={webhookUrl} />
+            <CopyField
+              label={copy.webhook.callbackUrl}
+              value={webhookUrl}
+              copyAriaLabel={(label) => copy.webhook.copyAria.replace("{label}", label)}
+              copiedLabel={(label) => copy.toasts.copied.replace("{label}", label)}
+            />
             <div className="rounded-xl border border-border bg-surface px-4 py-3 text-sm">
-              Webhook verification configured
+              {copy.webhook.configured}
             </div>
           </section>
         </>

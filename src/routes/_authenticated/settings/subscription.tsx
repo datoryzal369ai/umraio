@@ -16,6 +16,8 @@ import {
   localizedSavings,
   planCopy,
 } from "@/lib/billing/pricing.i18n";
+import { useCopy } from "@/lib/i18n/dict";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
 import { useLocale } from "@/lib/i18n/locale";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
@@ -43,6 +45,7 @@ function SubscriptionPage() {
   const queryClient = useQueryClient();
   const { locale } = useLocale();
   const copy = PRICING_SECTION_COPY[locale];
+  const settingsAi = useCopy(settingsCopy).ai;
   const { data: agency } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
   const { data: settings, isLoading } = useQuery({
     queryKey: ["agency-settings", agency?.id],
@@ -52,7 +55,7 @@ function SubscriptionPage() {
 
   const choose = useMutation({
     mutationFn: async (plan: string) => {
-      if (!settings) throw new Error("Settings not loaded.");
+      if (!settings) throw new Error(settingsAi.toasts.settingsNotLoaded);
       const target = publicPlans().find((item) => item.id === plan);
       return updateSettings(settings.id, {
         plan,

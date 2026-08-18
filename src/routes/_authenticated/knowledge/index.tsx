@@ -38,6 +38,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { accountCopy } from "@/lib/i18n/app/account.i18n";
 import { currentAgencyId } from "@/lib/leads";
 import {
   KB_CATEGORIES,
@@ -97,6 +99,7 @@ const emptyForm: FormState = {
 };
 
 function KnowledgePage() {
+  const t = useCopy(accountCopy).knowledge;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -141,14 +144,14 @@ function KnowledgePage() {
         file_name: form.file_name,
         file_path: form.file_path,
       };
-      if (!payload.title) throw new Error("Title is required.");
-      if (!payload.content) throw new Error("Add some content or upload a PDF.");
+      if (!payload.title) throw new Error(t.titleRequired);
+      if (!payload.content) throw new Error(t.contentRequired);
       if (editing) return updateArticle(editing.id, payload);
       const agencyId = await currentAgencyId(user!.id);
       return createArticle(agencyId, payload, user!.id);
     },
     onSuccess: async () => {
-      toast.success(editing ? "Article updated." : "Article added to the knowledge base.");
+      toast.success(editing ? t.articleUpdated : t.articleAdded);
       setOpen(false);
       setEditing(null);
       setForm(emptyForm);
@@ -160,7 +163,7 @@ function KnowledgePage() {
   const deleteMutation = useMutation({
     mutationFn: (article: KnowledgeArticle) => deleteArticle(article),
     onSuccess: async () => {
-      toast.success("Article deleted.");
+      toast.success(t.articleDeleted);
       setPendingDelete(null);
       await invalidate();
     },
@@ -176,7 +179,7 @@ function KnowledgePage() {
 
   async function handleFile(file: File) {
     if (file.type !== "application/pdf") {
-      toast.error("Please upload a PDF file.");
+      toast.error(t.pleaseUploadPdf);
       return;
     }
     setUploading(true);
@@ -193,9 +196,7 @@ function KnowledgePage() {
         file_name: uploaded.name,
         file_path: uploaded.path,
       }));
-      toast.success(
-        text ? "PDF uploaded and text extracted for the AI." : "PDF uploaded (no readable text).",
-      );
+      toast.success(text ? t.pdfUploadedWithText : t.pdfUploadedNoText);
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -208,7 +209,7 @@ function KnowledgePage() {
     if (!article.file_path) return;
     const url = await knowledgeFileUrl(article.file_path);
     if (url) window.open(url, "_blank", "noopener");
-    else toast.error("Could not open the document.");
+    else toast.error(t.couldNotOpenDocument);
   }
 
   function startCreate() {
@@ -235,13 +236,13 @@ function KnowledgePage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <PageHeader
-        eyebrow="AI Brain"
-        title="Knowledge Base"
-        description="Articles, FAQs and PDF documents your Autonomous AI Business Executive reads before answering any enquiry."
+        eyebrow={t.eyebrow}
+        title={t.title}
+        description={t.description}
         actions={
           <Button onClick={startCreate}>
             <Plus aria-hidden="true" className="size-4" />
-            New article
+            {t.newArticle}
           </Button>
         }
       />
@@ -251,15 +252,15 @@ function KnowledgePage() {
           className="flex-1"
           value={search}
           onChange={setSearch}
-          label="Search knowledge base"
-          placeholder="Search articles, FAQs, documents…"
+          label={t.searchLabel}
+          placeholder={t.searchPlaceholder}
         />
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger className="sm:w-56">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder={t.category} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
+            <SelectItem value="all">{t.allCategories}</SelectItem>
             {KB_CATEGORIES.map((c) => (
               <SelectItem key={c} value={c}>
                 {KB_CATEGORY_LABELS[c]}
@@ -278,14 +279,13 @@ function KnowledgePage() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card/50 px-6 py-16 text-center">
           <BookOpen className="size-8 text-muted-foreground" />
-          <p className="font-medium">No knowledge articles yet</p>
+          <p className="font-medium">{t.noArticlesTitle}</p>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Add FAQs, travel guides, visa rules, hotel details or upload agency PDFs so the AI never
-            guesses an answer.
+            {t.noArticlesBody}
           </p>
           <Button variant="outline" onClick={startCreate}>
             <Plus className="size-4" />
-            Add your first article
+            {t.addFirstArticle}
           </Button>
         </div>
       ) : (
@@ -299,14 +299,14 @@ function KnowledgePage() {
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary">{KB_CATEGORY_LABELS[article.category]}</Badge>
-                    {!article.is_active && <Badge variant="outline">Disabled</Badge>}
+                    {!article.is_active && <Badge variant="outline">{t.disabled}</Badge>}
                   </div>
                   <h2 className="mt-2 truncate font-medium">{article.title}</h2>
                 </div>
                 <Switch
                   checked={article.is_active}
                   onCheckedChange={() => toggleMutation.mutate(article)}
-                  aria-label="Use this article in AI answers"
+                  aria-label={t.useInAiAnswers}
                 />
               </div>
 
@@ -331,12 +331,12 @@ function KnowledgePage() {
                 {article.file_path && (
                   <Button variant="outline" size="sm" onClick={() => openFile(article)}>
                     <FileText className="size-4" />
-                    PDF
+                    {t.pdf}
                   </Button>
                 )}
                 <Button variant="ghost" size="sm" onClick={() => startEdit(article)}>
                   <Pencil className="size-4" />
-                  Edit
+                  {t.edit}
                 </Button>
                 <Button
                   variant="ghost"
@@ -345,7 +345,7 @@ function KnowledgePage() {
                   onClick={() => setPendingDelete(article)}
                 >
                   <Trash2 className="size-4" />
-                  Delete
+                  {t.delete}
                 </Button>
               </div>
             </article>
@@ -356,26 +356,26 @@ function KnowledgePage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit article" : "New knowledge article"}</DialogTitle>
+            <DialogTitle>{editing ? t.editArticle : t.newKnowledgeArticle}</DialogTitle>
             <DialogDescription>
-              The AI searches this content before replying to customers.
+              {t.dialogDescription}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="kb-title">Title</Label>
+              <Label htmlFor="kb-title">{t.titleLabel}</Label>
               <Input
                 id="kb-title"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="e.g. Umrah visa requirements 2026"
+                placeholder={t.titlePlaceholder}
               />
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t.category}</Label>
                 <Select
                   value={form.category}
                   onValueChange={(v) => setForm({ ...form, category: v as KbCategory })}
@@ -393,43 +393,43 @@ function KnowledgePage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kb-tags">Tags (comma separated)</Label>
+                <Label htmlFor="kb-tags">{t.tagsLabel}</Label>
                 <Input
                   id="kb-tags"
                   value={form.tags}
                   onChange={(e) => setForm({ ...form, tags: e.target.value })}
-                  placeholder="visa, passport, ramadan"
+                  placeholder={t.tagsPlaceholder}
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="kb-summary">Short summary</Label>
+              <Label htmlFor="kb-summary">{t.summaryLabel}</Label>
               <Input
                 id="kb-summary"
                 value={form.summary}
                 onChange={(e) => setForm({ ...form, summary: e.target.value })}
-                placeholder="One line the AI uses to pick the right article"
+                placeholder={t.summaryPlaceholder}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="kb-content">Content</Label>
+              <Label htmlFor="kb-content">{t.contentLabel}</Label>
               <Textarea
                 id="kb-content"
                 rows={10}
                 value={form.content}
                 onChange={(e) => setForm({ ...form, content: e.target.value })}
-                placeholder="Write the FAQ answer, travel guide, package or hotel details…"
+                placeholder={t.contentPlaceholder}
               />
             </div>
 
             <div className="rounded-lg border border-dashed border-border p-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-medium">Upload PDF</p>
+                  <p className="text-sm font-medium">{t.uploadPdf}</p>
                   <p className="text-xs text-muted-foreground">
-                    Text is extracted automatically so the AI can quote it.
+                    {t.uploadPdfHint}
                   </p>
                 </div>
                 <Button
@@ -443,7 +443,7 @@ function KnowledgePage() {
                   ) : (
                     <Upload className="size-4" />
                   )}
-                  {uploading ? "Processing…" : "Choose PDF"}
+                  {uploading ? t.processing : t.choosePdf}
                 </Button>
                 <input
                   ref={fileRef}
@@ -468,9 +468,9 @@ function KnowledgePage() {
               <div className="flex items-center gap-2">
                 <Sparkles className="size-4 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Use in AI answers</p>
+                  <p className="text-sm font-medium">{t.useInAiAnswersTitle}</p>
                   <p className="text-xs text-muted-foreground">
-                    Disabled articles stay saved but are ignored by the AI.
+                    {t.useInAiAnswersHint}
                   </p>
                 </div>
               </div>
@@ -483,11 +483,11 @@ function KnowledgePage() {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setOpen(false)}>
-              Cancel
+              {t.cancel}
             </Button>
             <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
               {saveMutation.isPending && <Loader2 className="size-4 animate-spin" />}
-              {editing ? "Save changes" : "Add article"}
+              {editing ? t.saveChanges : t.addArticle}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -496,18 +496,17 @@ function KnowledgePage() {
       <AlertDialog open={!!pendingDelete} onOpenChange={(o) => !o && setPendingDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this article?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteArticleTitle}</AlertDialogTitle>
             <AlertDialogDescription>
-              {pendingDelete?.title} will be removed from the knowledge base, along with any
-              uploaded PDF.
+              {t.deleteArticleBody.replace("{title}", pendingDelete?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => pendingDelete && deleteMutation.mutate(pendingDelete)}
             >
-              Delete
+              {t.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

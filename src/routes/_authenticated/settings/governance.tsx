@@ -12,6 +12,8 @@ import {
   fetchPackageReviewStatus,
   fetchPolicyDecisions,
 } from "@/lib/islamic-governance";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
+import { useCopy } from "@/lib/i18n/dict";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/settings/governance")({
@@ -63,6 +65,7 @@ function Section({
 }
 
 function GovernancePage() {
+  const copy = useCopy(settingsCopy).governance;
   const policies = useQuery({ queryKey: ["islamic-policies"], queryFn: fetchIslamicPolicies });
   const decisions = useQuery({ queryKey: ["islamic-decisions"], queryFn: () => fetchPolicyDecisions() });
   const reviews = useQuery({ queryKey: ["islamic-reviews"], queryFn: () => fetchExpertReviews() });
@@ -71,28 +74,26 @@ function GovernancePage() {
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-primary/30 bg-primary/5 p-5">
-        <h1 className="text-lg font-semibold text-foreground">Islamic Implementation Layer™</h1>
+        <h1 className="text-lg font-semibold text-foreground">{copy.hero.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A governed architectural layer that constrains what the Autonomous AI Business Executive™
-          may claim or do. UMRAIO is <strong className="text-foreground">not</strong> a mufti,
-          Islamic scholar, fatwa body or Shariah authority, and it never issues religious rulings.
-          Matters that require religious judgement are routed to qualified humans for review.
+          {copy.hero.body.split("{not}")[0]}
+          <strong className="text-foreground">{copy.hero.bodyNot}</strong>
+          {copy.hero.body.split("{not}")[1]}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          Policies are managed by the platform and are read-only here. Every policy decision is
-          written to the audit trail with its policy code, version, source and authority.
+          {copy.hero.note}
         </p>
       </div>
 
       <Section
         icon={ScrollText}
-        title="Active policy register"
-        description="Deterministic rules evaluated before a governed action executes."
+        title={copy.policyRegister.title}
+        description={copy.policyRegister.description}
       >
         {policies.isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : !policies.data?.length ? (
-          <p className="text-sm text-muted-foreground">No active policies.</p>
+          <p className="text-sm text-muted-foreground">{copy.policyRegister.empty}</p>
         ) : (
           <ul className="space-y-3">
             {policies.data.map((p) => (
@@ -107,16 +108,18 @@ function GovernancePage() {
                   <Badge variant="outline">{p.scope.replace("_", " ")}</Badge>
                   {p.requires_human_review ? (
                     <Badge variant="outline" className="border-amber-500/40 text-amber-400">
-                      Qualified human review
+                      {copy.policyRegister.qualifiedReview}
                     </Badge>
                   ) : null}
-                  <Badge variant="outline">{p.agency_id ? "Agency" : "Platform"}</Badge>
+                  <Badge variant="outline">{p.agency_id ? copy.policyRegister.agency : copy.policyRegister.platform}</Badge>
                 </div>
                 <p className="mt-2 text-sm font-medium text-foreground">{p.principle}</p>
                 <p className="mt-1 text-sm text-muted-foreground">{p.rule_text}</p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Source: {p.source} · Authority: {p.authority} · In force since{" "}
-                  {new Date(p.effective_from).toLocaleDateString()}
+                  {copy.policyRegister.sourceLine
+                    .replace("{source}", p.source)
+                    .replace("{authority}", p.authority)
+                    .replace("{date}", new Date(p.effective_from).toLocaleDateString())}
                 </p>
               </li>
             ))}
@@ -126,13 +129,13 @@ function GovernancePage() {
 
       <Section
         icon={PackageCheck}
-        title="Halal baseline status"
-        description="Unknown status means review pending — never halal, never haram."
+        title={copy.halalBaseline.title}
+        description={copy.halalBaseline.description}
       >
         {packages.isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : !packages.data?.length ? (
-          <p className="text-sm text-muted-foreground">No packages yet.</p>
+          <p className="text-sm text-muted-foreground">{copy.halalBaseline.empty}</p>
         ) : (
           <ul className="divide-y divide-border">
             {packages.data.map((p) => (
@@ -158,13 +161,13 @@ function GovernancePage() {
 
       <Section
         icon={UserCheck}
-        title="Expert review requests"
-        description="Religious questions routed to a qualified human. No reviewer is assigned automatically."
+        title={copy.expertReviews.title}
+        description={copy.expertReviews.description}
       >
         {reviews.isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : !reviews.data?.length ? (
-          <p className="text-sm text-muted-foreground">No review requests raised.</p>
+          <p className="text-sm text-muted-foreground">{copy.expertReviews.empty}</p>
         ) : (
           <ul className="space-y-3">
             {reviews.data.map((r) => (
@@ -177,7 +180,7 @@ function GovernancePage() {
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{r.body}</p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  Raised {new Date(r.created_at).toLocaleString()} · Reviewer: unassigned
+                  {copy.expertReviews.raisedLine.replace("{date}", new Date(r.created_at).toLocaleString())}
                 </p>
               </li>
             ))}
@@ -187,13 +190,13 @@ function GovernancePage() {
 
       <Section
         icon={ShieldCheck}
-        title="Policy decision audit"
-        description="Every governed check, allowed or blocked, with its policy reference."
+        title={copy.audit.title}
+        description={copy.audit.description}
       >
         {decisions.isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : !decisions.data?.length ? (
-          <p className="text-sm text-muted-foreground">No policy decisions recorded yet.</p>
+          <p className="text-sm text-muted-foreground">{copy.audit.empty}</p>
         ) : (
           <ul className="space-y-2">
             {decisions.data.map((d) => {
