@@ -107,9 +107,21 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           });
         }
 
+        // STEP 3D — human presence & social intelligence (deterministic).
+        const { buildSocialProfile, socialPresenceInstruction } = await import(
+          "@/lib/sales/social-presence.core"
+        );
+        const social = buildSocialProfile({
+          messages: body.messages.map((m) => ({
+            sender: m.role === "visitor" ? "customer" : "ai",
+            body: m.content,
+          })),
+        });
+
         const system = [
           SYSTEM,
           languageInstruction(body.language, intel.language),
+          socialPresenceInstruction(social),
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
 
