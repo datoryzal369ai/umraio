@@ -6,14 +6,17 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { UsagePanel } from "@/components/settings/UsagePanel";
+import { publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 import {
-  formatPlanPrice,
-  foundingSavings,
-  foundingNote,
-  publicPlans,
-  resolveDisplayPlan,
-} from "@/lib/billing/pricing.core";
+  PRICING_SECTION_COPY,
+  localizedPlanPrice,
+  localizedReferencePrice,
+  localizedSavings,
+  planCopy,
+} from "@/lib/billing/pricing.i18n";
+import { useLocale } from "@/lib/i18n/locale";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
