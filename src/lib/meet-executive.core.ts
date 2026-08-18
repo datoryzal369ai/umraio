@@ -260,7 +260,7 @@ export const CAPABILITIES: Capability[] = [
   },
   {
     key: "orchestrator",
-    name: "AI Autonomous Business Executive™",
+    name: "Autonomous AI Business Executive™",
     role: "Prioritisation, next action and coordination",
     status: "active",
   },
