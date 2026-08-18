@@ -147,6 +147,12 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           dropped: compaction.dropped,
         });
 
+        // STEP 3F — closing & subscription execution engine (deterministic).
+        const { buildClosingRead, closingInstruction } = await import(
+          "@/lib/meet/closing-engine.core"
+        );
+        const closing = buildClosingRead({ intel, conversion, messages: body.messages });
+
         const memory = buildQuestionMemory(body.messages, intel, social);
         const register = resolveMeetRegister(
           body.messages.filter((m) => m.role === "visitor").map((m) => m.content),
@@ -165,9 +171,10 @@ export const Route = createFileRoute("/api/public/meet-executive")({
             executiveTurns: body.messages.filter((m) => m.role === "executive").length,
           }),
           socialPresenceInstruction(social),
-          questionMemoryInstruction(memory),
+          ...(closing.stopDiscovery ? [] : [questionMemoryInstruction(memory)]),
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
+          closingInstruction(closing),
           ...(carryOver ? [carryOver] : []),
 
           ...(religious.isReligiousRulingRequest
