@@ -255,6 +255,31 @@ export function MeetExecutive() {
             </p>
           ) : null}
 
+          {conversion.valueBridge ? (
+            <div className="mt-4 rounded-lg border border-border/60 bg-card/40 px-3 py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                  Value bridge
+                </h3>
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                  {conversion.stateLabel}
+                </span>
+              </div>
+              <ul className="mt-2 grid gap-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                <li>{conversion.valueBridge.youToldMe}</li>
+                <li>{conversion.valueBridge.businessGap}</li>
+                <li className="text-foreground">{conversion.valueBridge.whatUmraioCanDo}</li>
+                <li>{conversion.valueBridge.howItExecutes}</li>
+                <li>{conversion.valueBridge.expectedOutcome}</li>
+              </ul>
+              {conversion.demonstration ? (
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  Suggested demonstration: {conversion.demonstration.headline}.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
           {recommended.length ? (
             <>
               <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
