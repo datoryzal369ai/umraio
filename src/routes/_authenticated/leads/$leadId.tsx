@@ -120,7 +120,7 @@ function LeadDetailPage() {
     },
     onSuccess: async () => {
       setNote("");
-      toast.success(t.noNotesYet === t.noNotesYet ? "Note added." : "Note added.");
+      toast.success(t.noteAdded);
       await refreshAll();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -130,8 +130,8 @@ function LeadDetailPage() {
     mutationFn: async () => {
       if (!lead) throw new Error("Not ready");
       const title = reminderTitle.trim();
-      if (title.length < 2) throw new Error("Give the reminder a title");
-      if (!reminderAt) throw new Error("Pick a date and time");
+      if (title.length < 2) throw new Error(t.giveReminderTitle);
+      if (!reminderAt) throw new Error(t.pickDateTime);
       await createReminder({
         agencyId: lead.agency_id,
         leadId,
@@ -143,22 +143,22 @@ function LeadDetailPage() {
     onSuccess: async () => {
       setReminderTitle("");
       setReminderAt("");
-      toast.success("Follow-up scheduled.");
+      toast.success(t.followUpScheduled);
       await refreshAll();
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   if (isLoading) {
-    return <div className="panel p-10 text-sm text-muted-foreground">Loading lead…</div>;
+    return <div className="panel p-10 text-sm text-muted-foreground">{t.loadingLead}</div>;
   }
 
   if (!lead) {
     return (
       <div className="panel space-y-3 p-10 text-center">
-        <p className="font-semibold">This lead no longer exists.</p>
+        <p className="font-semibold">{t.leadGoneTitle}</p>
         <Button asChild variant="outline">
-          <Link to="/leads">Back to leads</Link>
+          <Link to="/leads">{t.backToLeads}</Link>
         </Button>
       </div>
     );
@@ -168,16 +168,16 @@ function LeadDetailPage() {
     ...notes.map((n) => ({
       id: `note-${n.id}`,
       at: n.created_at,
-      title: "Note",
+      title: t.timelineNote,
       detail: n.body,
     })),
     ...activity.map((a) => ({
       id: `act-${a.id}`,
       at: a.created_at,
-      title: `${a.action} · ${a.actor === "ai" ? "AI" : "Team"}`,
+      title: t.timelineActivity(a.action, a.actor === "ai" ? t.timelineActor.ai : t.timelineActor.team),
       detail: typeof a.meta?.["detail"] === "string" ? (a.meta["detail"] as string) : "",
     })),
-    { id: "created", at: lead.created_at, title: "Lead created", detail: `Source: ${lead.source}` },
+    { id: "created", at: lead.created_at, title: t.leadCreatedTimeline, detail: t.timelineSource(lead.source) },
   ].sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
 
   return (
@@ -185,7 +185,7 @@ function LeadDetailPage() {
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/leads">
           <ArrowLeft className="size-4" />
-          All leads
+          {t.allLeads}
         </Link>
       </Button>
 
@@ -195,7 +195,7 @@ function LeadDetailPage() {
           <div className="flex flex-wrap items-center gap-2">
             <TemperatureBadge value={lead.temperature} />
             <StageBadge stage={lead.stage} />
-            <span className="text-xs text-muted-foreground capitalize">via {lead.source}</span>
+            <span className="text-xs text-muted-foreground capitalize">{t.via(lead.source)}</span>
           </div>
           <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
             {lead.phone ? (
@@ -210,7 +210,7 @@ function LeadDetailPage() {
                 {lead.email}
               </span>
             ) : null}
-            <span>{lead.pax} pax</span>
+            <span>{t.pax(lead.pax)}</span>
             <span>{formatMyr(lead.budget_myr)}</span>
             {lead.preferred_month ? <span>{lead.preferred_month}</span> : null}
           </div>
@@ -218,7 +218,7 @@ function LeadDetailPage() {
         </div>
         <Button variant="outline" onClick={() => setEditOpen(true)}>
           <Pencil className="size-4" />
-          Edit lead
+          {t.editLeadBtn}
         </Button>
       </header>
 
@@ -235,13 +235,13 @@ function LeadDetailPage() {
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
           <section className="panel p-6">
-            <h2 className="text-lg font-semibold">Lead notes</h2>
+            <h2 className="text-lg font-semibold">{t.leadNotesHeading}</h2>
             <div className="mt-4 space-y-3">
               <Textarea
                 value={note}
                 maxLength={2000}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Log what was discussed, objections, budget signals…"
+                placeholder={t.notePlaceholder}
                 rows={3}
               />
               <Button
@@ -249,12 +249,12 @@ function LeadDetailPage() {
                 onClick={() => noteMutation.mutate()}
                 disabled={noteMutation.isPending}
               >
-                Add note
+                {t.addNote}
               </Button>
             </div>
             <div className="mt-6 space-y-3">
               {notes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No notes yet.</p>
+                <p className="text-sm text-muted-foreground">{t.noNotesYet}</p>
               ) : (
                 notes.map((n) => (
                   <div key={n.id} className="rounded-lg border border-border bg-surface p-3">
@@ -263,10 +263,10 @@ function LeadDetailPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        aria-label="Delete note"
+                        aria-label={t.deleteNote}
                         onClick={async () => {
                           await deleteLeadNote(n.id);
-                          toast.success("Note deleted.");
+                          toast.success(t.noteDeleted);
                           await refreshAll();
                         }}
                       >
@@ -285,7 +285,7 @@ function LeadDetailPage() {
           <section className="panel p-6">
             <h2 className="flex items-center gap-2 text-lg font-semibold">
               <ActivityIcon className="size-4 text-primary" />
-              Timeline
+              {t.timelineHeading}
             </h2>
             <ol className="mt-4 space-y-4 border-l border-border pl-5">
               {timeline.map((item) => (
@@ -305,21 +305,21 @@ function LeadDetailPage() {
         <section className="panel h-fit p-6">
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             <BellPlus className="size-4 text-primary" />
-            Follow-up reminders
+            {t.followUpRemindersHeading}
           </h2>
           <div className="mt-4 space-y-3">
             <div className="space-y-2">
-              <Label htmlFor="reminder-title">What to do</Label>
+              <Label htmlFor="reminder-title">{t.reminderWhatLabel}</Label>
               <Input
                 id="reminder-title"
                 value={reminderTitle}
                 maxLength={120}
                 onChange={(e) => setReminderTitle(e.target.value)}
-                placeholder="Send Ramadan package quote"
+                placeholder={t.reminderWhatPlaceholder}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reminder-at">When</Label>
+              <Label htmlFor="reminder-at">{t.reminderWhenLabel}</Label>
               <Input
                 id="reminder-at"
                 type="datetime-local"
@@ -333,13 +333,13 @@ function LeadDetailPage() {
               onClick={() => reminderMutation.mutate()}
               disabled={reminderMutation.isPending}
             >
-              Schedule follow-up
+              {t.scheduleFollowUp}
             </Button>
           </div>
 
           <div className="mt-6 space-y-3">
             {reminders.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No reminders scheduled.</p>
+              <p className="text-sm text-muted-foreground">{t.noRemindersScheduled}</p>
             ) : (
               reminders.map((reminder) => {
                 const overdue =
@@ -361,7 +361,7 @@ function LeadDetailPage() {
                         >
                           <Clock className="size-3" />
                           {new Date(reminder.run_at).toLocaleString()}
-                          {overdue ? " · overdue" : ""}
+                          {overdue ? t.overdue : ""}
                         </p>
                       </div>
                       <div className="flex shrink-0">
@@ -369,10 +369,10 @@ function LeadDetailPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            aria-label="Mark done"
+                            aria-label={t.markDone}
                             onClick={async () => {
                               await completeReminder(reminder.id);
-                              toast.success("Follow-up completed.");
+                              toast.success(t.followUpCompleted);
                               await refreshAll();
                             }}
                           >
@@ -386,7 +386,7 @@ function LeadDetailPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          aria-label="Delete reminder"
+                          aria-label={t.deleteReminder}
                           onClick={async () => {
                             await deleteReminder(reminder.id);
                             await refreshAll();
@@ -408,7 +408,7 @@ function LeadDetailPage() {
             className="mt-6 w-full"
             onClick={() => navigate({ to: "/leads" })}
           >
-            Back to pipeline
+            {t.backToPipeline}
           </Button>
         </section>
       </div>
