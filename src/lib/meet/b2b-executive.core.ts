@@ -179,7 +179,8 @@ const OBJECTION_PATTERNS: Array<{ cat: B2bObjection; re: RegExp }> = [
   },
   {
     cat: "DATA_SECURITY",
-    re: /\b(data\s+(saya\s+)?(selamat|secure|safe)|customer\s+data|privacy|pdpa|bocor|leak|confidential)\b/i,
+    // STEP 3E — "data customer saya selamat ke?" must register as a trust objection.
+    re: /\b(data[^.?!]{0,25}\b(selamat|secure|safe|protected|terjamin)|customer\s+data|data\s+(customer|pelanggan)|privacy|pdpa|bocor|leak|confidential)\b/i,
   },
   {
     cat: "ALREADY_HAVE_CRM",
