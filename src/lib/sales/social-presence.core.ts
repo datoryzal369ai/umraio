@@ -109,12 +109,16 @@ const NAME_PATTERNS: RegExp[] = [
 ];
 
 export type AddressReading = {
-  /** Honorific explicitly used or requested by the customer. Never inferred from a name. */
+  /** Honorific explicitly used or requested by the customer, or supplied by trusted context. Never inferred from a name. */
   honorific: Honorific | null;
+  /** Where the honorific came from — evidence trail, never a guess. */
+  honorificSource: "self_stated" | "trusted_context" | null;
   /** Name the customer gave for themselves. */
   name: string | null;
   /** Preferred nickname when the customer asked for a shorter form. */
   preferredName: string | null;
+  /** True when the customer asked to be called by a plain name only ("panggil saya Rizal sahaja"). */
+  honorificDeclined: boolean;
   confidence: "CONFIRMED" | "PARTIAL" | "UNKNOWN";
   /** Ready-to-use form of address, e.g. "Encik Ahmad". Null when unknown. */
   addressForm: string | null;
@@ -128,65 +132,107 @@ export function detectHonorific(text: string | null | undefined): Honorific | nu
   return null;
 }
 
-export function detectSelfName(text: string | null | undefined): string | null {
+/**
+ * Honorific the customer applied to THEMSELVES. Only self-referential phrasing
+ * counts ("Saya Dato' Rizal", "Nama saya Tuan Haji Ahmad", or a bare
+ * "Dato' Rizal" introduction). A title mentioned about someone else never does.
+ */
+export function detectSelfHonorific(text: string | null | undefined): Honorific | null {
   if (!text) return null;
-  for (const re of NAME_PATTERNS) {
-    const m = re.exec(text);
-    const cleaned = cleanName(m?.[1]);
-    if (cleaned) return cleaned;
+  const trimmed = text.trim();
+  const selfIntro =
+    /(?:nama\s+(?:saya|aku|sy)(?:\s+(?:ialah|adalah))?|saya|sy|aku|panggil\s+saya|call\s+me|my\s+name\s+is|i\s*am|i'?m|this\s+is)\s+(.{0,40})/i.exec(
+      trimmed,
+    );
+  if (selfIntro?.[1]) {
+    const h = detectHonorific(selfIntro[1]);
+    if (h) return h;
+  }
+  // Bare introduction, e.g. "Dato' Rizal" as the whole message.
+  if (trimmed.split(/\s+/).length <= 4) {
+    const h = detectHonorific(trimmed);
+    if (h) return h;
   }
   return null;
 }
 
 /**
- * Resolves how the customer should be addressed, from the conversation and
- * any name already stored on the lead. Never invents a title.
+ * Resolves how the customer should be addressed, from the conversation, a
+ * trusted stored honorific and any name already on the lead. Never invents a
+ * title and never changes the name the customer actually gave.
  */
 export function resolveAddress(input: {
   customerMessages: string[];
   knownName?: string | null;
+  /** Honorific already verified in trusted context (e.g. stored on the lead). */
+  trustedHonorific?: Honorific | string | null;
   turnCount?: number;
 }): AddressReading {
   let honorific: Honorific | null = null;
+  let honorificSource: AddressReading["honorificSource"] = null;
   let name: string | null = null;
   let preferredName: string | null = null;
+  let honorificDeclined = false;
 
   for (const raw of input.customerMessages) {
-    const h = detectHonorific(raw);
-    if (h) honorific = h;
+    const h = detectSelfHonorific(raw);
+    if (h) {
+      honorific = h;
+      honorificSource = "self_stated";
+    }
     const n = detectSelfName(raw);
     if (n) name = n;
-    const short = /(?:panggil\s+(?:saya|sy)|call\s+me|just\s+call\s+me)\s+([A-Za-z']{2,20})/i.exec(raw);
+    const short =
+      /(?:panggil\s+(?:saya|sy)|call\s+me|just\s+call\s+me)\s+([A-Za-z']{2,20})(\s*(?:sahaja|saja|je|jer|only))?/i.exec(
+        raw,
+      );
     const shortName = cleanName(short?.[1]);
-    if (shortName) preferredName = shortName;
+    if (shortName) {
+      preferredName = shortName;
+      if (short?.[2]) honorificDeclined = true;
+    }
+  }
+
+  if (!honorific && input.trustedHonorific) {
+    const trusted = HONORIFICS.find(
+      (h) => h.toLowerCase() === String(input.trustedHonorific).trim().toLowerCase(),
+    );
+    if (trusted) {
+      honorific = trusted;
+      honorificSource = "trusted_context";
+    }
   }
 
   if (!name && input.knownName) name = cleanName(input.knownName);
 
   const display = preferredName ?? name;
+  const useHonorific = honorific && !honorificDeclined ? honorific : null;
   const addressForm = display
-    ? honorific
-      ? `${honorific} ${display}`
+    ? useHonorific
+      ? `${useHonorific} ${display}`
       : display
-    : honorific
-      ? honorific
+    : useHonorific
+      ? useHonorific
       : null;
 
-  const confidence: AddressReading["confidence"] = display && honorific
+  const confidence: AddressReading["confidence"] = display && useHonorific
     ? "CONFIRMED"
-    : display || honorific
+    : display || useHonorific
       ? "PARTIAL"
       : "UNKNOWN";
 
   return {
     honorific,
+    honorificSource,
     name,
     preferredName,
+    honorificDeclined,
     confidence,
     addressForm,
     shouldAskHowToAddress: confidence === "UNKNOWN",
   };
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Register, pacing and mirroring                                      */
