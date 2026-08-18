@@ -39,6 +39,7 @@ type SiteCopy = {
   showcase: {
     eyebrow: string;
     headingLead: string;
+    headingAutomates: string;
     intro: string;
     illustrative: string;
     modules: {
@@ -304,6 +305,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
     showcase: {
       eyebrow: "The autonomous AI workforce",
       headingLead: "What",
+      headingAutomates: "Automates",
       intro:
         "From the first WhatsApp message to the next best action — UMRAIO® keeps your agency moving.",
       illustrative: "Illustrative demonstration",
@@ -548,6 +550,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
     showcase: {
       eyebrow: "Tenaga kerja AI autonomi",
       headingLead: "Apa yang",
+      headingAutomates: "Automasikan",
       intro:
         "Dari mesej WhatsApp pertama sehingga tindakan terbaik seterusnya — UMRAIO® memastikan agensi anda terus bergerak.",
       illustrative: "Paparan ilustrasi",
