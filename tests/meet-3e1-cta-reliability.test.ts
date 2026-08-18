@@ -55,7 +55,9 @@ describe("price questions stop discovery without inventing figures", () => {
     const r = read([v("Berapa harga?")]);
     expect(r.priceQuestion).toBe(true);
     expect(r.stopDiscovery).toBe(true);
-    expect(closingInstruction(r)).toContain("never state or estimate a figure");
+    // Step 3G.1 — canonical published pricing may be quoted, invention may not.
+    expect(closingInstruction(r)).toContain("RM299/month");
+    expect(closingInstruction(r)).toContain("Never invent discounts");
   });
 });
 

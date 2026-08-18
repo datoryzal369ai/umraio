@@ -13,6 +13,8 @@
  * No model call, no database, no schema change, no UI change.
  */
 
+import { pricingFactSheet } from "@/lib/billing/pricing.core";
+
 import { maskNegatedSpans, normalizeMessage } from "@/lib/sales/hardening.core";
 import type { DemoMessage } from "@/lib/meet-executive.core";
 import type { MeetIntelligence } from "./b2b-executive.core";
@@ -308,12 +310,12 @@ export function closingInstruction(read: ClosingRead): string {
 
   if (read.paymentQuestion) {
     lines.push(
-      "PAYMENT PATH (verified reality): there is NO in-chat payment, checkout page, payment link or self-serve billing in this demonstration. Never say 'teruskan pembayaran di sini', never invent a gateway, URL, plan price or billing cycle. Answer plainly and warmly: the actual next step is Start Free Trial on this page, or Talk to our team if they want the team to confirm packages and the payment process. Keep it under ~50 words, no new questions.",
+      "PAYMENT PATH (verified reality): there is NO in-chat payment, checkout page, payment link or self-serve billing in this demonstration. Never say 'teruskan pembayaran di sini', never invent a gateway, URL, plan price or billing cycle. Answer plainly and warmly: the actual next step is Start Free Trial on this page, or Talk to our team if they want the team to confirm packages and the payment process. Keep it under ~50 words, no new questions. You may quote published pricing if asked, but state honestly that subscription activation/payment is not processed in this demonstration.",
     );
   }
   if (read.priceQuestion) {
     lines.push(
-      "PRICE QUESTION: never state or estimate a figure — pricing is confirmed by the team. Acknowledge the question directly, say the team confirms packages and pricing, then offer Talk to our team, or Start Free Trial if they prefer to see it working first. Do not return to discovery in this reply.",
+      `PRICE QUESTION: you MAY state the published UMRAIO pricing exactly as listed below and nothing else. Published pricing (canonical, never alter):\n${pricingFactSheet()}\nNever invent discounts, promo codes, deadlines, an Enterprise figure or any price not listed. Published price is not the same as an activated subscription — activation is confirmed with the team. Answer directly, then offer Start Free Trial or Talk to our team. Do not return to discovery in this reply.`,
     );
   }
   if (read.stopDiscovery) {

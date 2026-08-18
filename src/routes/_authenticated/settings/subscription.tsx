@@ -7,7 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsagePanel } from "@/components/settings/UsagePanel";
-import { PLANS, fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
+import {
+  PLAN_CTA_LABEL,
+  formatPlanPrice,
+  foundingNote,
+  publicPlans,
+  resolveDisplayPlan,
+} from "@/lib/billing/pricing.core";
+import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 
@@ -41,15 +48,14 @@ function SubscriptionPage() {
   const choose = useMutation({
     mutationFn: async (plan: string) => {
       if (!settings) throw new Error("Settings not loaded.");
-      const target = PLANS.find((item) => item.value === plan);
+      const target = publicPlans().find((item) => item.id === plan);
       return updateSettings(settings.id, {
         plan,
-        plan_status: plan === "trial" ? "trialing" : "active",
         seats: target?.seats ?? settings.seats,
       });
     },
     onSuccess: () => {
-      toast.success("Plan preference recorded. Your entitlement is confirmed by the UMRAIO team.");
+      toast.success("Plan selection recorded. No payment has been taken — our team confirms activation.");
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -57,7 +63,7 @@ function SubscriptionPage() {
 
   if (isLoading || !settings) return <Skeleton className="h-[420px] rounded-2xl" />;
 
-  const current = PLANS.find((plan) => plan.value === settings.plan) ?? PLANS[0];
+  const current = resolveDisplayPlan(settings.plan);
 
   return (
     <div className="space-y-6">
@@ -70,14 +76,17 @@ function SubscriptionPage() {
             <CreditCard className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Current plan</h2>
-            <p className="text-xs text-muted-foreground">Your active subscription and usage.</p>
+            <h2 className="font-display text-base font-semibold tracking-tight">Selected plan</h2>
+            <p className="text-xs text-muted-foreground">
+              Your selected plan and usage. Paid subscription activation is confirmed by the UMRAIO
+              team.
+            </p>
           </div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-border bg-surface p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Plan</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Selected plan</p>
             <p className="mt-1 font-display text-lg font-bold">{current.name}</p>
             <Badge variant="secondary" className="mt-2 capitalize">
               {settings.plan_status}
@@ -107,25 +116,33 @@ function SubscriptionPage() {
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
             <p className="text-xs text-muted-foreground">
-              Scale your Autonomous AI Business Executive as your agency grows. Selecting a plan
-              records your preference — usage limits stay governed by your confirmed entitlement.
+              Selecting a plan records your <strong>selected plan</strong> only — it is not an
+              active paid subscription and no payment is taken here. Usage limits stay governed by
+              your confirmed entitlement.
             </p>
           </div>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLANS.map((plan) => {
-            const active = plan.value === settings.plan;
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {publicPlans().map((plan) => {
+            const active = plan.id === settings.plan;
+            const note = foundingNote(plan);
             return (
               <div
-                key={plan.value}
+                key={plan.id}
                 className={cn(
                   "flex flex-col rounded-2xl border p-5",
                   active ? "border-primary bg-primary/10" : "border-border bg-surface",
                 )}
               >
                 <p className="font-display text-lg font-bold">{plan.name}</p>
-                <p className="text-sm text-muted-foreground">{plan.price}</p>
+                <p className="text-sm text-muted-foreground">{formatPlanPrice(plan)}</p>
+                {note ? (
+                  <p className="text-xs text-muted-foreground">
+                    {note}
+                    <span className="ml-1 line-through">RM{plan.referencePriceMyrMonthly}/month</span>
+                  </p>
+                ) : null}
                 <ul className="mt-4 flex-1 space-y-2 text-sm">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
@@ -137,10 +154,14 @@ function SubscriptionPage() {
                 <Button
                   className="mt-5"
                   variant={active ? "outline" : "default"}
-                  disabled={active || choose.isPending}
-                  onClick={() => choose.mutate(plan.value)}
+                  disabled={active || choose.isPending || plan.cta === "talk_to_team"}
+                  onClick={() => choose.mutate(plan.id)}
                 >
-                  {active ? "Current plan" : `Switch to ${plan.name}`}
+                  {active
+                    ? "Selected plan"
+                    : plan.cta === "talk_to_team"
+                      ? PLAN_CTA_LABEL[plan.cta]
+                      : `Select ${plan.baseName}`}
                 </Button>
               </div>
             );
