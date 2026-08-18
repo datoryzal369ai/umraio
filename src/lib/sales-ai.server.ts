@@ -1,4 +1,5 @@
 import { agencyIdentityInstruction } from "@/lib/sales/unified-identity.core";
+import { ISLAMIC_ELITE_PERSONA_AGENCY_INSTRUCTION } from "@/lib/sales/islamic-elite-persona.core";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -402,6 +403,7 @@ function systemPrompt(
     // STEP 3I.1 — AI SALES ELITE™ (state, single next best action, closing mode).
     eliteSalesInstruction(buildEliteIntelligence(ctx, intel)),
     agencyIdentityInstruction(aiName),
+    ISLAMIC_ELITE_PERSONA_AGENCY_INSTRUCTION,
 
     confidentPresenceInstruction(
       buildConfidenceRead({
