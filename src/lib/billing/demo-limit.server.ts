@@ -20,9 +20,9 @@ export const DEMO_LIMITS = {
 } as const;
 
 export const DEMO_LIMIT_MESSAGE =
-  "Sesi demo ini dah sampai had penggunaan buat masa ini. Kita boleh sambung melalui Book Live Demo atau terus cuba Start Free Trial — mana yang lebih sesuai. (You've reached the demonstration limit for now — please continue with Book Live Demo or Start Free Trial.)";
+  "Sesi demo ini dah sampai had penggunaan buat masa ini. Kita boleh sambung melalui Book Live Demo atau terus cuba Choose a Plan — mana yang lebih sesuai. (You've reached the demonstration limit for now — please continue with Book Live Demo or Choose a Plan.)";
 export const DEMO_BUSY_MESSAGE =
-  "Sesi demo agak sibuk sekarang. Boleh cuba sekali lagi sebentar nanti, atau terus dengan Book Live Demo / Start Free Trial. (The demonstration is busy right now — please try again shortly.)";
+  "Sesi demo agak sibuk sekarang. Boleh cuba sekali lagi sebentar nanti, atau terus dengan Book Live Demo / Choose a Plan. (The demonstration is busy right now — please try again shortly.)";
 
 
 export function clientIpHash(request: Request): string {

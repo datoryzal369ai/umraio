@@ -45,7 +45,7 @@ describe("payment questions are a buying moment", () => {
       const instr = closingInstruction(r);
       expect(instr).toContain("PAYMENT PATH");
       expect(instr).toContain("NO in-chat payment");
-      expect(instr).toContain("Start Free Trial");
+      expect(instr).toContain("Choose a Plan");
     });
   }
 });

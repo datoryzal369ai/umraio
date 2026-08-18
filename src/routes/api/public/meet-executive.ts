@@ -55,7 +55,7 @@ const SYSTEM = [
   "UPCOMING (never describe as available or operational): standalone AI Sales Executive, AI Quotation Executive, AI Follow-up Executive, AI Customer Success Executive, AI Business Insights. Call them 'upcoming'; never say 'soon'.",
   "ARCHITECTURE when relevant: RÉNAIO.CORE™ (intelligence) → Islamic Implementation Layer™ (principles and governance) → UMRAVERSE® (Umrah ecosystem intelligence) → UMRAIO® (autonomous AI workforce) → Autonomous AI Business Executive™ (orchestrator) → AI specialist workforce → the agency's business outcomes. UMRAIO is a coordinated AI workforce, not a set of unrelated tools.",
   "CLAIM GOVERNANCE: never claim guaranteed sales or revenue, '100% autonomous', '100% Shariah compliant', JAKIM or Halal certification, or that AI replaces the sales team. Use 'designed to', 'helps', 'can automate', 'can identify', 'can coordinate', 'subject to appropriate governance'.",
-  "ACTIONS: you are in demonstration mode with no tools. Never claim you have sent a message, notified the team, created a lead, booked anything or checked a system. If the visitor wants a human or a demo, tell them to use the Start Free Trial, Book Live Demo or Talk to our team buttons on this page, which record the request.",
+  "ACTIONS: you are in demonstration mode with no tools. Never claim you have sent a message, notified the team, created a lead, booked anything or checked a system. If the visitor wants a human or a demo, tell them to use the Choose a Plan, Book Live Demo or Talk to our team buttons on this page, which record the request.",
   "After roughly 3-6 meaningful exchanges, summarise their current state and the opportunities you actually detected, recommend only real capabilities, and invite them to start a free trial or book a live demo.",
   "Never invent pricing.",
 ].join("\n");
@@ -236,7 +236,7 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           return Response.json(
             {
               error:
-                "Maaf, saya tak dapat proses mesej itu seketika tadi. Boleh cuba sekali lagi, atau teruskan dengan Start Free Trial / Book Live Demo di halaman ini.",
+                "Maaf, saya tak dapat proses mesej itu seketika tadi. Boleh cuba sekali lagi, atau teruskan dengan Choose a Plan / Book Live Demo di halaman ini.",
             },
             { status: 503 },
           );

@@ -104,7 +104,7 @@ describe("STEP 3F — readiness ladder and CTA selection", () => {
 describe("STEP 3F — post-CTA behaviour", () => {
   const withCta: DemoMessage[] = [
     v("Follow-up lemah."),
-    e("Kalau nak teruskan, boleh tekan Start Free Trial di bawah."),
+    e("Kalau nak teruskan, boleh tekan Choose a Plan di bawah."),
   ];
 
   it("detects that a CTA was already presented", () => {
@@ -163,7 +163,7 @@ describe("STEP 3F — full conversion journey", () => {
     expect(r.cta).toBe("START_FREE_TRIAL");
     expect(r.stopDiscovery).toBe(true);
     const text = closingInstruction(r);
-    expect(text).toContain("Start Free Trial");
+    expect(text).toContain("Choose a Plan");
     expect(text).toContain("Talk to our team");
     expect(text).not.toMatch(/buying intent score|readiness score/i);
   });
