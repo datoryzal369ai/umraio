@@ -3,8 +3,11 @@ import { ArrowLeft } from "lucide-react";
 
 import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { MeetExecutive } from "@/components/marketing/MeetExecutive";
 import { Button } from "@/components/ui/button";
+import { useLocale } from "@/lib/i18n/locale";
+import { siteCopy } from "@/lib/i18n/site.i18n";
 
 export const Route = createFileRoute("/meet")({
   head: () => ({
@@ -39,6 +42,10 @@ export const Route = createFileRoute("/meet")({
 });
 
 function MeetPage() {
+  const { locale } = useLocale();
+  const t = siteCopy(locale).meet;
+  const tNav = siteCopy(locale).nav.back;
+
   return (
     <div className="relative min-h-dvh overflow-hidden bg-aurora">
       <div aria-hidden className="pointer-events-none absolute inset-0 bg-grid" />
@@ -46,24 +53,27 @@ function MeetPage() {
       <div className="relative">
         <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-5 py-6 sm:px-10 sm:py-8">
           <BrandLogo />
-          <Button asChild variant="ghost" className="h-11 rounded-full px-4">
-            <Link to="/">
-              <ArrowLeft className="mr-1 size-4" aria-hidden />
-              Back
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSelector />
+            <Button asChild variant="ghost" className="h-11 rounded-full px-4">
+              <Link to="/">
+                <ArrowLeft className="mr-1 size-4" aria-hidden />
+                {tNav}
+              </Link>
+            </Button>
+          </div>
         </header>
 
         <main className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
           <section className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-10">
             <div className="text-center lg:col-start-1 lg:row-start-1 lg:text-left">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-primary">
-                Meet your AI Executive
+                {t.eyebrow}
               </p>
               <h1 className="mt-3 text-balance text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
-                Autonomous AI
+                {t.headingLine1}
                 <br />
-                <span className="text-gradient-brand">Business Executive</span>
+                <span className="text-gradient-brand">{t.headingAccent}</span>
                 <sup className="ml-0.5 align-super text-[0.4em] leading-none">™</sup>
               </h1>
             </div>
@@ -78,18 +88,16 @@ function MeetPage() {
               />
               <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
               <p className="text-center text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                The Autonomous AI Business Executive™
+                {t.roleLine}
               </p>
             </div>
 
             <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
               <p className="text-balance text-base font-light text-muted-foreground sm:text-lg">
-                Your intelligent AI executive for modern Umrah agencies.
+                {t.lede}
               </p>
               <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground">
-                Tell RAIŌ how your agency works. RAIŌ will understand your workflow, identify
-                opportunities and show you where UMRAIO can help your agency sell, follow up and
-                grow.
+                {t.body}
               </p>
             </div>
           </section>
