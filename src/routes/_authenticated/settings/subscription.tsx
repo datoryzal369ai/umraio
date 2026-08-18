@@ -48,15 +48,14 @@ function SubscriptionPage() {
   const choose = useMutation({
     mutationFn: async (plan: string) => {
       if (!settings) throw new Error("Settings not loaded.");
-      const target = PLANS.find((item) => item.value === plan);
+      const target = publicPlans().find((item) => item.id === plan);
       return updateSettings(settings.id, {
         plan,
-        plan_status: plan === "trial" ? "trialing" : "active",
         seats: target?.seats ?? settings.seats,
       });
     },
     onSuccess: () => {
-      toast.success("Plan preference recorded. Your entitlement is confirmed by the UMRAIO team.");
+      toast.success("Plan selection recorded. No payment has been taken — our team confirms activation.");
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
