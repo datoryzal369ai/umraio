@@ -380,7 +380,7 @@ function LeadDetailPage() {
                           </Button>
                         ) : (
                           <span className="self-center px-2 text-xs capitalize text-muted-foreground">
-                            {reminder.status}
+                            {t.reminderStatusLabels[reminder.status] ?? reminder.status}
                           </span>
                         )}
                         <Button

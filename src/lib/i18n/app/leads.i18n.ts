@@ -7,6 +7,11 @@ import { createDict } from "@/lib/i18n/dict";
 export const leadsCopy = createDict({
   en: {
     // ---- LeadBadges (display labels only; underlying values unchanged) ----
+    reminderStatusLabels: {
+      pending: "pending",
+      completed: "completed",
+      cancelled: "cancelled",
+    } as Record<string, string>,
     stageLabels: {
       new: "new",
       contacted: "contacted",
@@ -99,6 +104,11 @@ export const leadsCopy = createDict({
   },
   bm: {
     // ---- LeadBadges (display labels only; underlying values unchanged) ----
+    reminderStatusLabels: {
+      pending: "belum selesai",
+      completed: "selesai",
+      cancelled: "dibatalkan",
+    } as Record<string, string>,
     stageLabels: {
       new: "baharu",
       contacted: "dihubungi",
