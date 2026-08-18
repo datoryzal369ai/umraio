@@ -621,7 +621,9 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
     );
   }
 
+  lines.push(IDENTITY_RULE);
   // Islamic adab — contextual only, never mechanical.
+
   if (profile.greetedWithSalam) {
     lines.push(
       '- They greeted with salam. Return it once, naturally ("Waalaikumsalam.") before anything else, then continue. Do not repeat the salam in later replies.',
