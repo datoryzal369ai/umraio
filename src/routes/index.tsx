@@ -154,6 +154,7 @@ function Index() {
         <header className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-6 py-8 sm:px-10 sm:py-10">
           <BrandLogo showTagline />
           <nav className="flex items-center gap-2 sm:gap-3">
+            <LanguageSelector />
             {loading ? null : user ? (
               <Button asChild size="sm" className="rounded-full">
                 <Link to="/dashboard">Dashboard</Link>
