@@ -52,7 +52,12 @@ type ExecutiveCopy = {
     minAgo: (n: number) => string;
     hAgo: (n: number) => string;
     dAgo: (n: number) => string;
+    workforceEyebrow: string;
+    workforceTitle: string;
+    workforceSubtitle: string;
+    workforceLiveLabel: string;
   };
+
   workerDetail: {
     backToExecutiveCenter: string;
     eyebrow: string;
