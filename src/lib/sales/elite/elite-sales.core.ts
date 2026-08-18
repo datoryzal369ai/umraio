@@ -144,7 +144,8 @@ const test = (text: string, re: RegExp) => re.test(text);
 
 const SPOUSE_RE =
   /\b(suami|isteri|husband|wife|bincang\s+(dengan|dgn)|discuss\s+with|tanya\s+(dulu\s+)?(suami|isteri|family|keluarga|boss|partner)|family\s+decision|kena\s+tanya)\b/i;
-const SOLE_RE = /\b(saya\s+(yang\s+)?decide|i\s+decide|i'?m\s+the\s+owner|saya\s+pemilik|saya\s+boss)\b/i;
+const SOLE_RE =
+  /\b(saya\s+(yang\s+)?decide|i\s+decide|i'?m\s+the\s+owner|saya\s+(owner|pemilik|boss|founder|director|pengarah)|owner\s+agensi|agency\s+owner|my\s+(agency|company))\b/i;
 const COMPARE_RE =
   /\b(agensi\s+lain|company\s+lain|other\s+(agency|agencies|provider|vendor)s?|compare|banding|competitor|pesaing|quote\s+lain|tempat\s+lain)\b/i;
 const URGENCY_RE =
