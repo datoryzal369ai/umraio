@@ -33,6 +33,7 @@ import {
   type LanguagePreference,
 } from "./sales/conversation-intelligence.core";
 import { applySafetyGate } from "./sales/safety-gate.server";
+import { buildSocialProfile, socialPresenceInstruction } from "./sales/social-presence.core";
 import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
