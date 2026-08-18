@@ -245,7 +245,7 @@ export function buildClosingRead(input: {
 
   // Complex / high-value cases are better served by a person.
   const complex =
-    (intel.facts.teamSize?.value != null && Number(intel.facts.teamSize.value) >= 20) ||
+    (intel.facts.salesTeam != null && intel.facts.salesTeam >= 20) ||
     objections.has("TRUST") ||
     objections.has("SECURITY");
   if (complex && (cta === "START_FREE_TRIAL" || cta === "CONTINUE_CONVERSATION") && readiness !== "EXPLORING") {
