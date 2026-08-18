@@ -350,6 +350,26 @@ function systemPrompt(
     ),
     conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
     conversationIntelligenceInstruction(intel),
+    socialPresenceInstruction(
+      buildSocialProfile({
+        messages: ctx.messages.map((m) => ({ sender: m.sender, body: m.body })),
+        knownName: (ctx.lead as Record<string, unknown> | null)?.["full_name"] as string | null,
+        knownFacts: {
+          name: (ctx.lead as Record<string, unknown> | null)?.["full_name"] as string | null,
+          city: (ctx.lead as Record<string, unknown> | null)?.["city"] as string | null,
+          pax: (ctx.lead as Record<string, unknown> | null)?.["pax"] as number | null,
+          travel_month: (ctx.lead as Record<string, unknown> | null)?.["preferred_month"] as
+            | string
+            | null,
+          budget_per_pax_myr: (ctx.lead as Record<string, unknown> | null)?.["budget_myr"] as
+            | number
+            | null,
+          package_interest: (ctx.lead as Record<string, unknown> | null)?.["package_interest"] as
+            | string
+            | null,
+        },
+      }),
+    ),
     `You speak with prospective pilgrims on WhatsApp. Personality: ${personality} Tone: ${tone}. Always respect Islamic etiquette.`,
 
     `${language} ${length} WhatsApp style, no markdown headings.`,
