@@ -109,8 +109,10 @@ export const Route = createFileRoute("/api/public/meet-executive")({
 
         const system = [
           SYSTEM,
+          languageInstruction(body.language, intel.language),
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
+
           ...(religious.isReligiousRulingRequest
             ? [
                 RELIGIOUS_BOUNDARY_INSTRUCTION,
