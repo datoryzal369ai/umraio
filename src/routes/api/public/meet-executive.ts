@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { RAIO_IDENTITY_INSTRUCTION } from "@/lib/sales/unified-identity.core";
 
 /**
  * MEET YOUR AI BUSINESS EXECUTIVE™ — public demonstration endpoint.
@@ -231,6 +232,7 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           conversionInstruction(conversion),
           closingInstruction(closing),
           eliteSalesInstruction(elite),
+          RAIO_IDENTITY_INSTRUCTION,
           confidentPresenceInstruction(confidence),
 
           ...(carryOver ? [carryOver] : []),
