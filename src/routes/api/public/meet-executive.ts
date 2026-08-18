@@ -66,13 +66,38 @@ export const Route = createFileRoute("/api/public/meet-executive")({
         const lastVisitor = [...body.messages].reverse().find((m) => m.role === "visitor");
         const religious = detectReligiousRulingRequest(lastVisitor?.content);
 
-        const system = religious.isReligiousRulingRequest
-          ? [
-              SYSTEM,
-              RELIGIOUS_BOUNDARY_INSTRUCTION,
-              "You have no tools here, so do not claim an expert review was requested. Acknowledge the boundary briefly, then return to the business discussion.",
-            ].join("\n")
-          : SYSTEM;
+        // STEP 3B — deterministic B2B intelligence, reusing existing engines.
+        const { analyzeMeetConversation, meetExecutiveInstruction } = await import(
+          "@/lib/meet/b2b-executive.core"
+        );
+        const intel = analyzeMeetConversation(body.messages);
+
+        // Customer control always wins, before any model call.
+        if (intel.optedOut) {
+          return Response.json({
+            reply:
+              "Understood — I'll stop here. No further messages from me. If you ever want to look at UMRAIO again, the buttons on this page will reach our team.",
+            stopped: "opt_out",
+          });
+        }
+        if (intel.humanRequested) {
+          return Response.json({
+            reply:
+              "Of course. I'll stop the automated discussion here. Please use \"Talk to our team\" on this page and our specialist will continue with you directly, with the context of this conversation.",
+            stopped: "human_handoff",
+          });
+        }
+
+        const system = [
+          SYSTEM,
+          meetExecutiveInstruction(intel),
+          ...(religious.isReligiousRulingRequest
+            ? [
+                RELIGIOUS_BOUNDARY_INSTRUCTION,
+                "You have no tools here, so do not claim an expert review was requested. Acknowledge the boundary briefly, then return to the business discussion.",
+              ]
+            : []),
+        ].join("\n");
 
         const gateway = createIntelligenceGateway();
         const result = await gateway.generate({
