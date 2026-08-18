@@ -267,7 +267,7 @@ const PSYCH_RULES: PsychRule[] = [
   {
     key: "DESIRE_MORE_SALES",
     label: "Desire for more sales",
-    re: /\b(nak\s+(tambah|naikkan)\s+(sales|jualan|booking)|more\s+(sales|bookings)|increase\s+sales|sales\s+(drop|turun|merundum|slow)|tak\s+jadi\s+booking)\b/i,
+    re: /\b(nak\s+(tambah|naikkan)\s+(sales|jualan|booking)|more\s+(sales|bookings)|increase\s+sales|sales\s+(saya\s+|kami\s+)?(drop|turun|merundum|slow|lembab)|tak\s+jadi\s+booking)\b/i,
     strategy: "Diagnose where the leak actually is before recommending anything. Never promise sales increases.",
   },
   {
