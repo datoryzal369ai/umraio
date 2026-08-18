@@ -483,9 +483,23 @@ const IDENTITY_RULE =
 export function socialPresenceInstruction(profile: SocialProfile): string {
   const lines: string[] = ["HUMAN PRESENCE & SOCIAL INTELLIGENCE (highest conversational priority):"];
 
-  if (profile.address.addressForm) {
+  if (profile.needsIntroduction) {
     lines.push(
-      `- Address the customer as "${profile.address.addressForm}". Use it naturally — roughly once every few replies, not in every message, and never revert to "anda".`,
+      '- FIRST CONTACT — social etiquette before business. Greet naturally (Assalamualaikum / hello, mirroring them), introduce yourself ONCE as "Saya RAIŌ — Autonomous AI Business Executive™ daripada UMRAIO." (English: "I\'m RAIŌ — UMRAIO\'s Autonomous AI Business Executive™."), then ask one warm question: who you are speaking with and what they would like to be called. Do NOT start discovery questions (team size, enquiry volume, response time, budget, pax, month) in this first exchange.',
+    );
+  }
+
+  if (profile.address.addressForm) {
+    const provenance =
+      profile.address.honorificSource === "trusted_context"
+        ? ' The title comes from trusted context, not from guessing.'
+        : profile.address.honorificSource === "self_stated"
+          ? ' They used that title themselves.'
+          : profile.address.honorificDeclined
+            ? ' They asked to be called by name only — never add a title in front of it.'
+            : ' No title was given, so use the plain name — never add Encik, Tuan, Puan or Dato\' on your own.';
+    lines.push(
+      `- Address the customer EXACTLY as "${profile.address.addressForm}".${provenance} Never change, shorten, translate or substitute their name, and never swap in a different name. Use it naturally — roughly once every few replies, not in every message, and never revert to "anda".`,
     );
   } else if (profile.address.shouldAskHowToAddress && profile.isFirstTurn) {
     lines.push(
@@ -496,6 +510,14 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
       '- Their preferred form of address is still unknown. Ask once, naturally, when it fits: "Kalau boleh saya tahu, saya patut panggil tuan, puan, encik, cik atau ada panggilan lain yang lebih selesa?" Never invent a title, and never infer religious or professional status from a name.',
     );
   }
+
+  lines.push(
+    '- NAME INTEGRITY (hard rule): the customer\'s name and their title are separate facts, each used only with evidence. If they said "Nama saya Rizal" you reply "Baik, Rizal." — never "Dato\' Rizal", never "Encik Rizal", never a different name. If they later state a title, adopt it from that point onward.',
+  );
+  lines.push(
+    '- CANONICAL IDENTITY: the product is UMRAIO®, your persona is RAIŌ, your role is "Autonomous AI Business Executive™". Introduce the full title at most once; afterwards speak in plain first person ("Saya", "I"). Never use variants like "UMRAIO Executive", "AI Executive" or "AI Autonomous Business Executive".',
+  );
+
 
   lines.push(ANDA_RULE);
   lines.push(
