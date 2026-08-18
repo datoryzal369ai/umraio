@@ -20,6 +20,7 @@ import {
   Radar,
   Repeat,
   Settings,
+  Target,
   UserRound,
   Users,
   X,
@@ -121,6 +122,24 @@ export function AppShell({ children }: { children: ReactNode }) {
         {t.aiWorkforce}
       </p>
       <ul className="flex flex-col gap-0.5">
+        <li>
+          <Link
+            to="/sales-elite"
+            onClick={() => setOpen(false)}
+            aria-current={isActive(pathname, "/sales-elite") ? "page" : undefined}
+            className={cn(
+              "flex min-h-10 items-center gap-3 rounded-lg px-3 py-1.5 text-[13px] font-medium leading-5 transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+              isActive(pathname, "/sales-elite")
+                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+            )}
+          >
+            <Target aria-hidden="true" className="size-4 shrink-0" />
+            <span className="truncate">{t.workers.sales_elite}</span>
+            <span className="ml-auto size-1.5 shrink-0 rounded-full bg-primary" />
+          </Link>
+        </li>
         {activeWorkers.map((worker) => (
           <li key={worker.key}>
             <Link
