@@ -376,6 +376,62 @@ export function detectHumanIdentityQuestion(text: string | null | undefined): bo
 /* Profile                                                             */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* Islamic adab — contextual, never mechanical                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Moments where an Islamic expression is natural for a Malaysian Umrah
+ * business conversation. Nothing here forces a phrase; it only marks where
+ * one would be welcome so RAIŌ never sprinkles them as filler.
+ */
+export type AdabOpening =
+  | "RETURN_SALAM"
+  | "OFFER_HELP"
+  | "FORWARD_PLAN"
+  | "GOOD_NEWS"
+  | "REASSURANCE"
+  | "GRATITUDE";
+
+const SALAM_RE = /\b(assalamualaikum|assalamu'?alaikum|salam(?:\s+sejahtera)?|as-?salam)\b/i;
+
+const ADAB_PATTERNS: Array<{ opening: AdabOpening; re: RegExp }> = [
+  {
+    opening: "OFFER_HELP",
+    re: /(boleh bantu|tolong|help me|need help|nak tanya|minta bantuan|advise|nasihat)/i,
+  },
+  {
+    opening: "FORWARD_PLAN",
+    re: /(next step|langkah seterusnya|kita mula|start|nak buat|plan|rancang|proceed|teruskan)/i,
+  },
+  {
+    opening: "GOOD_NEWS",
+    re: /(dah settle|sudah settle|alhamdulillah|good news|berjaya|naik|meningkat|dah ok|dah jalan)/i,
+  },
+  {
+    opening: "REASSURANCE",
+    re: /(risau|bimbang|takut|worried|tak pasti|not sure|susah|stress|slow|merudum|menurun|drop)/i,
+  },
+  { opening: "GRATITUDE", re: /(terima kasih|thanks|thank you|tq|appreciate)/i },
+];
+
+export function detectSalam(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return SALAM_RE.test(normalizeMessage(text));
+}
+
+/** Contextual adab openings present in the customer's latest message. */
+export function detectAdabOpenings(text: string | null | undefined): AdabOpening[] {
+  if (!text) return [];
+  const n = normalizeMessage(text);
+  const out: AdabOpening[] = [];
+  if (SALAM_RE.test(n)) out.push("RETURN_SALAM");
+  for (const p of ADAB_PATTERNS) if (p.re.test(n) && !out.includes(p.opening)) out.push(p.opening);
+  return out;
+}
+
+
+
 export type SocialProfile = {
   address: AddressReading;
   language: LanguageCode;
