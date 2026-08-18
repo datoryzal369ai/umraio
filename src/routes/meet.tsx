@@ -55,8 +55,8 @@ function MeetPage() {
         </header>
 
         <main className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
-          <section className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
-            <div className="text-center lg:text-left">
+          <section className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-10">
+            <div className="text-center lg:col-start-1 lg:row-start-1 lg:text-left">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-primary">
                 Meet your AI Executive
               </p>
@@ -66,7 +66,24 @@ function MeetPage() {
                 <span className="text-gradient-brand">Business Executive</span>
                 <sup className="ml-0.5 align-super text-[0.4em] leading-none">™</sup>
               </h1>
-              <p className="mt-4 text-balance text-base font-light text-muted-foreground sm:text-lg">
+            </div>
+
+            <div className="flex flex-col items-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+              <img
+                src={raioAsset.url}
+                alt="RAIŌ — UMRAIO's Autonomous AI Business Executive™"
+                className="w-full max-w-[260px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[340px]"
+                width={1159}
+                height={1332}
+              />
+              <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
+              <p className="text-center text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                The Autonomous AI Business Executive™
+              </p>
+            </div>
+
+            <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
+              <p className="text-balance text-base font-light text-muted-foreground sm:text-lg">
                 Your intelligent AI executive for modern Umrah agencies.
               </p>
               <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground">
@@ -75,21 +92,8 @@ function MeetPage() {
                 grow.
               </p>
             </div>
-
-            <div className="order-first flex flex-col items-center lg:order-none">
-              <img
-                src={raioAsset.url}
-                alt="RAIŌ — UMRAIO's Autonomous AI Business Executive™"
-                className="w-full max-w-[280px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[360px]"
-                width={1159}
-                height={1332}
-              />
-              <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
-              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-                The Autonomous AI Business Executive™
-              </p>
-            </div>
           </section>
+
 
           <div className="mt-10">
             <MeetExecutive />
