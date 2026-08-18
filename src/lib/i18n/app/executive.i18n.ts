@@ -236,7 +236,13 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       minAgo: (n) => `${n}m ago`,
       hAgo: (n) => `${n}h ago`,
       dAgo: (n) => `${n}d ago`,
+      workforceEyebrow: "AI Workforce",
+      workforceTitle: "Elite Autonomous Workforce",
+      workforceSubtitle:
+        "Specialist AI executives working around the clock — precise, professional, and aligned with your agency.",
+      workforceLiveLabel: "Live Operations",
     },
+
     workerDetail: {
       backToExecutiveCenter: "AI Executive Center",
       eyebrow: "AI Worker",
@@ -421,7 +427,13 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       minAgo: (n) => `${n}m lalu`,
       hAgo: (n) => `${n}j lalu`,
       dAgo: (n) => `${n}h lalu`,
+      workforceEyebrow: "Tenaga Kerja AI",
+      workforceTitle: "Tenaga Kerja Autonomi Elit",
+      workforceSubtitle:
+        "Eksekutif AI pakar yang beroperasi 24/7 — tepat, profesional, dan selaras dengan agensi tuan.",
+      workforceLiveLabel: "Operasi Langsung",
     },
+
     workerDetail: {
       backToExecutiveCenter: "AI Executive Center",
       eyebrow: "AI Worker",
