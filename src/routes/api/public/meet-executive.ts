@@ -124,12 +124,51 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           })),
         });
 
+        // STEP 3E.1 — live conversion hardening: compaction, question memory,
+        // register mirroring, cold-start etiquette, Malaysian spoken register.
+        const {
+          compactMeetConversation,
+          buildCarryOver,
+          buildQuestionMemory,
+          questionMemoryInstruction,
+          resolveMeetRegister,
+          registerMirrorInstruction,
+          coldStartInstruction,
+          MALAYSIAN_REGISTER_INSTRUCTION,
+        } = await import("@/lib/meet/conversation-memory.core");
+
+        // Deterministic engines above already read the FULL history; only the
+        // model window is trimmed, and nothing material is lost.
+        const compaction = compactMeetConversation(body.messages);
+        const carryOver = buildCarryOver({
+          intel,
+          conversion,
+          social,
+          dropped: compaction.dropped,
+        });
+
+        const memory = buildQuestionMemory(body.messages, intel, social);
+        const register = resolveMeetRegister(
+          body.messages.filter((m) => m.role === "visitor").map((m) => m.content),
+        );
+
         const system = [
           SYSTEM,
           languageInstruction(body.language, intel.language),
+          ...(body.language === "auto" || !body.language
+            ? [registerMirrorInstruction(register)]
+            : []),
+          MALAYSIAN_REGISTER_INSTRUCTION,
+          coldStartInstruction({
+            social,
+            visitorTurns: body.messages.filter((m) => m.role === "visitor").length,
+            executiveTurns: body.messages.filter((m) => m.role === "executive").length,
+          }),
           socialPresenceInstruction(social),
+          questionMemoryInstruction(memory),
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
+          ...(carryOver ? [carryOver] : []),
 
           ...(religious.isReligiousRulingRequest
             ? [
@@ -145,7 +184,7 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           taskClass: "fast",
           system,
           prompt: "",
-          messages: body.messages.map((m) => ({
+          messages: compaction.messages.map((m) => ({
             role: m.role === "visitor" ? ("user" as const) : ("assistant" as const),
             content: m.content,
           })),
