@@ -113,25 +113,33 @@ function SubscriptionPage() {
           <div>
             <h2 className="font-display text-base font-semibold tracking-tight">Available plans</h2>
             <p className="text-xs text-muted-foreground">
-              Scale your Autonomous AI Business Executive as your agency grows. Selecting a plan
-              records your preference — usage limits stay governed by your confirmed entitlement.
+              Selecting a plan records your <strong>selected plan</strong> only — it is not an
+              active paid subscription and no payment is taken here. Usage limits stay governed by
+              your confirmed entitlement.
             </p>
           </div>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {PLANS.map((plan) => {
-            const active = plan.value === settings.plan;
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {publicPlans().map((plan) => {
+            const active = plan.id === settings.plan;
+            const note = foundingNote(plan);
             return (
               <div
-                key={plan.value}
+                key={plan.id}
                 className={cn(
                   "flex flex-col rounded-2xl border p-5",
                   active ? "border-primary bg-primary/10" : "border-border bg-surface",
                 )}
               >
                 <p className="font-display text-lg font-bold">{plan.name}</p>
-                <p className="text-sm text-muted-foreground">{plan.price}</p>
+                <p className="text-sm text-muted-foreground">{formatPlanPrice(plan)}</p>
+                {note ? (
+                  <p className="text-xs text-muted-foreground">
+                    {note}
+                    <span className="ml-1 line-through">RM{plan.referencePriceMyrMonthly}/month</span>
+                  </p>
+                ) : null}
                 <ul className="mt-4 flex-1 space-y-2 text-sm">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
@@ -143,10 +151,14 @@ function SubscriptionPage() {
                 <Button
                   className="mt-5"
                   variant={active ? "outline" : "default"}
-                  disabled={active || choose.isPending}
-                  onClick={() => choose.mutate(plan.value)}
+                  disabled={active || choose.isPending || plan.cta === "talk_to_team"}
+                  onClick={() => choose.mutate(plan.id)}
                 >
-                  {active ? "Current plan" : `Switch to ${plan.name}`}
+                  {active
+                    ? "Selected plan"
+                    : plan.cta === "talk_to_team"
+                      ? PLAN_CTA_LABEL[plan.cta]
+                      : `Select ${plan.baseName}`}
                 </Button>
               </div>
             );
