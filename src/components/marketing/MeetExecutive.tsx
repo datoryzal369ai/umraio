@@ -139,7 +139,7 @@ export function MeetExecutive() {
             src={raioAsset.url}
             alt="RAIŌ"
             aria-hidden
-            className="size-9 shrink-0 rounded-full bg-surface object-cover object-top ring-1 ring-border/70"
+            className="size-9 shrink-0 rounded-full bg-surface object-contain ring-1 ring-border/70"
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">RAIŌ</p>
