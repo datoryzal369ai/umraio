@@ -95,7 +95,7 @@ export function MeetExecutive() {
             <Sparkles className="size-4 text-primary" />
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">AI Autonomous Business Executive™</p>
+            <p className="truncate text-sm font-semibold">Meet Your UMRAIO Executive™</p>
             <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
               Demonstration mode · AI, not a human
             </p>
@@ -354,7 +354,7 @@ export function MeetExecutive() {
           stage: intel.stage,
           next_best_action: intel.nextBestAction,
           language: intel.language,
-          events: deriveMeetEvents(intel),
+          events: [...deriveMeetEvents(intel), "conversion_cta_clicked"],
           executive_brief: buildMeetExecutiveBrief(intel),
         }}
       />
