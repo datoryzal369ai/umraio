@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
 
-import raioAsset from "@/assets/raio-executive.png.asset.json";
+import raioAsset from "@/assets/raio-robot.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
