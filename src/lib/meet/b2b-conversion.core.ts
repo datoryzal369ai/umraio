@@ -212,7 +212,8 @@ const PSYCH_RULES: PsychRule[] = [
   {
     key: "COMPARISON",
     label: "Comparison behaviour",
-    re: /\b(compare|banding|beza\s+dengan|difference\s+with|versus|vs\b|competitor|pesaing|chatgpt|chatbot\s+lain|manychat)\b/i,
+    // STEP 3E — "why should I use UMRAIO instead of another AI tool" is comparison behaviour.
+    re: /\b(compare|banding|berbanding|beza\s+dengan|difference\s+with|versus|vs\b|competitor|pesaing|chatgpt|chatbot\s+lain|manychat|instead\s+of|(another|other)\s+ai|ai\s+(tool\s+)?lain|tool\s+lain)\b/i,
     strategy:
       "Compare on workflow ownership, not on features. Never disparage other tools; state factually what UMRAIO executes.",
   },
