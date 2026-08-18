@@ -87,18 +87,30 @@ function titleCase(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
+/** Honorific tokens that must be stripped out of a detected personal name. */
+const HONORIFIC_TOKENS = new Set([
+  "dato", "dato'", "datuk", "datin", "seri", "tan", "sri", "puan", "tuan",
+  "encik", "cik", "haji", "hajah", "ustaz", "ustazah", "dr", "dr.", "doktor",
+  "prof", "prof.", "mr", "mr.", "mrs", "mrs.", "ms", "ms.", "syed",
+]);
+
 function cleanName(raw: string | undefined): string | null {
   if (!raw) return null;
-  const parts = raw
+  let parts = raw
     .trim()
     .replace(/["'.,!?]+$/g, "")
     .split(/\s+/)
-    .slice(0, 3)
     .filter((w) => /^[A-Za-z@'-]{2,}$/.test(w));
+  // Strip any leading honorific tokens — the title is resolved separately and
+  // must never become part of the customer's actual name.
+  while (parts.length > 1 && HONORIFIC_TOKENS.has(parts[0]!.toLowerCase())) parts = parts.slice(1);
+  parts = parts.slice(0, 3);
   if (parts.length === 0) return null;
   if (NAME_STOPWORDS.has(parts[0]!.toLowerCase())) return null;
+  if (HONORIFIC_TOKENS.has(parts[0]!.toLowerCase())) return null;
   return parts.map(titleCase).join(" ");
 }
+
 
 const NAME_PATTERNS: RegExp[] = [
   /(?:nama\s+(?:saya|aku|sy)|nama\s+penuh\s+saya)\s+(?:ialah\s+|adalah\s+|is\s+)?([A-Za-z' -]{2,40})/i,
@@ -109,24 +121,22 @@ const NAME_PATTERNS: RegExp[] = [
 ];
 
 export type AddressReading = {
-  /** Honorific explicitly used or requested by the customer. Never inferred from a name. */
+  /** Honorific explicitly used or requested by the customer, or supplied by trusted context. Never inferred from a name. */
   honorific: Honorific | null;
+  /** Where the honorific came from — evidence trail, never a guess. */
+  honorificSource: "self_stated" | "trusted_context" | null;
   /** Name the customer gave for themselves. */
   name: string | null;
   /** Preferred nickname when the customer asked for a shorter form. */
   preferredName: string | null;
+  /** True when the customer asked to be called by a plain name only ("panggil saya Rizal sahaja"). */
+  honorificDeclined: boolean;
   confidence: "CONFIRMED" | "PARTIAL" | "UNKNOWN";
   /** Ready-to-use form of address, e.g. "Encik Ahmad". Null when unknown. */
   addressForm: string | null;
   /** True when RAIŌ should politely ask how to address the customer. */
   shouldAskHowToAddress: boolean;
 };
-
-export function detectHonorific(text: string | null | undefined): Honorific | null {
-  if (!text) return null;
-  for (const p of HONORIFIC_PATTERNS) if (p.re.test(text)) return p.value;
-  return null;
-}
 
 export function detectSelfName(text: string | null | undefined): string | null {
   if (!text) return null;
@@ -138,55 +148,113 @@ export function detectSelfName(text: string | null | undefined): string | null {
   return null;
 }
 
+export function detectHonorific(text: string | null | undefined): Honorific | null {
+  if (!text) return null;
+  for (const p of HONORIFIC_PATTERNS) if (p.re.test(text)) return p.value;
+  return null;
+}
+
 /**
- * Resolves how the customer should be addressed, from the conversation and
- * any name already stored on the lead. Never invents a title.
+ * Honorific the customer applied to THEMSELVES. Only self-referential phrasing
+ * counts ("Saya Dato' Rizal", "Nama saya Tuan Haji Ahmad", or a bare
+ * "Dato' Rizal" introduction). A title mentioned about someone else never does.
+ */
+export function detectSelfHonorific(text: string | null | undefined): Honorific | null {
+  if (!text) return null;
+  const trimmed = text.trim();
+  const selfIntro =
+    /(?:nama\s+(?:saya|aku|sy)(?:\s+(?:ialah|adalah))?|saya|sy|aku|panggil\s+saya|call\s+me|my\s+name\s+is|i\s*am|i'?m|this\s+is)\s+(.{0,40})/i.exec(
+      trimmed,
+    );
+  if (selfIntro?.[1]) {
+    const h = detectHonorific(selfIntro[1]);
+    if (h) return h;
+  }
+  // Bare introduction, e.g. "Dato' Rizal" as the whole message.
+  if (trimmed.split(/\s+/).length <= 4) {
+    const h = detectHonorific(trimmed);
+    if (h) return h;
+  }
+  return null;
+}
+
+/**
+ * Resolves how the customer should be addressed, from the conversation, a
+ * trusted stored honorific and any name already on the lead. Never invents a
+ * title and never changes the name the customer actually gave.
  */
 export function resolveAddress(input: {
   customerMessages: string[];
   knownName?: string | null;
+  /** Honorific already verified in trusted context (e.g. stored on the lead). */
+  trustedHonorific?: Honorific | string | null;
   turnCount?: number;
 }): AddressReading {
   let honorific: Honorific | null = null;
+  let honorificSource: AddressReading["honorificSource"] = null;
   let name: string | null = null;
   let preferredName: string | null = null;
+  let honorificDeclined = false;
 
   for (const raw of input.customerMessages) {
-    const h = detectHonorific(raw);
-    if (h) honorific = h;
+    const h = detectSelfHonorific(raw);
+    if (h) {
+      honorific = h;
+      honorificSource = "self_stated";
+    }
     const n = detectSelfName(raw);
     if (n) name = n;
-    const short = /(?:panggil\s+(?:saya|sy)|call\s+me|just\s+call\s+me)\s+([A-Za-z']{2,20})/i.exec(raw);
+    const short =
+      /(?:panggil\s+(?:saya|sy)|call\s+me|just\s+call\s+me)\s+([A-Za-z']{2,20})(\s*(?:sahaja|saja|je|jer|only))?/i.exec(
+        raw,
+      );
     const shortName = cleanName(short?.[1]);
-    if (shortName) preferredName = shortName;
+    if (shortName) {
+      preferredName = shortName;
+      if (short?.[2]) honorificDeclined = true;
+    }
+  }
+
+  if (!honorific && input.trustedHonorific) {
+    const trusted = HONORIFICS.find(
+      (h) => h.toLowerCase() === String(input.trustedHonorific).trim().toLowerCase(),
+    );
+    if (trusted) {
+      honorific = trusted;
+      honorificSource = "trusted_context";
+    }
   }
 
   if (!name && input.knownName) name = cleanName(input.knownName);
 
   const display = preferredName ?? name;
+  const useHonorific = honorific && !honorificDeclined ? honorific : null;
   const addressForm = display
-    ? honorific
-      ? `${honorific} ${display}`
+    ? useHonorific
+      ? `${useHonorific} ${display}`
       : display
-    : honorific
-      ? honorific
+    : useHonorific
+      ? useHonorific
       : null;
 
-  const confidence: AddressReading["confidence"] = display && honorific
+  const confidence: AddressReading["confidence"] = display && useHonorific
     ? "CONFIRMED"
-    : display || honorific
+    : display || useHonorific
       ? "PARTIAL"
       : "UNKNOWN";
 
   return {
     honorific,
+    honorificSource,
     name,
     preferredName,
+    honorificDeclined,
     confidence,
     addressForm,
     shouldAskHowToAddress: confidence === "UNKNOWN",
   };
 }
+
 
 /* ------------------------------------------------------------------ */
 /* Register, pacing and mirroring                                      */
@@ -321,6 +389,8 @@ export type SocialProfile = {
   empathyNotes: string[];
   humanIdentityQuestion: boolean;
   isFirstTurn: boolean;
+  /** True at first contact when RAIŌ still does not know who it is speaking to. */
+  needsIntroduction: boolean;
   /** Facts already stated by the customer that must never be re-asked. */
   rememberedFacts: string[];
 };
@@ -330,6 +400,8 @@ const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
 export function buildSocialProfile(input: {
   messages: SocialMessage[];
   knownName?: string | null;
+  /** Honorific already verified in trusted context (lead record, CRM). */
+  knownHonorific?: string | null;
   knownFacts?: Record<string, string | number | null | undefined>;
 }): SocialProfile {
   const customer = input.messages.filter((m) => m.sender === "customer").map((m) => m.body ?? "");
@@ -366,12 +438,17 @@ export function buildSocialProfile(input: {
     rememberedFacts.push(`${key} = ${value}`);
   }
 
+  const address = resolveAddress({
+    customerMessages: customer,
+    knownName: input.knownName ?? null,
+    trustedHonorific: input.knownHonorific ?? null,
+    turnCount: customer.length,
+  });
+
   return {
-    address: resolveAddress({
-      customerMessages: customer,
-      knownName: input.knownName ?? null,
-      turnCount: customer.length,
-    }),
+    address,
+    needsIntroduction: customer.length <= 2 && address.confidence === "UNKNOWN",
+
     language: detectMessageLanguage(last)?.language ?? detectMessageLanguage(joined)?.language ?? "ms",
     register,
     pacing,
@@ -406,9 +483,23 @@ const IDENTITY_RULE =
 export function socialPresenceInstruction(profile: SocialProfile): string {
   const lines: string[] = ["HUMAN PRESENCE & SOCIAL INTELLIGENCE (highest conversational priority):"];
 
-  if (profile.address.addressForm) {
+  if (profile.needsIntroduction) {
     lines.push(
-      `- Address the customer as "${profile.address.addressForm}". Use it naturally — roughly once every few replies, not in every message, and never revert to "anda".`,
+      '- FIRST CONTACT — social etiquette before business. Greet naturally (Assalamualaikum / hello, mirroring them), introduce yourself ONCE as "Saya RAIŌ — Autonomous AI Business Executive™ daripada UMRAIO." (English: "I\'m RAIŌ — UMRAIO\'s Autonomous AI Business Executive™."), then ask one warm question: who you are speaking with and what they would like to be called. Do NOT start discovery questions (team size, enquiry volume, response time, budget, pax, month) in this first exchange.',
+    );
+  }
+
+  if (profile.address.addressForm) {
+    const provenance =
+      profile.address.honorificSource === "trusted_context"
+        ? ' The title comes from trusted context, not from guessing.'
+        : profile.address.honorificSource === "self_stated"
+          ? ' They used that title themselves.'
+          : profile.address.honorificDeclined
+            ? ' They asked to be called by name only — never add a title in front of it.'
+            : ' No title was given, so use the plain name — never add Encik, Tuan, Puan or Dato\' on your own.';
+    lines.push(
+      `- Address the customer EXACTLY as "${profile.address.addressForm}".${provenance} Never change, shorten, translate or substitute their name, and never swap in a different name. Use it naturally — roughly once every few replies, not in every message, and never revert to "anda".`,
     );
   } else if (profile.address.shouldAskHowToAddress && profile.isFirstTurn) {
     lines.push(
@@ -419,6 +510,14 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
       '- Their preferred form of address is still unknown. Ask once, naturally, when it fits: "Kalau boleh saya tahu, saya patut panggil tuan, puan, encik, cik atau ada panggilan lain yang lebih selesa?" Never invent a title, and never infer religious or professional status from a name.',
     );
   }
+
+  lines.push(
+    '- NAME INTEGRITY (hard rule): the customer\'s name and their title are separate facts, each used only with evidence. If they said "Nama saya Rizal" you reply "Baik, Rizal." — never "Dato\' Rizal", never "Encik Rizal", never a different name. If they later state a title, adopt it from that point onward.',
+  );
+  lines.push(
+    '- CANONICAL IDENTITY: the product is UMRAIO®, your persona is RAIŌ, your role is "Autonomous AI Business Executive™". Introduce the full title at most once; afterwards speak in plain first person ("Saya", "I"). Never use variants like "UMRAIO Executive", "AI Executive" or "AI Autonomous Business Executive".',
+  );
+
 
   lines.push(ANDA_RULE);
   lines.push(
