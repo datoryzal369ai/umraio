@@ -53,22 +53,47 @@ function MeetPage() {
         </header>
 
         <main className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
-          <section className="mx-auto max-w-3xl text-center">
-            <h1 className="text-balance text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-              Meet Your <span className="text-gradient-brand">UMRAIO Executive</span>
-              <sup className="ml-0.5 align-super text-[0.5em] leading-none">™</sup>
-            </h1>
-            <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
-              See how an autonomous AI business executive can work inside your Umrah agency. Tell
-              UMRAIO how your agency operates, and its AI Business Executive will identify where
-              automation can improve your sales workflow.
-            </p>
+          <section className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)]">
+            <div className="text-center lg:text-left">
+              <p className="text-xs font-medium uppercase tracking-[0.28em] text-primary">
+                Meet your AI Executive
+              </p>
+              <h1 className="mt-3 text-balance text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+                Autonomous AI
+                <br />
+                <span className="text-gradient-brand">Business Executive</span>
+                <sup className="ml-0.5 align-super text-[0.4em] leading-none">™</sup>
+              </h1>
+              <p className="mt-4 text-balance text-base font-light text-muted-foreground sm:text-lg">
+                Your intelligent AI executive for modern Umrah agencies.
+              </p>
+              <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground">
+                Tell RAIŌ how your agency works. RAIŌ will understand your workflow, identify
+                opportunities and show you where UMRAIO can help your agency sell, follow up and
+                grow.
+              </p>
+            </div>
+
+            <div className="order-first flex flex-col items-center lg:order-none">
+              <img
+                src={raioAsset.url}
+                alt="RAIŌ — UMRAIO's Autonomous AI Business Executive™"
+                className="w-full max-w-[280px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[360px]"
+                width={1159}
+                height={1332}
+              />
+              <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
+              <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                The Autonomous AI Business Executive™
+              </p>
+            </div>
           </section>
 
           <div className="mt-10">
             <MeetExecutive />
           </div>
         </main>
+
       </div>
     </div>
   );
