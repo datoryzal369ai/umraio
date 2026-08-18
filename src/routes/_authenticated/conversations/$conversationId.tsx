@@ -313,6 +313,7 @@ function Insight({ label, value }: { label: string; value: string }) {
 }
 
 function Bubble({ message }: { message: ChatMessage }) {
+  const t = useCopy(WORKSPACE_COPY).conversation;
   const outbound = message.sender !== "customer";
   return (
     <div className={cn("flex", outbound ? "justify-end" : "justify-start")}>
