@@ -306,11 +306,22 @@ export function closingInstruction(read: ClosingRead): string {
     "CTA INTEGRITY: the only real actions on this page are Start Free Trial, Book Live Demo and Talk to our team. Never invent pricing, discounts, payment links, promo codes, guarantees, trial lengths, plan benefits or a named salesperson. If asked for something that does not exist, say plainly what you can confirm.",
   ];
 
+  if (read.paymentQuestion) {
+    lines.push(
+      "PAYMENT PATH (verified reality): there is NO in-chat payment, checkout page, payment link or self-serve billing in this demonstration. Never say 'teruskan pembayaran di sini', never invent a gateway, URL, plan price or billing cycle. Answer plainly and warmly: the actual next step is Start Free Trial on this page, or Talk to our team if they want the team to confirm packages and the payment process. Keep it under ~50 words, no new questions.",
+    );
+  }
+  if (read.priceQuestion) {
+    lines.push(
+      "PRICE QUESTION: never state or estimate a figure — pricing is confirmed by the team. Acknowledge the question directly, say the team confirms packages and pricing, then offer Talk to our team, or Start Free Trial if they prefer to see it working first. Do not return to discovery in this reply.",
+    );
+  }
   if (read.stopDiscovery) {
     lines.push(
       "STOP DISCOVERY: do not ask about team size, enquiry volume, tools or further problems now. Acknowledge, confirm in one line, then give the next action.",
     );
   }
+
   if (read.confirmUnderstanding) {
     lines.push(
       "CONFIRM FIRST: in one short sentence, restate what UMRAIO will actually help with based on what they told you, then give the CTA. No feature lists.",
