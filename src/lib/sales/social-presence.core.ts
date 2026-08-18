@@ -1,0 +1,473 @@
+/**
+ * UMRAIO® STEP 3D — HUMAN PRESENCE & SOCIAL INTELLIGENCE ENGINE™
+ *
+ * Deterministic, additive social layer. It does not decide sales strategy
+ * (Step 3.7 behavioural engine), conversation state (Step 3) or conversion
+ * state (Step 3C). It only derives HOW RAIŌ should speak: who it is talking
+ * to, what to call them, how formal to be, and which empathy signals need
+ * acknowledgement before anything commercial happens.
+ *
+ * Pure functions only — no I/O, no model calls, no schema changes.
+ */
+
+import { detectMessageLanguage, type LanguageCode } from "./conversation-intelligence.core";
+import { normalizeMessage } from "./hardening.core";
+
+export type SocialMessage = { sender: "customer" | "ai" | "human" | string; body: string };
+
+/* ------------------------------------------------------------------ */
+/* Honorific intelligence                                              */
+/* ------------------------------------------------------------------ */
+
+/** Malaysian forms of address RAIŌ may use. Never invented, only echoed. */
+export const HONORIFICS = [
+  "Dato' Seri",
+  "Datin Seri",
+  "Dato'",
+  "Datuk",
+  "Datin",
+  "Tuan Haji",
+  "Puan Hajah",
+  "Tuan Syed",
+  "Puan Sri",
+  "Tan Sri",
+  "Ustaz",
+  "Ustazah",
+  "Haji",
+  "Hajah",
+  "Prof.",
+  "Dr.",
+  "Encik",
+  "Puan",
+  "Tuan",
+  "Cik",
+  "Mr.",
+  "Mrs.",
+  "Ms.",
+] as const;
+
+export type Honorific = (typeof HONORIFICS)[number];
+
+const HONORIFIC_PATTERNS: Array<{ re: RegExp; value: Honorific }> = [
+  { re: /\bdato'?\s+seri\b/i, value: "Dato' Seri" },
+  { re: /\bdatin\s+seri\b/i, value: "Datin Seri" },
+  { re: /\btan\s+sri\b/i, value: "Tan Sri" },
+  { re: /\bpuan\s+sri\b/i, value: "Puan Sri" },
+  { re: /\btuan\s+haji\b/i, value: "Tuan Haji" },
+  { re: /\bpuan\s+hajah\b/i, value: "Puan Hajah" },
+  { re: /\bdato'?\b/i, value: "Dato'" },
+  { re: /\bdatuk\b/i, value: "Datuk" },
+  { re: /\bdatin\b/i, value: "Datin" },
+  { re: /\bustazah\b/i, value: "Ustazah" },
+  { re: /\bustaz\b/i, value: "Ustaz" },
+  { re: /\bhajah\b/i, value: "Hajah" },
+  { re: /\bhaji\b/i, value: "Haji" },
+  { re: /\bprof(\.|essor)?\b/i, value: "Prof." },
+  { re: /\bdr\.?\b|\bdoktor\b/i, value: "Dr." },
+  { re: /\bencik\b|\bcik\s+abang\b/i, value: "Encik" },
+  { re: /\bpuan\b/i, value: "Puan" },
+  { re: /\btuan\b/i, value: "Tuan" },
+  { re: /\bcik\b/i, value: "Cik" },
+  { re: /\bmrs\.?\b/i, value: "Mrs." },
+  { re: /\bms\.?\b/i, value: "Ms." },
+  { re: /\bmr\.?\b/i, value: "Mr." },
+];
+
+/** Words that must never be treated as a personal name. */
+const NAME_STOPWORDS = new Set([
+  "nak", "nk", "tak", "tk", "ada", "cuma", "just", "nothing", "ok", "okay", "sorry",
+  "rasa", "fikir", "ingin", "mahu", "minat", "berminat", "dari", "dr", "di", "ni",
+  "tu", "je", "sahaja", "sudah", "dah", "belum", "boleh", "tanya", "nanti", "pun",
+  "orang", "seorang", "keluarga", "budget", "bajet", "umrah", "pakej", "package",
+  "the", "a", "an", "not", "interested", "looking", "asking", "checking", "here",
+  "with", "from", "and", "but", "very", "really", "still", "trying", "planning",
+]);
+
+function titleCase(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+}
+
+function cleanName(raw: string | undefined): string | null {
+  if (!raw) return null;
+  const parts = raw
+    .trim()
+    .replace(/["'.,!?]+$/g, "")
+    .split(/\s+/)
+    .slice(0, 3)
+    .filter((w) => /^[A-Za-z@'-]{2,}$/.test(w));
+  if (parts.length === 0) return null;
+  if (NAME_STOPWORDS.has(parts[0]!.toLowerCase())) return null;
+  return parts.map(titleCase).join(" ");
+}
+
+const NAME_PATTERNS: RegExp[] = [
+  /(?:nama\s+(?:saya|aku|sy)|nama\s+penuh\s+saya)\s+(?:ialah\s+|adalah\s+|is\s+)?([A-Za-z' -]{2,40})/i,
+  /(?:panggil\s+(?:saya|sy|aku)|call\s+me)\s+([A-Za-z' -]{2,40})/i,
+  /(?:my\s+name\s+is|i\s*am|i'?m|this\s+is)\s+([A-Za-z' -]{2,40})/i,
+  /\b(?:saya|sy|aku)\s+([A-Z][A-Za-z']{1,20}(?:\s+[A-Z][A-Za-z']{1,20})?)\b/,
+];
+
+export type AddressReading = {
+  /** Honorific explicitly used or requested by the customer. Never inferred from a name. */
+  honorific: Honorific | null;
+  /** Name the customer gave for themselves. */
+  name: string | null;
+  /** Preferred nickname when the customer asked for a shorter form. */
+  preferredName: string | null;
+  confidence: "CONFIRMED" | "PARTIAL" | "UNKNOWN";
+  /** Ready-to-use form of address, e.g. "Encik Ahmad". Null when unknown. */
+  addressForm: string | null;
+  /** True when RAIŌ should politely ask how to address the customer. */
+  shouldAskHowToAddress: boolean;
+};
+
+export function detectHonorific(text: string | null | undefined): Honorific | null {
+  if (!text) return null;
+  for (const p of HONORIFIC_PATTERNS) if (p.re.test(text)) return p.value;
+  return null;
+}
+
+export function detectSelfName(text: string | null | undefined): string | null {
+  if (!text) return null;
+  for (const re of NAME_PATTERNS) {
+    const m = re.exec(text);
+    const cleaned = cleanName(m?.[1]);
+    if (cleaned) return cleaned;
+  }
+  return null;
+}
+
+/**
+ * Resolves how the customer should be addressed, from the conversation and
+ * any name already stored on the lead. Never invents a title.
+ */
+export function resolveAddress(input: {
+  customerMessages: string[];
+  knownName?: string | null;
+  turnCount?: number;
+}): AddressReading {
+  let honorific: Honorific | null = null;
+  let name: string | null = null;
+  let preferredName: string | null = null;
+
+  for (const raw of input.customerMessages) {
+    const h = detectHonorific(raw);
+    if (h) honorific = h;
+    const n = detectSelfName(raw);
+    if (n) name = n;
+    const short = /(?:panggil\s+(?:saya|sy)|call\s+me|just\s+call\s+me)\s+([A-Za-z']{2,20})/i.exec(raw);
+    const shortName = cleanName(short?.[1]);
+    if (shortName) preferredName = shortName;
+  }
+
+  if (!name && input.knownName) name = cleanName(input.knownName);
+
+  const display = preferredName ?? name;
+  const addressForm = display
+    ? honorific
+      ? `${honorific} ${display}`
+      : display
+    : honorific
+      ? honorific
+      : null;
+
+  const confidence: AddressReading["confidence"] = display && honorific
+    ? "CONFIRMED"
+    : display || honorific
+      ? "PARTIAL"
+      : "UNKNOWN";
+
+  return {
+    honorific,
+    name,
+    preferredName,
+    confidence,
+    addressForm,
+    shouldAskHowToAddress: confidence === "UNKNOWN",
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Register, pacing and mirroring                                      */
+/* ------------------------------------------------------------------ */
+
+export type SocialRegister = "formal" | "professional" | "casual";
+export type SocialPacing = "measured" | "natural" | "brisk";
+
+const CASUAL_MARKERS =
+  /\b(hi|hai|hey|boss|bro|sis|lah|lor|meh|je|jer|kot|weh|ha ah|okla|okey|ok la|tq|thanks|thx|nak tanya|cam ne|camne|macam ne)\b/i;
+const FORMAL_MARKERS =
+  /\b(assalamualaikum|salam sejahtera|tuan|puan|yang berbahagia|mohon|sukacita|dimaklumkan|kindly|regards|sekian|terima kasih di atas)\b/i;
+const SHORTFORM_MARKERS = /\b(sy|tk|tq|dgn|utk|brp|nk|dh|blh|xnak|x nak|pls|plz)\b/i;
+
+export type SocialSignal =
+  | "EXCITEMENT"
+  | "UNCERTAINTY"
+  | "FEAR"
+  | "HESITATION"
+  | "CONFUSION"
+  | "URGENCY"
+  | "DISAPPOINTMENT"
+  | "ANXIETY"
+  | "TRUST_CONCERN"
+  | "FAMILY_CONCERN"
+  | "ELDERLY_TRAVELLER"
+  | "FINANCIAL_CONCERN"
+  | "FIRST_TIME";
+
+const SIGNAL_PATTERNS: Array<{ signal: SocialSignal; re: RegExp; empathy: string }> = [
+  {
+    signal: "EXCITEMENT",
+    re: /(teruja|excited|tak sabar|alhamdulillah|best nya|bestnya|finally|dah lama impikan)/i,
+    empathy: "Share the customer's happiness briefly and sincerely before any business detail.",
+  },
+  {
+    signal: "UNCERTAINTY",
+    re: /(tak pasti|tidak pasti|belum pasti|not sure|unsure|entah|maybe|mungkin lah|masih fikir)/i,
+    empathy: "Reduce the number of choices and make the next step small and easy.",
+  },
+  {
+    signal: "FEAR",
+    re: /(takut|risau sangat|worried|scared|bimbang)/i,
+    empathy: "Name the worry back plainly, then answer it with verified facts only.",
+  },
+  {
+    signal: "HESITATION",
+    re: /(nak fikir dulu|fikir dulu|think about it|later dulu|nanti saya balas|tengok dulu)/i,
+    empathy:
+      "Do not push. Acknowledge the pause, then ask gently what is still unresolved (price, hotel, dates, family decision).",
+  },
+  {
+    signal: "CONFUSION",
+    re: /(keliru|confuse|confused|tak faham|x faham|susah faham|apa maksud)/i,
+    empathy: "Slow down, explain one thing at a time in plain words, no jargon.",
+  },
+  {
+    signal: "URGENCY",
+    re: /(urgent|segera|cepat|kena settle|this week|minggu ni|dah dekat|last minute)/i,
+    empathy: "Match the urgency with a clear, immediate next step — never manufacture pressure.",
+  },
+  {
+    signal: "DISAPPOINTMENT",
+    re: /(kecewa|disappointed|sedih|frustrated dengan agensi|dulu kena tipu)/i,
+    empathy: "Acknowledge the bad past experience honestly and do not defend anyone.",
+  },
+  {
+    signal: "ANXIETY",
+    re: /(gelisah|anxious|stress|tak tenang|susah tidur)/i,
+    empathy: "Be calm and steady. Short sentences. One reassurance, one small next step.",
+  },
+  {
+    signal: "TRUST_CONCERN",
+    re: /(scam|penipu|tipu|fraud|selamat ke|betul ke|boleh percaya|trust|legit)/i,
+    empathy:
+      "Agree that caution is right, then offer verifiable information only. Never invent verification, certification or proof.",
+  },
+  {
+    signal: "FAMILY_CONCERN",
+    re: /(keluarga|isteri|suami|anak|ibu|mak|ayah|bapa|parents|family|adik|abang|kakak)/i,
+    empathy: "Treat the trip as a family decision: comfort, rooming and pacing matter, not only price.",
+  },
+  {
+    signal: "ELDERLY_TRAVELLER",
+    re: /(dah tua|warga emas|orang tua|elderly|kurang sihat|wheelchair|kerusi roda|susah berjalan|penat berjalan)/i,
+    empathy:
+      "Prioritise walking distance, comfort and rest, and say plainly that price should not be the only factor.",
+  },
+  {
+    signal: "FINANCIAL_CONCERN",
+    re: /(mahal|tak mampu|ketat|budget kecil|ansuran|installment|bayar sikit|kena jimat|duit tak cukup)/i,
+    empathy: "Never shame the budget. Work within it and be transparent about what it can realistically cover.",
+  },
+  {
+    signal: "FIRST_TIME",
+    re: /(first time|kali pertama|pertama kali|belum pernah pergi|tak pernah umrah)/i,
+    empathy: "Explain the journey step by step and expect basic questions without making them feel naive.",
+  },
+];
+
+export function detectSocialSignals(text: string | null | undefined): SocialSignal[] {
+  if (!text) return [];
+  const n = normalizeMessage(text);
+  const out: SocialSignal[] = [];
+  for (const p of SIGNAL_PATTERNS) if (p.re.test(n) && !out.includes(p.signal)) out.push(p.signal);
+  return out;
+}
+
+/** "Are you a real person?" — must be answered honestly, once, without a lecture. */
+export function detectHumanIdentityQuestion(text: string | null | undefined): boolean {
+  if (!text) return false;
+  const n = normalizeMessage(text);
+  return /(ni (ai|bot|robot|mesin)|awak (ai|bot|robot)|you (a|an) (ai|bot|robot)|are you (human|real|a person|a bot|ai)|manusia ke|orang ke|robot ke|auto reply ke|chatbot ke)/i.test(
+    n,
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Profile                                                             */
+/* ------------------------------------------------------------------ */
+
+export type SocialProfile = {
+  address: AddressReading;
+  language: LanguageCode;
+  register: SocialRegister;
+  pacing: SocialPacing;
+  usesEmoji: boolean;
+  usesShortForms: boolean;
+  /** Average customer message length in words — drives reply length mirroring. */
+  averageWords: number;
+  signals: SocialSignal[];
+  empathyNotes: string[];
+  humanIdentityQuestion: boolean;
+  isFirstTurn: boolean;
+  /** Facts already stated by the customer that must never be re-asked. */
+  rememberedFacts: string[];
+};
+
+const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+
+export function buildSocialProfile(input: {
+  messages: SocialMessage[];
+  knownName?: string | null;
+  knownFacts?: Record<string, string | number | null | undefined>;
+}): SocialProfile {
+  const customer = input.messages.filter((m) => m.sender === "customer").map((m) => m.body ?? "");
+  const recent = customer.slice(-6);
+  const last = customer[customer.length - 1] ?? "";
+
+  const words = recent.map((t) => t.trim().split(/\s+/).filter(Boolean).length);
+  const averageWords = words.length ? Math.round(words.reduce((a, b) => a + b, 0) / words.length) : 0;
+
+  const joined = recent.join(" \n ");
+  const casual = CASUAL_MARKERS.test(joined);
+  const formal = FORMAL_MARKERS.test(joined);
+  const register: SocialRegister = formal && !casual ? "formal" : casual ? "casual" : "professional";
+
+  const usesShortForms = SHORTFORM_MARKERS.test(joined);
+  const usesEmoji = EMOJI_RE.test(joined);
+
+  const signals: SocialSignal[] = [];
+  for (const text of recent) {
+    for (const s of detectSocialSignals(text)) if (!signals.includes(s)) signals.push(s);
+  }
+  const empathyNotes = SIGNAL_PATTERNS.filter((p) => signals.includes(p.signal)).map((p) => p.empathy);
+
+  const pacing: SocialPacing =
+    signals.includes("ELDERLY_TRAVELLER") || signals.includes("CONFUSION") || register === "formal"
+      ? "measured"
+      : averageWords > 0 && averageWords <= 6 && (usesShortForms || register === "casual")
+        ? "brisk"
+        : "natural";
+
+  const rememberedFacts: string[] = [];
+  for (const [key, value] of Object.entries(input.knownFacts ?? {})) {
+    if (value === null || value === undefined || value === "") continue;
+    rememberedFacts.push(`${key} = ${value}`);
+  }
+
+  return {
+    address: resolveAddress({
+      customerMessages: customer,
+      knownName: input.knownName ?? null,
+      turnCount: customer.length,
+    }),
+    language: detectMessageLanguage(last)?.language ?? detectMessageLanguage(joined)?.language ?? "ms",
+    register,
+    pacing,
+    usesEmoji,
+    usesShortForms,
+    averageWords,
+    signals,
+    empathyNotes,
+    humanIdentityQuestion: detectHumanIdentityQuestion(last),
+    isFirstTurn: customer.length <= 1,
+    rememberedFacts,
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/* Instruction builder                                                 */
+/* ------------------------------------------------------------------ */
+
+const ANDA_RULE =
+  'FORM OF ADDRESS: "anda" is NOT the default in Malaysian conversational sales — avoid it. Use the customer\'s own form of address ("Encik nak yang mana satu?", "Untuk perjalanan puan...", "Kalau ikut keperluan tuan...") or an implicit subject ("Saya boleh bantu semak."). Use "anda" only in neutral general copy.';
+
+const NO_CHATBOT_RULE =
+  'NO CHATBOT PATTERNS: never open with "Terima kasih atas pertanyaan anda", "Sudah tentu! Saya sedia membantu anda", "Berikut adalah...", "Untuk makluman anda", "Sebagai AI...". No brochure Malay, no FAQ voice, no corporate padding.';
+
+const IDENTITY_RULE =
+  "AI IDENTITY: never claim to be human. If asked directly, answer once, briefly and warmly, then continue the conversation normally. Do not repeat AI disclaimers unprompted.";
+
+/**
+ * Human presence instruction injected into the system prompt.
+ * Deterministic text — the model receives guidance, never fabricated facts.
+ */
+export function socialPresenceInstruction(profile: SocialProfile): string {
+  const lines: string[] = ["HUMAN PRESENCE & SOCIAL INTELLIGENCE (highest conversational priority):"];
+
+  if (profile.address.addressForm) {
+    lines.push(
+      `- Address the customer as "${profile.address.addressForm}". Use it naturally — roughly once every few replies, not in every message, and never revert to "anda".`,
+    );
+  } else if (profile.address.shouldAskHowToAddress && profile.isFirstTurn) {
+    lines.push(
+      '- You do not know their name or title yet. Greet warmly, introduce yourself once, and ask ONE natural question: how they would like to be addressed (tuan, puan, encik, cik, or their name). Do not interrogate.',
+    );
+  } else {
+    lines.push(
+      '- Their preferred form of address is still unknown. Ask once, naturally, when it fits: "Kalau boleh saya tahu, saya patut panggil tuan, puan, encik, cik atau ada panggilan lain yang lebih selesa?" Never invent a title, and never infer religious or professional status from a name.',
+    );
+  }
+
+  lines.push(ANDA_RULE);
+  lines.push(
+    `- Mirror their language (${profile.language}), register (${profile.register}), pacing (${profile.pacing}) and message length (~${profile.averageWords || 12} words). ${
+      profile.usesEmoji ? "Light emoji use is welcome." : "Do not introduce emojis."
+    } ${profile.usesShortForms ? "Short forms are fine, but stay clear." : "Write in full words."} Never copy slang excessively, never mimic mistakes, never become unprofessional just because they are casual.`,
+  );
+
+  if (profile.pacing === "measured") {
+    lines.push(
+      "- Slow down: respectful language, clearer explanations, minimal slang and abbreviations, explain digital or payment steps plainly.",
+    );
+  }
+
+  lines.push(
+    "- Pacing: acknowledge what they said, then ask ONE highest-value question. Never stack multiple questions in one message.",
+  );
+  lines.push(
+    '- Use short natural micro-acknowledgements when they add value ("Baik.", "Faham, puan.", "Ya, saya nampak.") — never as repetitive filler.',
+  );
+
+  if (profile.empathyNotes.length > 0) {
+    lines.push(`- Emotional context detected: ${profile.signals.join(", ")}.`);
+    for (const note of profile.empathyNotes.slice(0, 5)) lines.push(`  · ${note}`);
+    lines.push("  · Respond to the emotion FIRST. Do not pitch in the same breath.");
+  }
+
+  if (profile.rememberedFacts.length > 0) {
+    lines.push(
+      `- Already known — never ask again unless clarification is genuinely needed: ${profile.rememberedFacts.join("; ")}.`,
+    );
+  }
+
+  if (profile.humanIdentityQuestion) {
+    lines.push(
+      '- They asked whether you are human. Answer honestly and once: you are RAIŌ, an AI Autonomous AI Business Executive™, designed to communicate naturally and help like a capable sales executive. Then carry on.',
+    );
+  }
+
+  lines.push(IDENTITY_RULE);
+  lines.push(NO_CHATBOT_RULE);
+  lines.push(
+    "- Ethical persuasion only: no manufactured urgency, no false scarcity, no fabricated social proof or testimonials, no pressure after a clear rejection. Customer autonomy always wins.",
+  );
+  lines.push(
+    "- Flow: rapport → understand → discover → qualify → recommend → explain → reassure → quote → handle concerns → confirm fit → invite decision. Never jump straight to price and a closing push.",
+  );
+  lines.push(
+    "- Before sending, check silently: who am I speaking to, what do I call them, what language and register, what emotion, what do I already know, what is the smallest useful next step, and would an experienced human sales executive really say this? If it reads like a script, rewrite it. Human-like means natural and short, not long.",
+  );
+
+  return lines.join("\n");
+}
