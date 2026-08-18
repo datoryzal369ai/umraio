@@ -214,28 +214,35 @@ export const Route = createFileRoute("/api/public/meet-executive")({
         ].join("\n");
 
         const gateway = createIntelligenceGateway();
-        const result = await gateway.generate({
-          taskType: "business_decision",
-          taskClass: "fast",
-          system,
-          prompt: "",
-          messages: compaction.messages.map((m) => ({
-            role: m.role === "visitor" ? ("user" as const) : ("assistant" as const),
-            content: m.content,
-          })),
-        });
+        let reply: string | null = null;
+        try {
+          const result = await gateway.generate({
+            taskType: "business_decision",
+            taskClass: "fast",
+            system,
+            prompt: "",
+            messages: compaction.messages.map((m) => ({
+              role: m.role === "visitor" ? ("user" as const) : ("assistant" as const),
+              content: m.content,
+            })),
+          });
+          reply = result.ok && result.data ? result.data : null;
+        } catch {
+          reply = null;
+        }
 
-        if (!result.ok || !result.data) {
+        if (!reply) {
+          // Never surface a raw technical error to a prospective customer.
           return Response.json(
             {
               error:
-                "The AI Business Executive is unavailable right now. Please try again, or book a live demo.",
+                "Maaf, saya tak dapat proses mesej itu seketika tadi. Boleh cuba sekali lagi, atau teruskan dengan Start Free Trial / Book Live Demo di halaman ini.",
             },
             { status: 503 },
           );
         }
 
-        return Response.json({ reply: result.data });
+        return Response.json({ reply });
       },
     },
   },
