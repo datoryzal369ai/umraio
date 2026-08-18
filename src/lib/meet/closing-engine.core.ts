@@ -209,6 +209,9 @@ export function buildClosingRead(input: {
   } else if (intent.kind === "TRY") {
     readiness = "READY_TO_TRIAL";
     reason = `Trial intent: "${intent.evidence}".`;
+  } else if (intent.kind === "PAYMENT") {
+    readiness = "READY_TO_SUBSCRIBE";
+    reason = `Payment / billing question — a buying moment: "${intent.evidence}".`;
   } else if (decisionMaker) {
     readiness = "DECISION_MAKER_DEPENDENT";
     reason = "The owner must consult a partner or another decision maker.";
