@@ -5,7 +5,6 @@ import {
   BookOpen,
   BrainCircuit,
   FileText,
-  Handshake,
   HeartHandshake,
   KanbanSquare,
   ListChecks,
@@ -79,7 +78,6 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   /** Reserved slots for the future UMRAIO® AI workforce. Navigation only — not yet implemented. */
   const futureModules = [
-    { label: t.futureModules.sales, icon: Handshake },
     { label: t.futureModules.quotation, icon: FileText },
     { label: t.futureModules.followup, icon: Repeat },
     { label: t.futureModules.customerSuccess, icon: HeartHandshake },
