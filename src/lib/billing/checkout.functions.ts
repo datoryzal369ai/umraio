@@ -3,26 +3,40 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 /**
- * UMRAIO® — server-side checkout preparation (Step 3H.2).
+ * UMRAIO® — server-side Stripe checkout (Step 3H.2B).
  *
- * The browser sends ONLY a canonical plan ID. The server validates it, maps it
- * to the provider price, and returns the provider price ID required by the
- * Paddle checkout SDK. No price, currency, discount or entitlement ever comes
- * from the client, and opening a checkout grants nothing — entitlement is only
- * activated by a signature-verified webhook.
+ * The browser sends ONLY a canonical plan ID (`basic` | `pro` | `premium`).
+ * The server resolves the Stripe price ID, verifies its currency (MYR), amount
+ * and monthly recurrence against `pricing.core.ts`, and creates the Checkout
+ * Session. No price, amount, currency, provider price ID or entitlement is
+ * ever accepted from the client, and reaching checkout grants nothing —
+ * entitlement is written only by the signature-verified webhook.
  */
 
 export type CheckoutPreparation =
-  | {
-      status: "ready";
-      plan: string;
-      founding: boolean;
-      environment: "sandbox" | "live";
-      paddlePriceId: string;
-      agencyId: string;
-    }
+  | { status: "ready"; plan: string; founding: boolean; url: string }
   | { status: "not_self_serve"; plan: "enterprise" }
   | { status: "unavailable"; reason: string };
+
+export type CheckoutAvailability = {
+  available: boolean;
+  mode: "test" | "live" | null;
+  reason: string | null;
+};
+
+async function resolveAgencyId(
+  supabase: { from: (t: string) => any }, // eslint-disable-line @typescript-eslint/no-explicit-any
+  userId: string,
+): Promise<string> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("agency_id")
+    .eq("id", userId)
+    .maybeSingle();
+  const agencyId = data?.agency_id as string | undefined;
+  if (!agencyId) throw new Error("No agency found for this account.");
+  return agencyId;
+}
 
 export const prepareCheckout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -30,85 +44,165 @@ export const prepareCheckout = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<CheckoutPreparation> => {
     const { supabase, userId } = context;
 
-    const { selectPlan } = await import("./paddle-mapping.core");
-    const selection = selectPlan(data.plan);
+    const { selectStripePlan, stripePriceIdFor, verifyStripePrice } = await import(
+      "./stripe-mapping.core"
+    );
+    const selection = selectStripePlan(data.plan);
     if (!selection.ok) {
-      if (selection.reason === "not_self_serve") {
-        return { status: "not_self_serve", plan: "enterprise" };
-      }
+      if (selection.reason === "not_self_serve") return { status: "not_self_serve", plan: "enterprise" };
       throw new Error("Unknown plan.");
     }
+    const mapping = selection.mapping;
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("agency_id")
-      .eq("id", userId)
-      .maybeSingle();
-    const agencyId = profile?.agency_id as string | undefined;
-    if (!agencyId) throw new Error("No agency found for this account.");
+    const agencyId = await resolveAgencyId(supabase, userId);
+
+    const { hasStripeSecretKey, stripeFetch, getStripeMode } = await import("@/lib/stripe.server");
+    if (!hasStripeSecretKey()) return { status: "unavailable", reason: "provider_not_configured" };
+
+    const priceId = stripePriceIdFor(mapping, process.env);
+    if (!priceId) return { status: "unavailable", reason: "price_not_configured" };
 
     // Record the request (never a grant) so the team can see intent.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { recordRequestedPlan } = await import("./entitlements.server");
-    await recordRequestedPlan(supabase, agencyId, selection.mapping.plan);
-
-    const clientToken = process.env["VITE_PAYMENTS_CLIENT_TOKEN"];
-    const environment: "sandbox" | "live" =
-      clientToken && !clientToken.startsWith("test_") ? "live" : "sandbox";
+    await recordRequestedPlan(supabaseAdmin as never, agencyId, mapping.plan);
 
     try {
-      const { gatewayFetch } = await import("@/lib/paddle.server");
-      const response = await gatewayFetch(
-        environment,
-        `/prices?external_id=${encodeURIComponent(selection.mapping.priceExternalId)}`,
-      );
-      if (!response.ok) {
-        const body = await response.text();
-        console.error(`[checkout] price lookup failed [${response.status}]: ${body}`);
-        return { status: "unavailable", reason: "price_lookup_failed" };
-      }
-      const result = (await response.json()) as { data?: Array<{ id: string }> };
-      const paddlePriceId = result.data?.[0]?.id;
-      if (!paddlePriceId) {
-        return { status: "unavailable", reason: "price_not_configured" };
+      // Verify the configured price really is the canonical MYR monthly offer.
+      const price = await stripeFetch<{
+        active?: boolean;
+        currency?: string;
+        unit_amount?: number | null;
+        recurring?: { interval?: string; interval_count?: number } | null;
+      }>(`/prices/${encodeURIComponent(priceId)}`);
+      const verification = verifyStripePrice(price, mapping);
+      if (!verification.ok) {
+        console.error(`[checkout] price verification failed: ${verification.reason}`);
+        return { status: "unavailable", reason: `price_${verification.reason}` };
       }
 
-      return {
-        status: "ready",
-        plan: selection.mapping.plan,
-        founding: selection.mapping.founding,
-        environment,
-        paddlePriceId,
-        agencyId,
-      };
+      // Reuse the agency's Stripe customer where one already exists.
+      const { data: entitlementRow } = await (supabaseAdmin as never as { from: (t: string) => any }) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .from("agency_entitlements")
+        .select("overrides")
+        .eq("agency_id", agencyId)
+        .maybeSingle();
+      const overrides = (entitlementRow?.overrides ?? {}) as Record<string, unknown>;
+      let customerId = typeof overrides["stripe_customer_id"] === "string"
+        ? (overrides["stripe_customer_id"] as string)
+        : null;
+
+      const { data: userRow } = await supabase.auth.getUser();
+      const email = userRow?.user?.email ?? undefined;
+
+      if (!customerId) {
+        const customer = await stripeFetch<{ id: string }>("/customers", {
+          method: "POST",
+          body: { email, metadata: { agency_id: agencyId, user_id: userId } },
+          idempotencyKey: `umraio-customer-${agencyId}`,
+        });
+        customerId = customer.id;
+        await (supabaseAdmin as never as { from: (t: string) => any }) // eslint-disable-line @typescript-eslint/no-explicit-any
+          .from("agency_entitlements")
+          .upsert(
+            {
+              agency_id: agencyId,
+              overrides: { ...overrides, stripe_customer_id: customerId },
+            },
+            { onConflict: "agency_id" },
+          );
+      }
+
+      const origin = process.env["PUBLIC_SITE_URL"] ?? "https://umraio.com";
+      const session = await stripeFetch<{ url?: string }>("/checkout/sessions", {
+        method: "POST",
+        body: {
+          mode: "subscription",
+          customer: customerId,
+          client_reference_id: agencyId,
+          line_items: [{ price: priceId, quantity: 1 }],
+          allow_promotion_codes: false,
+          metadata: { agency_id: agencyId, plan: mapping.plan, user_id: userId },
+          subscription_data: {
+            metadata: {
+              agency_id: agencyId,
+              plan: mapping.plan,
+              founding: String(mapping.founding),
+              user_id: userId,
+            },
+          },
+          success_url: `${origin}/settings/subscription?checkout=success`,
+          cancel_url: `${origin}/settings/subscription?checkout=cancelled`,
+        },
+      });
+
+      if (!session.url) return { status: "unavailable", reason: "session_not_created" };
+
+      console.log(
+        `[checkout] session created agency=${agencyId} plan=${mapping.plan} mode=${getStripeMode()}`,
+      );
+      return { status: "ready", plan: mapping.plan, founding: mapping.founding, url: session.url };
     } catch (error) {
-      console.error("[checkout] provider unavailable", error);
+      console.error("[checkout] provider error", error);
       return { status: "unavailable", reason: "provider_unavailable" };
     }
   });
 
 /**
  * Whether a real self-serve checkout can currently be completed. Used only to
- * pick honest CTA wording — it never grants anything.
+ * pick honest CTA wording and the test-mode banner — it never grants anything.
  */
 export const getCheckoutAvailability = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async (): Promise<{ available: boolean; reason: string | null }> => {
-    const clientToken = process.env["VITE_PAYMENTS_CLIENT_TOKEN"];
-    const environment: "sandbox" | "live" =
-      clientToken && !clientToken.startsWith("test_") ? "live" : "sandbox";
+  .handler(async (): Promise<CheckoutAvailability> => {
+    const { hasStripeSecretKey, getStripeMode } = await import("@/lib/stripe.server");
+    if (!hasStripeSecretKey()) {
+      return { available: false, mode: null, reason: "provider_not_configured" };
+    }
+    const mode = getStripeMode();
+
+    const { STRIPE_PLAN_MAP, stripePriceIdFor } = await import("./stripe-mapping.core");
+    const missing = Object.values(STRIPE_PLAN_MAP).filter(
+      (mapping) => !stripePriceIdFor(mapping, process.env),
+    );
+    if (missing.length > 0) return { available: false, mode, reason: "price_not_configured" };
+
+    return { available: true, mode, reason: null };
+  });
+
+/** Secure Stripe customer portal link for managing an existing subscription. */
+export const openBillingPortal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ url: string } | { error: string }> => {
+    const { supabase, userId } = context;
+    const agencyId = await resolveAgencyId(supabase, userId);
+
+    const { hasStripeSecretKey, stripeFetch } = await import("@/lib/stripe.server");
+    if (!hasStripeSecretKey()) return { error: "provider_not_configured" };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await (supabaseAdmin as never as { from: (t: string) => any }) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .from("agency_entitlements")
+      .select("overrides")
+      .eq("agency_id", agencyId)
+      .maybeSingle();
+    const overrides = (row?.overrides ?? {}) as Record<string, unknown>;
+    const billing = overrides["billing"] as { customer_id?: string } | undefined;
+    const customerId =
+      (typeof overrides["stripe_customer_id"] === "string"
+        ? (overrides["stripe_customer_id"] as string)
+        : null) ?? billing?.customer_id ?? null;
+
+    if (!customerId) return { error: "no_customer" };
+
+    const origin = process.env["PUBLIC_SITE_URL"] ?? "https://umraio.com";
     try {
-      const { PADDLE_PLAN_MAP } = await import("./paddle-mapping.core");
-      const { gatewayFetch } = await import("@/lib/paddle.server");
-      const response = await gatewayFetch(
-        environment,
-        `/prices?external_id=${encodeURIComponent(PADDLE_PLAN_MAP.pro.priceExternalId)}`,
-      );
-      if (!response.ok) return { available: false, reason: "price_lookup_failed" };
-      const result = (await response.json()) as { data?: Array<{ id: string }> };
-      return result.data?.length
-        ? { available: true, reason: null }
-        : { available: false, reason: "price_not_configured" };
+      const session = await stripeFetch<{ url?: string }>("/billing_portal/sessions", {
+        method: "POST",
+        body: { customer: customerId, return_url: `${origin}/settings/subscription` },
+      });
+      return session.url ? { url: session.url } : { error: "portal_unavailable" };
     } catch {
-      return { available: false, reason: "provider_unavailable" };
+      return { error: "portal_unavailable" };
     }
   });
