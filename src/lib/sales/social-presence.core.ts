@@ -389,6 +389,8 @@ export type SocialProfile = {
   empathyNotes: string[];
   humanIdentityQuestion: boolean;
   isFirstTurn: boolean;
+  /** True at first contact when RAIŌ still does not know who it is speaking to. */
+  needsIntroduction: boolean;
   /** Facts already stated by the customer that must never be re-asked. */
   rememberedFacts: string[];
 };
