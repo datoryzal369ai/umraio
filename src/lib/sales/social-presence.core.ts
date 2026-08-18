@@ -545,7 +545,10 @@ const IDENTITY_RULE =
  * Deterministic text — the model receives guidance, never fabricated facts.
  */
 export function socialPresenceInstruction(profile: SocialProfile): string {
-  const lines: string[] = ["HUMAN PRESENCE & SOCIAL INTELLIGENCE (highest conversational priority):"];
+  const lines: string[] = [
+    "HUMAN PRESENCE & SOCIAL INTELLIGENCE (highest conversational priority):",
+    "NEVER open any reply with 'Hai', 'Hey', 'Hi', 'Hello' or 'Hi there'. Use warm professional Malaysian Muslim openings: 'Alhamdulillah', 'Baik', 'Insya-Allah', 'Saya faham', 'Waalaikumsalam' (when returning salam), or an immediate acknowledgement of what the customer said. No exceptions.",
+  ];
 
   if (profile.needsIntroduction) {
     lines.push(
