@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/app/PageHeader";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { MonthlyAnalyticsChart, SalesPerformanceChart } from "@/components/dashboard/Charts";
 import { WhatsappExecutiveCard } from "@/components/dashboard/WhatsappExecutiveCard";
+import { SalesEliteCard } from "@/components/dashboard/SalesEliteCard";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useCopy } from "@/lib/i18n/dict";
@@ -212,6 +213,8 @@ function DashboardBody({ data }: { data: DashboardData }) {
           trend={{ value: t.kpi.aiActions.replace("{count}", String(aiHandled)), positive: true }}
         />
       </section>
+
+      <SalesEliteCard data={data} />
 
       <WhatsappExecutiveCard />
 

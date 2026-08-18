@@ -185,6 +185,34 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           body.messages.filter((m) => m.role === "visitor").map((m) => m.content),
         );
 
+        // STEP 3I.1 — AI SALES ELITE™ in the UMRAIO PRODUCT sales domain.
+        const { buildEliteRead, eliteSalesInstruction } = await import(
+          "@/lib/sales/elite/elite-sales.core"
+        );
+        const visitorMessages = body.messages
+          .filter((m) => m.role === "visitor")
+          .map((m) => m.content);
+        const elite = buildEliteRead({
+          domain: "umraio_product",
+          customerMessages: visitorMessages,
+          activeObjections: intel.objections
+            .filter((o) => o.status === "ACTIVE")
+            .map((o) => String(o.category)),
+          resolvedObjections: intel.objections
+            .filter((o) => o.status === "RESOLVED")
+            .map((o) => String(o.category)),
+          buyingSignals: closing.highIntent ? ["HIGH_INTENT"] : [],
+          signals: [
+            ...(closing.highIntent ? ["READY_TO_BUY"] : []),
+            ...(intel.frustration.length ? ["FRUSTRATED"] : []),
+            ...(closing.priceQuestion || closing.paymentQuestion ? ["PRICE_CONCERN"] : []),
+          ],
+          known: intel.snapshot.map((s) => String(s.label ?? "")).filter(Boolean),
+          missing: intel.missingFacts,
+          optOut: intel.optedOut,
+          humanRequested: intel.humanRequested,
+        });
+
         const system = [
           SYSTEM,
           languageInstruction(body.language, intel.language),
@@ -202,7 +230,9 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
           closingInstruction(closing),
+          eliteSalesInstruction(elite),
           confidentPresenceInstruction(confidence),
+
           ...(carryOver ? [carryOver] : []),
 
           ...(religious.isReligiousRulingRequest
