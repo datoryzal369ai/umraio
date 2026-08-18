@@ -7,7 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsagePanel } from "@/components/settings/UsagePanel";
-import { PLANS, fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
+import {
+  PLAN_CTA_LABEL,
+  formatPlanPrice,
+  foundingNote,
+  publicPlans,
+  resolveDisplayPlan,
+} from "@/lib/billing/pricing.core";
+import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
 
