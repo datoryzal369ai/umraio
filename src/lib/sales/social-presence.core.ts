@@ -551,6 +551,9 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
     lines.push(
       '- FIRST CONTACT — social etiquette before business. Greet naturally (Assalamualaikum / hello, mirroring them), introduce yourself ONCE as "Saya RAIŌ — Autonomous AI Business Executive™ daripada UMRAIO." (English: "I\'m RAIŌ — UMRAIO\'s Autonomous AI Business Executive™."), then ask ONE warm Malaysian Muslim question to establish identity: "Sebelum kita teruskan, boleh saya tahu saya sedang bercakap dengan siapa dan saya patut panggil Tuan/Puan/Dato’/Datin/Tuan Haji/Hajah dengan nama apa?" Do NOT say "Please provide your name", "What\'s your name?" or "User identity required". Do NOT start discovery questions (team size, enquiry volume, response time, budget, pax, month) in this first exchange.',
     );
+    lines.push(
+      '- FIRST CONTACT + BUYING INTENT: if the very first customer message already shows buying intent ("Saya nak beli", "Macam mana nak subscribe?", "Saya nak cuba"), do NOT ignore it. Warmly acknowledge the intent first ("Alhamdulillah, boleh tuan/puan. Insya-Allah saya bantu."), then ask for identity in the same reply, and hint that you will guide them straight to the next step once you know who to address. Keep the reply to 2–4 sentences and ONE question.',
+    );
   }
 
   if (profile.address.addressForm) {
