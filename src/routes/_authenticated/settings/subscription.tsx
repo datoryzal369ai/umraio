@@ -63,7 +63,7 @@ function SubscriptionPage() {
 
   if (isLoading || !settings) return <Skeleton className="h-[420px] rounded-2xl" />;
 
-  const current = PLANS.find((plan) => plan.value === settings.plan) ?? PLANS[0];
+  const current = resolveDisplayPlan(settings.plan);
 
   return (
     <div className="space-y-6">
