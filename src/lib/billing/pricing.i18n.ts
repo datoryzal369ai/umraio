@@ -40,6 +40,10 @@ type SectionCopy = {
   renews: string;
   noActiveSubscription: string;
   selectionRecorded: string;
+  requestActivation: string;
+  activationRequested: string;
+  checkoutUnavailable: string;
+  openingCheckout: string;
 };
 
 export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
@@ -69,6 +73,12 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
       "Tiada langganan berbayar aktif — pembayaran belum dilaksanakan.",
     selectionRecorded:
       "Pilihan pelan direkod. Tiada bayaran dikutip — pasukan kami akan sahkan pengaktifan.",
+    requestActivation: "Minta Pengaktifan",
+    activationRequested:
+      "Permintaan pengaktifan direkod. Tiada bayaran dikutip — pasukan UMRAIO akan hubungi anda.",
+    checkoutUnavailable:
+      "Pembayaran dalam sistem belum tersedia. Permintaan anda direkod dan pasukan kami akan sahkan pengaktifan.",
+    openingCheckout: "Membuka pembayaran…",
   },
   en: {
     eyebrow: "Pricing",
@@ -95,6 +105,12 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
     noActiveSubscription: "No active paid subscription — payment is not yet implemented.",
     selectionRecorded:
       "Plan selection recorded. No payment has been taken — our team confirms activation.",
+    requestActivation: "Request Activation",
+    activationRequested:
+      "Activation request recorded. No payment has been taken — the UMRAIO team will follow up.",
+    checkoutUnavailable:
+      "Checkout is not available yet. Your request has been recorded and our team confirms activation.",
+    openingCheckout: "Opening checkout…",
   },
 };
 

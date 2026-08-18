@@ -927,9 +927,9 @@ const NBA_DIRECTIVE: Record<B2bNextBestAction, string> = {
   RECOMMEND_CAPABILITY:
     "Recommend only the capabilities that match the evidenced gaps, then propose the lowest-risk next step.",
   INVITE_TRIAL:
-    "They are trial-ready. Stop selling and move them to the Start Free Trial button on this page.",
+    "They are trial-ready. Stop selling and move them to the Choose a Plan button on this page.",
   MOVE_TO_SUBSCRIPTION:
-    "They asked about subscribing. Do not invent pricing. Direct them to Start Free Trial or Talk to our team so a specialist can confirm the plan.",
+    "They asked about subscribing. Do not invent pricing. Direct them to Choose a Plan or Talk to our team so a specialist can confirm the plan.",
 };
 
 const DEMO_DIRECTIVE: Record<DemoPath, string> = {

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, CreditCard, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -7,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LanguageSelector } from "@/components/app/LanguageSelector";
+import { PaymentTestModeBanner } from "@/components/settings/PaymentTestModeBanner";
 import { UsagePanel } from "@/components/settings/UsagePanel";
+import { useAuth } from "@/hooks/useAuth";
+import { getCheckoutAvailability, prepareCheckout } from "@/lib/billing/checkout.functions";
 import { publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 import {
   PRICING_SECTION_COPY,
@@ -19,6 +23,7 @@ import {
 import { useCopy } from "@/lib/i18n/dict";
 import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
 import { useLocale } from "@/lib/i18n/locale";
+import { initializePaddle } from "@/lib/paddle";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -53,17 +58,52 @@ function SubscriptionPage() {
     enabled: Boolean(agency?.id),
   });
 
+  const { user } = useAuth();
+  const startCheckout = useServerFn(prepareCheckout);
+  const checkAvailability = useServerFn(getCheckoutAvailability);
+
+  const { data: availability } = useQuery({
+    queryKey: ["checkout-availability"],
+    queryFn: () => checkAvailability({}),
+    staleTime: 5 * 60 * 1000,
+  });
+  const checkoutAvailable = availability?.available === true;
+
   const choose = useMutation({
     mutationFn: async (plan: string) => {
       if (!settings) throw new Error(settingsAi.toasts.settingsNotLoaded);
       const target = publicPlans().find((item) => item.id === plan);
-      return updateSettings(settings.id, {
+
+      // The selection itself is only a preference — never proof of payment.
+      await updateSettings(settings.id, {
         plan,
         seats: target?.seats ?? settings.seats,
       });
+
+      // The server decides the price; the browser never sends one.
+      const prepared = await startCheckout({ data: { plan } });
+      if (prepared.status !== "ready") return prepared;
+
+      await initializePaddle();
+      window.Paddle.Checkout.open({
+        items: [{ priceId: prepared.paddlePriceId, quantity: 1 }],
+        customer: user?.email ? { email: user.email } : undefined,
+        customData: { agencyId: prepared.agencyId, userId: user?.id ?? "" },
+        settings: {
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}/settings/subscription?checkout=success`,
+          allowLogout: false,
+          variant: "one-page",
+        },
+      });
+      return prepared;
     },
-    onSuccess: () => {
-      toast.success(copy.selectionRecorded);
+    onSuccess: (result) => {
+      if (result && result.status === "ready") {
+        toast.info(copy.openingCheckout);
+      } else {
+        toast.success(copy.activationRequested);
+      }
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -75,7 +115,9 @@ function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
+      <PaymentTestModeBanner />
       <UsagePanel />
+
 
       <section className="panel space-y-4 p-5">
 
@@ -175,8 +217,13 @@ function SubscriptionPage() {
                   disabled={active || choose.isPending || plan.cta === "talk_to_team"}
                   onClick={() => choose.mutate(plan.id)}
                 >
-                  {active ? copy.selectedPlan : text.ctaLabel}
+                  {active
+                    ? copy.selectedPlan
+                    : plan.cta === "talk_to_team" || checkoutAvailable
+                      ? text.ctaLabel
+                      : copy.requestActivation}
                 </Button>
+
               </div>
             );
           })}

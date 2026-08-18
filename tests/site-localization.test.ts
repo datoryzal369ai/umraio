@@ -49,7 +49,7 @@ describe("homepage hero", () => {
   it("renders BM hero copy when BM is selected", () => {
     expect(bm.hero.headingLead).toContain("Anda untuk");
     expect(bm.hero.headingAccent).toBe("Agensi Umrah Moden");
-    expect(bm.hero.ctaTrial).toBe("Mulakan Percubaan Percuma");
+    expect(bm.hero.ctaTrial).toBe("Daftar & Pilih Pelan");
     expect(bm.hero.ctaMeet).toContain("Jumpa AI Business Executive");
     expect(bm.hero.subheading).toContain("aliran kerja");
   });
@@ -57,7 +57,7 @@ describe("homepage hero", () => {
   it("renders EN hero copy when EN is selected", () => {
     expect(en.hero.headingLead).toBe("Your Autonomous AI Business Executive for");
     expect(en.hero.headingAccent).toBe("Modern Umrah Agencies");
-    expect(en.hero.ctaTrial).toBe("Start Free Trial");
+    expect(en.hero.ctaTrial).toBe("Choose a Plan");
     expect(en.hero.ctaMeet).toContain("Meet Your AI Business Executive");
   });
 
@@ -148,8 +148,8 @@ describe("Meet RAIŌ static UI", () => {
   it("localizes surrounding static copy only", () => {
     expect(bm.meet.body).toContain("Beritahu RAIŌ");
     expect(en.meet.body).toContain("Tell RAIŌ");
-    expect(bm.meet.ctaTrial).toBe("Mulakan Percubaan Percuma");
-    expect(en.meet.ctaTrial).toBe("Start Free Trial");
+    expect(bm.meet.ctaTrial).toBe("Daftar & Pilih Pelan");
+    expect(en.meet.ctaTrial).toBe("Choose a Plan");
     expect(bm.meet.gapStatus.DETECTED).toBe("Dikesan");
     expect(en.meet.gapStatus.DETECTED).toBe("Detected");
   });

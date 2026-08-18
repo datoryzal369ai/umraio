@@ -85,7 +85,7 @@ describe("Step 3G.2 — pricing localization", () => {
         const text = planCopy(plan, locale);
         expect(text.features.length).toBeGreaterThan(0);
         expect(text.ctaLabel.length).toBeGreaterThan(0);
-        expect(text.ctaLabel).not.toContain("Start Free Trial");
+        expect(text.ctaLabel).not.toContain("Choose a Plan");
       }
     }
   });

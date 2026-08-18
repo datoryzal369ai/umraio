@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { readBillingState, resolvePaidPlan } from "./paddle-billing-state.core";
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type Db = SupabaseClient<any, any, any>;
 
@@ -211,7 +213,10 @@ export type ResolvedEntitlement = {
   /** What the user asked for in the UI — informational only. */
   requestedPlan: string | null;
   /** Where the effective plan came from. */
-  source: "override" | "entitlement_row" | "default";
+  source: "override" | "verified_billing" | "entitlement_row" | "default";
+  /** True when the plan is backed by a verified provider subscription. */
+  paid: boolean;
+  founding: boolean;
 };
 
 /**
@@ -229,32 +234,55 @@ export async function resolveEntitlement(
       plan: PLAN_ENTITLEMENTS[override],
       requestedPlan: null,
       source: "override",
+      paid: false,
+      founding: override === "founding",
     };
   }
 
   const { data } = await supabase
     .from("agency_entitlements")
-    .select("effective_plan, requested_plan")
+    .select("effective_plan, requested_plan, overrides")
     .eq("agency_id", agencyId)
     .maybeSingle();
+
+  const requestedPlan = (data?.requested_plan as string | null) ?? null;
+
+  // 1) Verified billing state always wins over any stored/declared plan.
+  const billing = readBillingState(data?.overrides);
+  const paid = resolvePaidPlan(billing);
+  if (paid.plan) {
+    return {
+      agencyId,
+      plan: PLAN_ENTITLEMENTS[paid.plan],
+      requestedPlan,
+      source: "verified_billing",
+      paid: true,
+      founding: paid.founding,
+    };
+  }
 
   const effective = data?.effective_plan;
   if (isPlanCode(effective)) {
     return {
       agencyId,
       plan: PLAN_ENTITLEMENTS[effective],
-      requestedPlan: (data?.requested_plan as string | null) ?? null,
+      requestedPlan,
       source: "entitlement_row",
+      paid: false,
+      founding: effective === "founding",
     };
   }
 
   return {
     agencyId,
     plan: PLAN_ENTITLEMENTS[DEFAULT_PLAN],
-    requestedPlan: (data?.requested_plan as string | null) ?? null,
+    requestedPlan,
     source: "default",
+    paid: false,
+    founding: false,
   };
 }
+
 
 /**
  * Record what the agency *requested* in the UI without granting it.
