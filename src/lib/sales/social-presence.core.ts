@@ -87,18 +87,30 @@ function titleCase(word: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
 }
 
+/** Honorific tokens that must be stripped out of a detected personal name. */
+const HONORIFIC_TOKENS = new Set([
+  "dato", "dato'", "datuk", "datin", "seri", "tan", "sri", "puan", "tuan",
+  "encik", "cik", "haji", "hajah", "ustaz", "ustazah", "dr", "dr.", "doktor",
+  "prof", "prof.", "mr", "mr.", "mrs", "mrs.", "ms", "ms.", "syed",
+]);
+
 function cleanName(raw: string | undefined): string | null {
   if (!raw) return null;
-  const parts = raw
+  let parts = raw
     .trim()
     .replace(/["'.,!?]+$/g, "")
     .split(/\s+/)
-    .slice(0, 3)
     .filter((w) => /^[A-Za-z@'-]{2,}$/.test(w));
+  // Strip any leading honorific tokens — the title is resolved separately and
+  // must never become part of the customer's actual name.
+  while (parts.length > 1 && HONORIFIC_TOKENS.has(parts[0]!.toLowerCase())) parts = parts.slice(1);
+  parts = parts.slice(0, 3);
   if (parts.length === 0) return null;
   if (NAME_STOPWORDS.has(parts[0]!.toLowerCase())) return null;
+  if (HONORIFIC_TOKENS.has(parts[0]!.toLowerCase())) return null;
   return parts.map(titleCase).join(" ");
 }
+
 
 const NAME_PATTERNS: RegExp[] = [
   /(?:nama\s+(?:saya|aku|sy)|nama\s+penuh\s+saya)\s+(?:ialah\s+|adalah\s+|is\s+)?([A-Za-z' -]{2,40})/i,
