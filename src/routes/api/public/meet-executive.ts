@@ -231,6 +231,7 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           conversionInstruction(conversion),
           closingInstruction(closing),
           eliteSalesInstruction(elite),
+          RAIO_IDENTITY_INSTRUCTION,
           confidentPresenceInstruction(confidence),
 
           ...(carryOver ? [carryOver] : []),
