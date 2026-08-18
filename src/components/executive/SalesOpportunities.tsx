@@ -5,6 +5,8 @@ import { ArrowRight, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCopy } from "@/lib/i18n/dict";
+import { EXECUTIVE_DICT } from "@/lib/i18n/app/executive.i18n";
 import {
   INTENT_LABEL,
   INTENT_TONE,
@@ -15,6 +17,7 @@ import { relativeTime } from "@/lib/leads";
 import { cn } from "@/lib/utils";
 
 export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
+  const t = useCopy(EXECUTIVE_DICT).opportunities;
   const query = useQuery({
     queryKey: ["sales-opportunities"],
     queryFn: fetchSalesOpportunities,
@@ -33,16 +36,16 @@ export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
           </div>
           <div className="min-w-0">
             <h2 id="sales-opportunities-heading" className="text-base font-semibold">
-              Sales opportunities
+              {t.title}
             </h2>
             <p className="text-xs text-muted-foreground">
-              Detected from your live leads, conversations and follow-ups
+              {t.subtitle}
             </p>
           </div>
         </div>
         {opportunities.length > 0 ? (
           <Badge className="shrink-0 border-0 bg-primary/15 text-primary">
-            {opportunities.length} detected
+            {t.detected(opportunities.length)}
           </Badge>
         ) : null}
       </div>
@@ -55,11 +58,11 @@ export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
         </div>
       ) : query.isError ? (
         <p className="mt-4 text-sm text-destructive">
-          Could not load sales opportunities. Refresh to try again.
+          {t.loadError}
         </p>
       ) : shown.length === 0 ? (
         <p className="mt-4 rounded-xl border border-dashed border-border/70 p-6 text-center text-sm text-muted-foreground">
-          No active sales opportunities detected.
+          {t.noneDetected}
         </p>
       ) : (
         <ul className="mt-4 space-y-2">
@@ -96,7 +99,7 @@ export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Button asChild size="sm" variant="outline" className="min-h-9">
                   <Link to="/leads/$leadId" params={{ leadId: opp.lead.id }}>
-                    Open lead
+                    {t.openLead}
                   </Link>
                 </Button>
                 {opp.conversationId ? (
@@ -105,14 +108,14 @@ export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
                       to="/conversations/$conversationId"
                       params={{ conversationId: opp.conversationId }}
                     >
-                      Open conversation
+                      {t.openConversation}
                     </Link>
                   </Button>
                 ) : null}
                 <span className="ml-auto text-[11px] text-muted-foreground">
                   {opp.lead.last_contact_at
-                    ? `Last contact ${relativeTime(opp.lead.last_contact_at)}`
-                    : "Never contacted"}
+                    ? t.lastContact(relativeTime(opp.lead.last_contact_at))
+                    : t.neverContacted}
                 </span>
               </div>
             </li>
@@ -123,7 +126,7 @@ export function SalesOpportunities({ limit = 6 }: { limit?: number }) {
       {opportunities.length > shown.length ? (
         <div className="mt-3">
           <Button asChild size="sm" variant="ghost">
-            <Link to="/crm">View all in CRM pipeline</Link>
+            <Link to="/crm">{t.viewAllInCrm}</Link>
           </Button>
         </div>
       ) : null}
