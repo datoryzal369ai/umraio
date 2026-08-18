@@ -172,6 +172,15 @@ type ExecutiveCopy = {
     toastCycleFailed: string;
     toastCycleFailedFallback: string;
     footerNotice: string;
+    statusOrchestrating: string;
+    statusFailed: string;
+    statusEscalated: string;
+    statusCompleted: string;
+    statusAdvisory: string;
+    statusNoActionTaken: string;
+    statusIdle: string;
+    skipped: string;
+    autonomyModeAriaLabel: string;
   };
   opportunities: {
     title: string;
@@ -350,6 +359,15 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       toastCycleFailedFallback: "Orchestration cycle failed.",
       footerNotice:
         "Every action runs through the existing tool registry: allowlist → schema → permission → business rule → execution → audit. Customer-facing messages are never sent autonomously, and a cycle stops after a fixed number of actions.",
+      statusOrchestrating: "Orchestrating",
+      statusFailed: "Failed",
+      statusEscalated: "Escalated",
+      statusCompleted: "Completed",
+      statusAdvisory: "Advisory",
+      statusNoActionTaken: "No action taken",
+      statusIdle: "Idle",
+      skipped: "Skipped",
+      autonomyModeAriaLabel: "AI autonomy mode",
     },
     opportunities: {
       title: "Sales opportunities",
@@ -526,6 +544,15 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       toastCycleFailedFallback: "Kitaran orkestrasi gagal.",
       footerNotice:
         "Setiap tindakan melalui registri alat sedia ada: senarai dibenarkan → skema → kebenaran → peraturan perniagaan → pelaksanaan → audit. Mesej kepada pelanggan tidak pernah dihantar secara autonomi, dan kitaran berhenti selepas bilangan tindakan tetap.",
+      statusOrchestrating: "Sedang mengorkestrasi",
+      statusFailed: "Gagal",
+      statusEscalated: "Dieskalasi",
+      statusCompleted: "Selesai",
+      statusAdvisory: "Penasihat",
+      statusNoActionTaken: "Tiada tindakan diambil",
+      statusIdle: "Idle",
+      skipped: "Dilangkau",
+      autonomyModeAriaLabel: "Mod autonomi AI",
     },
     opportunities: {
       title: "Peluang jualan",
