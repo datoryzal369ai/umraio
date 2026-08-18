@@ -385,8 +385,15 @@ export function MeetExecutive() {
           stage: intel.stage,
           next_best_action: intel.nextBestAction,
           language: intel.language,
-          events: [...deriveMeetEvents(intel), "conversion_cta_clicked"],
-          executive_brief: buildMeetExecutiveBrief(intel),
+          conversion_state: conversion.state,
+          commercial_intent: conversion.commercialIntent,
+          psychology: conversion.psychology.map((p) => `${p.key}:${p.confidence}`),
+          events: [
+            ...deriveMeetEvents(intel),
+            ...deriveConversionEvents(conversion),
+            "conversion_cta_clicked",
+          ],
+          executive_brief: `${buildMeetExecutiveBrief(intel)}\n\n${buildConversionBrief(intel, conversion)}`,
         }}
       />
     </div>
