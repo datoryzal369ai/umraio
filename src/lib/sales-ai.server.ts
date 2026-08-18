@@ -39,6 +39,12 @@ import {
   confidentPresenceInstruction,
 } from "./sales/confident-presence.core";
 import {
+  buildEliteRead,
+  eliteSalesInstruction,
+  type EliteRead,
+} from "./sales/elite/elite-sales.core";
+
+import {
   collectSuppressedTopics,
   countSuppressedOccurrences,
   redactSuppressedTopics,
@@ -324,6 +330,43 @@ export function buildIntelligence(ctx: Awaited<ReturnType<typeof loadContext>>):
   });
 }
 
+/**
+ * STEP 3I.1 — AI SALES ELITE™. Elite sales & closing read for this turn,
+ * layered on the existing deterministic conversation intelligence.
+ */
+export function buildEliteIntelligence(
+  ctx: Awaited<ReturnType<typeof loadContext>>,
+  intel: ConversationIntelligence = buildIntelligence(ctx),
+): EliteRead {
+  const customerMessages = ctx.messages.filter((m) => m.sender === "customer");
+  const lastCustomerAt = customerMessages.length
+    ? new Date(customerMessages[customerMessages.length - 1]!.created_at).getTime()
+    : null;
+  const q = ctx.quotation as Record<string, unknown> | null;
+
+  return buildEliteRead({
+    domain: "agency_customer",
+    customerMessages: customerMessages.map((m) => m.body),
+    upstreamState: intel.nextBestAction,
+    signals: intel.signals,
+    activeObjections: intel.activeObjections,
+    resolvedObjections: intel.objectionLifecycle
+      .filter((o) => o.status === "RESOLVED")
+      .map((o) => o.category),
+    buyingSignals: intel.buyingSignals,
+    known: intel.known,
+    missing: intel.missing,
+    optOut: intel.optOut,
+    humanRequested: intel.humanRequested,
+    quotationStatus: q ? String(q["status"]) : null,
+    humanTakeover: ctx.conversation.ai_enabled === false,
+    hoursSinceCustomerMessage:
+      lastCustomerAt === null ? null : Math.max(0, (Date.now() - lastCustomerAt) / 3_600_000),
+  });
+}
+
+
+
 function systemPrompt(
   ctx: Awaited<ReturnType<typeof loadContext>>,
   suppressedTopics: string[] = collectContextSuppression(ctx),
@@ -355,6 +398,9 @@ function systemPrompt(
     ),
     conversionSignalInstruction(redactSuppressedTopics(lastCustomer?.body, suppressedTopics)),
     conversationIntelligenceInstruction(intel),
+    // STEP 3I.1 — AI SALES ELITE™ (state, single next best action, closing mode).
+    eliteSalesInstruction(buildEliteIntelligence(ctx, intel)),
+
     confidentPresenceInstruction(
       buildConfidenceRead({
         customerMessages: ctx.messages
