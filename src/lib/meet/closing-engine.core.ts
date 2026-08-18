@@ -144,6 +144,10 @@ export type ClosingRead = {
   /** True when a short confirmation of scope should precede the CTA (§7). */
   confirmUnderstanding: boolean;
   highIntent: boolean;
+  /** STEP 3E.1 — an explicit payment / billing question was asked. */
+  paymentQuestion: boolean;
+  /** STEP 3E.1 — an explicit price question was asked. */
+  priceQuestion: boolean;
   intentEvidence: string | null;
   ctaPresented: boolean;
   postCta: PostCtaSignal;
