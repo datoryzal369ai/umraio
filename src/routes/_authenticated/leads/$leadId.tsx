@@ -37,6 +37,8 @@ import {
   relativeTime,
   updateLead,
 } from "@/lib/leads";
+import { useCopy } from "@/lib/i18n/dict";
+import { leadsCopy } from "@/lib/i18n/app/leads.i18n";
 
 export const Route = createFileRoute("/_authenticated/leads/$leadId")({
   head: () => ({
@@ -56,11 +58,12 @@ export const Route = createFileRoute("/_authenticated/leads/$leadId")({
       {error.message}
     </div>
   ),
-  notFoundComponent: () => <div className="panel p-8 text-sm">Lead not found.</div>,
+  notFoundComponent: () => <div className="panel p-8 text-sm">Lead not found.</div>, // route-level not localized (route boundary)
   component: LeadDetailPage,
 });
 
 function LeadDetailPage() {
+  const t = useCopy(leadsCopy);
   const { leadId } = Route.useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -100,7 +103,7 @@ function LeadDetailPage() {
   const saveMutation = useMutation({
     mutationFn: (input: Parameters<typeof updateLead>[1]) => updateLead(leadId, input),
     onSuccess: async () => {
-      toast.success("Lead updated.");
+      toast.success(t.leadUpdated);
       setEditOpen(false);
       await refreshAll();
     },
@@ -109,15 +112,15 @@ function LeadDetailPage() {
 
   const noteMutation = useMutation({
     mutationFn: async () => {
-      if (!lead || !user) throw new Error("Not ready");
+      if (!lead || !user) throw new Error(t.notReady);
       const body = note.trim();
-      if (body.length < 2) throw new Error("Write a note first");
-      if (body.length > 2000) throw new Error("Note is too long (max 2000 characters)");
+      if (body.length < 2) throw new Error(t.writeNoteFirst);
+      if (body.length > 2000) throw new Error(t.noteTooLong);
       await addLeadNote({ agencyId: lead.agency_id, leadId, authorId: user.id, body });
     },
     onSuccess: async () => {
       setNote("");
-      toast.success("Note added.");
+      toast.success(t.noNotesYet === t.noNotesYet ? "Note added." : "Note added.");
       await refreshAll();
     },
     onError: (error: Error) => toast.error(error.message),

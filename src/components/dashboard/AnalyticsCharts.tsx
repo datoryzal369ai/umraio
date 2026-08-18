@@ -17,6 +17,8 @@ import {
 } from "recharts";
 
 import { myr } from "@/lib/dashboard";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 
 const axisProps = {
   stroke: "var(--color-muted-foreground)",
@@ -91,6 +93,7 @@ export function ConversionFunnelChart({
 }: {
   data: Array<{ stage: string; leads: number; rate: number }>;
 }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 12, bottom: 0 }}>
@@ -101,7 +104,7 @@ export function ConversionFunnelChart({
           cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
           content={makeTooltip((k, v) => (k === "rate" ? `${v}%` : String(v))) as never}
         />
-        <Bar dataKey="leads" name="Leads" radius={[0, 6, 6, 0]} maxBarSize={22}>
+        <Bar dataKey="leads" name={t.leads} radius={[0, 6, 6, 0]} maxBarSize={22}>
           {data.map((_, i) => (
             <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
           ))}
@@ -116,6 +119,7 @@ export function TopPackagesChart({
 }: {
   data: Array<{ name: string; bookings: number; revenue: number }>;
 }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 12, bottom: 0 }}>
@@ -132,7 +136,7 @@ export function TopPackagesChart({
         />
         <Bar
           dataKey="revenue"
-          name="Revenue"
+          name={t.revenue}
           fill="var(--color-chart-1)"
           radius={[0, 6, 6, 0]}
           maxBarSize={22}
@@ -181,6 +185,7 @@ export function BookingTrendChart({
 }: {
   data: Array<{ month: string; bookings: number; pax: number }>;
 }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <AreaChart data={data} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
@@ -196,7 +201,7 @@ export function BookingTrendChart({
         <Tooltip content={countTooltip as never} />
         <Area
           dataKey="bookings"
-          name="Bookings"
+          name={t.bookings}
           type="monotone"
           stroke="var(--color-chart-1)"
           strokeWidth={2}
@@ -204,7 +209,7 @@ export function BookingTrendChart({
         />
         <Area
           dataKey="pax"
-          name="Pilgrims"
+          name={t.pilgrims}
           type="monotone"
           stroke="var(--color-chart-2)"
           strokeWidth={2}
@@ -220,6 +225,7 @@ export function RevenueConversionChart({
 }: {
   data: Array<{ month: string; revenue: number; conversion: number }>;
 }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <ComposedChart data={data} margin={{ top: 8, right: 8, left: -18, bottom: 0 }}>
@@ -243,7 +249,7 @@ export function RevenueConversionChart({
         <Bar
           yAxisId="left"
           dataKey="revenue"
-          name="Revenue"
+          name={t.revenue}
           fill="var(--color-chart-1)"
           radius={[6, 6, 0, 0]}
           maxBarSize={34}
@@ -251,7 +257,7 @@ export function RevenueConversionChart({
         <Line
           yAxisId="right"
           dataKey="conversion"
-          name="Conversion"
+          name={t.conversion}
           type="monotone"
           stroke="var(--color-chart-2)"
           strokeWidth={2}
@@ -267,6 +273,7 @@ export function FollowupPerformanceChart({
 }: {
   data: Array<{ month: string; sent: number; pending: number; skipped: number }>;
 }) {
+  const t = useCopy(shellCopy).charts;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <BarChart data={data} margin={{ top: 8, right: 4, left: -22, bottom: 0 }}>
@@ -277,11 +284,11 @@ export function FollowupPerformanceChart({
           cursor={{ fill: "var(--color-muted)", opacity: 0.25 }}
           content={countTooltip as never}
         />
-        <Bar dataKey="sent" name="Sent" stackId="f" fill="var(--color-chart-1)" maxBarSize={34} />
-        <Bar dataKey="pending" name="Pending" stackId="f" fill="var(--color-chart-3)" />
+        <Bar dataKey="sent" name={t.sent} stackId="f" fill="var(--color-chart-1)" maxBarSize={34} />
+        <Bar dataKey="pending" name={t.pending} stackId="f" fill="var(--color-chart-3)" />
         <Bar
           dataKey="skipped"
-          name="Skipped"
+          name={t.skipped}
           stackId="f"
           fill="var(--color-chart-4)"
           radius={[6, 6, 0, 0]}

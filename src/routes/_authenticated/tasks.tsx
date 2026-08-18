@@ -18,6 +18,8 @@ import {
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";
+import { useCopy } from "@/lib/i18n/dict";
+import { WORKSPACE_COPY } from "@/lib/i18n/app/workspace.i18n";
 import { KpiCard } from "@/components/dashboard/KpiCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -26,7 +28,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ACTIVE_STATUSES,
   PRIORITY_TONE,
-  TASK_STATUS_LABEL,
   TASK_STATUS_TONE,
   computeTaskMetrics,
   fetchEngineTasks,
@@ -86,6 +87,8 @@ function TaskCard({
   onDecide: (id: string, decision: "approve" | "reject") => void;
   busy: boolean;
 }) {
+  const copy = useCopy(WORKSPACE_COPY);
+  const t = copy.tasks;
   const [open, setOpen] = useState(false);
   const steps = task.steps ?? [];
 
@@ -96,12 +99,12 @@ function TaskCard({
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="truncate text-sm font-semibold">{task.title}</h3>
             <Badge className={cn("border-0", TASK_STATUS_TONE[task.status])}>
-              {TASK_STATUS_LABEL[task.status]}
+              {copy.statusLabels[task.status]}
             </Badge>
             <Badge className={cn("border-0", PRIORITY_TONE[task.priority])}>{task.priority}</Badge>
             {task.origin === "autonomous" && (
               <Badge variant="outline" className="border-primary/40 text-primary">
-                autonomous
+                {t.autonomousBadge}
               </Badge>
             )}
           </div>
@@ -117,17 +120,17 @@ function TaskCard({
           {task.status === "queued" && (
             <>
               <Button size="sm" disabled={busy} onClick={() => onRun(task.id)}>
-                <Play className="size-4" /> Run now
+                <Play className="size-4" /> {t.runNow}
               </Button>
               <Button size="sm" variant="ghost" disabled={busy} onClick={() => onCancel(task.id)}>
-                Cancel
+                {t.cancel}
               </Button>
             </>
           )}
           {task.status === "waiting_approval" && (
             <>
               <Button size="sm" disabled={busy} onClick={() => onDecide(task.id, "approve")}>
-                <ShieldCheck className="size-4" /> Approve
+                <ShieldCheck className="size-4" /> {t.approve}
               </Button>
               <Button
                 size="sm"
@@ -135,12 +138,12 @@ function TaskCard({
                 disabled={busy}
                 onClick={() => onDecide(task.id, "reject")}
               >
-                Reject
+                {t.reject}
               </Button>
             </>
           )}
           <Button size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
-            {open ? "Hide" : "Details"}
+            {open ? t.hide : t.details}
           </Button>
         </div>
       </div>
@@ -148,7 +151,7 @@ function TaskCard({
       {open && (
         <div className="mt-4 grid gap-4 border-t border-border pt-4 lg:grid-cols-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Plan</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t.plan}</p>
             <ol className="mt-2 space-y-1.5 text-sm">
               {(task.plan ?? []).map((step, i) => (
                 <li key={i} className="flex gap-2 text-muted-foreground">
@@ -165,7 +168,7 @@ function TaskCard({
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Execution log
+              {t.executionLog}
             </p>
             <ul className="mt-2 space-y-1.5 text-sm">
               {steps.map((step, i) => (
@@ -222,6 +225,8 @@ function TaskList({
 }
 
 function TaskCenter() {
+  const copy = useCopy(WORKSPACE_COPY);
+  const t = copy.tasks;
   const qc = useQueryClient();
   const tasksQuery = useQuery({
     queryKey: ["engine-tasks"],
@@ -251,9 +256,7 @@ function TaskCenter() {
   const cycle = useMutation({
     mutationFn: () => runCycleFn({}),
     onSuccess: (res) => {
-      toast.success(
-        `Autonomous cycle done — ${res.queued} task${res.queued === 1 ? "" : "s"} queued, ${res.executed.length} executed`,
-      );
+      toast.success(t.cycleDoneToast(res.queued, res.executed.length));
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -262,7 +265,7 @@ function TaskCenter() {
   const run = useMutation({
     mutationFn: (taskId: string) => runTaskFn({ data: { taskId } }),
     onSuccess: () => {
-      toast.success("Task executed");
+      toast.success(t.taskExecutedToast);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -271,7 +274,7 @@ function TaskCenter() {
   const cancel = useMutation({
     mutationFn: (taskId: string) => cancelFn({ data: { taskId } }),
     onSuccess: () => {
-      toast.success("Task cancelled");
+      toast.success(t.taskCancelledToast);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -280,7 +283,7 @@ function TaskCenter() {
   const decide = useMutation({
     mutationFn: (v: { taskId: string; decision: "approve" | "reject" }) => decideFn({ data: v }),
     onSuccess: (_res, v) => {
-      toast.success(v.decision === "approve" ? "Approved and published" : "Task rejected");
+      toast.success(v.decision === "approve" ? t.approvedToast : t.rejectedToast);
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -308,9 +311,9 @@ function TaskCenter() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <PageHeader
-        eyebrow="AI Task Center"
-        title="Autonomous task engine"
-        description="Observe, think, plan, execute, monitor, report — every AI worker job in one queue."
+        eyebrow={t.eyebrow}
+        title={t.title}
+        description={t.description}
         actions={
           <Button onClick={() => cycle.mutate()} disabled={cycle.isPending}>
             {cycle.isPending ? (
@@ -318,35 +321,35 @@ function TaskCenter() {
             ) : (
               <Gauge className="size-4" />
             )}
-            {cycle.isPending ? "Running cycle…" : "Run autonomous cycle"}
+            {cycle.isPending ? t.runningCycle : t.runAutonomousCycle}
           </Button>
         }
       />
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <KpiCard icon={ListChecks} label="In queue" value={String(metrics.queued)} hint="Waiting to execute" />
-        <KpiCard icon={Loader2} label="Running" value={String(metrics.running)} hint="Analysing, planning, executing" />
+        <KpiCard icon={ListChecks} label={t.kpiInQueue} value={String(metrics.queued)} hint={t.kpiInQueueHint} />
+        <KpiCard icon={Loader2} label={t.kpiRunning} value={String(metrics.running)} hint={t.kpiRunningHint} />
         <KpiCard
           icon={ShieldCheck}
-          label="Waiting approval"
+          label={t.kpiWaitingApproval}
           value={String(metrics.waitingApproval)}
-          hint="Needs a human decision"
+          hint={t.kpiWaitingApprovalHint}
         />
-        <KpiCard icon={CheckCircle2} label="Completed" value={String(metrics.completed)} hint="Finished autonomously" />
+        <KpiCard icon={CheckCircle2} label={t.kpiCompleted} value={String(metrics.completed)} hint={t.kpiCompletedHint} />
         <KpiCard
           icon={Timer}
-          label="Avg completion time"
+          label={t.kpiAvgCompletion}
           value={formatDuration(metrics.avgCompletionSeconds)}
-          hint="Per completed task"
+          hint={t.kpiAvgCompletionHint}
         />
         <KpiCard
           icon={Clock}
-          label="AI productivity"
+          label={t.kpiProductivity}
           value={`${metrics.hoursSaved.toFixed(1)}h`}
           hint={
             metrics.successRate == null
-              ? "Hours saved"
-              : `Hours saved · ${metrics.successRate.toFixed(0)}% success rate`
+              ? t.kpiHoursSavedHint
+              : t.kpiHoursSavedWithRateHint(metrics.successRate.toFixed(0))
           }
         />
       </section>
@@ -362,37 +365,37 @@ function TaskCenter() {
           ) : (
             <Tabs defaultValue="queue">
               <TabsList className="flex-wrap">
-                <TabsTrigger value="queue">Queue ({metrics.queued})</TabsTrigger>
-                <TabsTrigger value="running">Running ({metrics.running})</TabsTrigger>
-                <TabsTrigger value="approval">Approvals ({metrics.waitingApproval})</TabsTrigger>
-                <TabsTrigger value="completed">Completed ({metrics.completed})</TabsTrigger>
-                <TabsTrigger value="failed">Failed ({metrics.failed})</TabsTrigger>
+                <TabsTrigger value="queue">{t.tabQueue} ({metrics.queued})</TabsTrigger>
+                <TabsTrigger value="running">{t.tabRunning} ({metrics.running})</TabsTrigger>
+                <TabsTrigger value="approval">{t.tabApprovals} ({metrics.waitingApproval})</TabsTrigger>
+                <TabsTrigger value="completed">{t.tabCompleted} ({metrics.completed})</TabsTrigger>
+                <TabsTrigger value="failed">{t.tabFailed} ({metrics.failed})</TabsTrigger>
               </TabsList>
               <TabsContent value="queue" className="mt-4">
                 <TaskList
                   tasks={tasks.filter((t) => t.status === "queued")}
-                  empty="Nothing queued. The engine will queue work on the next cycle."
+                  empty={t.emptyQueue}
                   {...handlers}
                 />
               </TabsContent>
               <TabsContent value="running" className="mt-4">
                 <TaskList
                   tasks={tasks.filter((t) => ACTIVE_STATUSES.includes(t.status))}
-                  empty="No task is running right now."
+                  empty={t.emptyRunning}
                   {...handlers}
                 />
               </TabsContent>
               <TabsContent value="approval" className="mt-4">
                 <TaskList
                   tasks={tasks.filter((t) => t.status === "waiting_approval")}
-                  empty="No task is waiting for your approval."
+                  empty={t.emptyApproval}
                   {...handlers}
                 />
               </TabsContent>
               <TabsContent value="completed" className="mt-4">
                 <TaskList
                   tasks={tasks.filter((t) => t.status === "completed")}
-                  empty="No completed tasks yet."
+                  empty={t.emptyCompleted}
                   {...handlers}
                 />
               </TabsContent>
@@ -401,7 +404,7 @@ function TaskCenter() {
                   tasks={tasks.filter((t) =>
                     ["failed", "rejected", "cancelled"].includes(t.status),
                   )}
-                  empty="No failed or cancelled tasks."
+                  empty={t.emptyFailed}
                   {...handlers}
                 />
               </TabsContent>
@@ -413,18 +416,18 @@ function TaskCenter() {
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Bell className="size-4 text-primary" />
-              <h2 className="text-sm font-semibold">Notifications</h2>
+              <h2 className="text-sm font-semibold">{t.notifications}</h2>
               {unread > 0 && <Badge className="border-0 bg-primary/15 text-primary">{unread}</Badge>}
             </div>
             {unread > 0 && (
               <Button size="sm" variant="ghost" onClick={() => markRead.mutate()}>
-                Mark read
+                {t.markRead}
               </Button>
             )}
           </div>
           <ul className="mt-3 space-y-3">
             {notifications.length === 0 && (
-              <li className="text-sm text-muted-foreground">No notifications yet.</li>
+              <li className="text-sm text-muted-foreground">{t.noNotificationsYet}</li>
             )}
             {notifications.map((n) => (
               <li

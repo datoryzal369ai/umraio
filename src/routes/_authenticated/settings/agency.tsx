@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
+import { useCopy } from "@/lib/i18n/dict";
 import {
   DAYS,
   DEFAULT_HOURS,
@@ -73,6 +75,7 @@ function Panel({
 }
 
 function AgencySettingsPage() {
+  const copy = useCopy(settingsCopy).agency;
   const queryClient = useQueryClient();
   const fileInput = useRef<HTMLInputElement>(null);
   const { data: agency, isLoading } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
@@ -119,8 +122,8 @@ function AgencySettingsPage() {
 
   const saveProfile = useMutation({
     mutationFn: async () => {
-      if (!agency) throw new Error("Agency not loaded.");
-      if (!profile.name.trim()) throw new Error("Agency name is required.");
+      if (!agency) throw new Error(copy.toasts.agencyNotLoaded);
+      if (!profile.name.trim()) throw new Error(copy.toasts.nameRequired);
       return updateAgency(agency.id, {
         name: profile.name.trim().slice(0, 120),
         registration_no: profile.registration_no.trim() || null,
@@ -133,7 +136,7 @@ function AgencySettingsPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Agency profile saved.");
+      toast.success(copy.toasts.profileSaved);
       queryClient.invalidateQueries({ queryKey: ["agency"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -141,11 +144,11 @@ function AgencySettingsPage() {
 
   const saveHours = useMutation({
     mutationFn: async () => {
-      if (!settings) throw new Error("Settings not loaded.");
+      if (!settings) throw new Error(copy.toasts.settingsNotLoaded);
       return updateSettings(settings.id, { business_hours: hours });
     },
     onSuccess: () => {
-      toast.success("Business hours saved.");
+      toast.success(copy.toasts.hoursSaved);
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -153,13 +156,13 @@ function AgencySettingsPage() {
 
   const uploadLogo = useMutation({
     mutationFn: async (file: File) => {
-      if (!agency) throw new Error("Agency not loaded.");
-      if (file.size > 3 * 1024 * 1024) throw new Error("Logo must be smaller than 3MB.");
+      if (!agency) throw new Error(copy.toasts.agencyNotLoaded);
+      if (file.size > 3 * 1024 * 1024) throw new Error(copy.toasts.logoTooLarge);
       const path = await uploadAgencyLogo(agency.id, file);
       return updateAgency(agency.id, { logo_url: path });
     },
     onSuccess: () => {
-      toast.success("Logo updated.");
+      toast.success(copy.toasts.logoUpdated);
       queryClient.invalidateQueries({ queryKey: ["agency"] });
       queryClient.invalidateQueries({ queryKey: ["agency-logo"] });
     },
@@ -173,7 +176,7 @@ function AgencySettingsPage() {
 
   return (
     <div className="space-y-6">
-      <Panel icon={ImagePlus} title="Logo" description="Shown on quotations and customer replies.">
+      <Panel icon={ImagePlus} title={copy.logo.title} description={copy.logo.description}>
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex size-20 items-center justify-center overflow-hidden rounded-2xl border border-border bg-surface">
             {logoUrl ? (
@@ -199,21 +202,21 @@ function AgencySettingsPage() {
               onClick={() => fileInput.current?.click()}
               disabled={uploadLogo.isPending}
             >
-              {uploadLogo.isPending ? "Uploading…" : "Upload logo"}
+              {uploadLogo.isPending ? copy.logo.uploading : copy.logo.uploadLogo}
             </Button>
-            <p className="text-xs text-muted-foreground">PNG, JPG, WEBP or SVG · max 3MB.</p>
+            <p className="text-xs text-muted-foreground">{copy.logo.hint}</p>
           </div>
         </div>
       </Panel>
 
       <Panel
         icon={Building2}
-        title="Agency profile"
-        description="Business details used across the app and by the AI."
+        title={copy.profile.title}
+        description={copy.profile.description}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="name">Agency name</Label>
+            <Label htmlFor="name">{copy.profile.name}</Label>
             <Input
               id="name"
               maxLength={120}
@@ -222,7 +225,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="reg">Registration / MOTAC no.</Label>
+            <Label htmlFor="reg">{copy.profile.registration}</Label>
             <Input
               id="reg"
               maxLength={60}
@@ -231,7 +234,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="email">Contact email</Label>
+            <Label htmlFor="email">{copy.profile.email}</Label>
             <Input
               id="email"
               type="email"
@@ -241,7 +244,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="phone">Contact phone</Label>
+            <Label htmlFor="phone">{copy.profile.phone}</Label>
             <Input
               id="phone"
               maxLength={30}
@@ -250,7 +253,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="website">Website</Label>
+            <Label htmlFor="website">{copy.profile.website}</Label>
             <Input
               id="website"
               maxLength={255}
@@ -260,7 +263,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="timezone">Timezone</Label>
+            <Label htmlFor="timezone">{copy.profile.timezone}</Label>
             <Input
               id="timezone"
               maxLength={60}
@@ -269,7 +272,7 @@ function AgencySettingsPage() {
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">{copy.profile.address}</Label>
             <Textarea
               id="address"
               rows={3}
@@ -280,14 +283,14 @@ function AgencySettingsPage() {
           </div>
         </div>
         <Button onClick={() => saveProfile.mutate()} disabled={saveProfile.isPending}>
-          {saveProfile.isPending ? "Saving…" : "Save profile"}
+          {saveProfile.isPending ? copy.profile.saving : copy.profile.save}
         </Button>
       </Panel>
 
       <Panel
         icon={Clock}
-        title="Business hours"
-        description="Outside these hours the AI tells customers when a human will follow up."
+        title={copy.hours.title}
+        description={copy.hours.description}
       >
         <div className="space-y-2">
           {DAYS.map((day) => {
@@ -301,10 +304,10 @@ function AgencySettingsPage() {
                 <Switch
                   checked={!value.closed}
                   onCheckedChange={(checked) => setDay(day.key, { closed: !checked })}
-                  aria-label={`${day.label} open`}
+                  aria-label={copy.hours.openAria.replace("{day}", day.label)}
                 />
                 {value.closed ? (
-                  <span className="text-xs text-muted-foreground">Closed</span>
+                  <span className="text-xs text-muted-foreground">{copy.hours.closed}</span>
                 ) : (
                   <div className="flex items-center gap-2">
                     <Input
@@ -313,7 +316,7 @@ function AgencySettingsPage() {
                       value={value.open}
                       onChange={(e) => setDay(day.key, { open: e.target.value })}
                     />
-                    <span className="text-xs text-muted-foreground">to</span>
+                    <span className="text-xs text-muted-foreground">{copy.hours.to}</span>
                     <Input
                       type="time"
                       className="w-32"
@@ -327,20 +330,20 @@ function AgencySettingsPage() {
           })}
         </div>
         <Button onClick={() => saveHours.mutate()} disabled={saveHours.isPending || !settings}>
-          {saveHours.isPending ? "Saving…" : "Save business hours"}
+          {saveHours.isPending ? copy.hours.saving : copy.hours.save}
         </Button>
       </Panel>
 
       <Panel
         icon={MessageCircle}
-        title="WhatsApp number"
-        description="Your connected WhatsApp Business number and webhook."
+        title={copy.whatsapp.title}
+        description={copy.whatsapp.description}
       >
         <p className="text-sm text-muted-foreground">
-          Manage the Cloud API credentials, verify token and AI auto-reply on the WhatsApp tab.
+          {copy.whatsapp.note}
         </p>
         <Button asChild variant="outline">
-          <Link to="/settings/whatsapp">Open WhatsApp settings</Link>
+          <Link to="/settings/whatsapp">{copy.whatsapp.open}</Link>
         </Button>
       </Panel>
     </div>

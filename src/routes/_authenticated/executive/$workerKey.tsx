@@ -6,6 +6,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/app/PageHeader";
+import { useCopy } from "@/lib/i18n/dict";
+import { EXECUTIVE_DICT } from "@/lib/i18n/app/executive.i18n";
 import { WhatsappExecutiveCard } from "@/components/dashboard/WhatsappExecutiveCard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -46,6 +48,7 @@ export const Route = createFileRoute("/_authenticated/executive/$workerKey")({
 });
 
 function WorkerDetail() {
+  const copy = useCopy(EXECUTIVE_DICT).workerDetail;
   const { workerKey } = useParams({ from: "/_authenticated/executive/$workerKey" });
   const queryClient = useQueryClient();
   const [brief, setBrief] = useState("");
@@ -67,7 +70,7 @@ function WorkerDetail() {
     mutationFn: (kind: string) => runTask({ data: { kind, brief } }),
     onMutate: (kind) => setRunning(kind),
     onSuccess: () => {
-      toast.success("AI worker finished the task.");
+      toast.success(copy.toastTaskFinished);
       setBrief("");
       queryClient.invalidateQueries({ queryKey: ["ai-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["ai-workers"] });
@@ -82,7 +85,7 @@ function WorkerDetail() {
     mutationFn: (vars: { taskId: string; decision: "approve" | "reject" }) =>
       decideTask({ data: vars }),
     onSuccess: (_res, vars) => {
-      toast.success(vars.decision === "approve" ? "Output approved." : "Output rejected.");
+      toast.success(vars.decision === "approve" ? copy.toastApproved : copy.toastRejected);
       queryClient.invalidateQueries({ queryKey: ["ai-tasks"] });
       queryClient.invalidateQueries({ queryKey: ["ai-workers"] });
       queryClient.invalidateQueries({ queryKey: ["ai-activity"] });
@@ -110,20 +113,20 @@ function WorkerDetail() {
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link to="/executive">
           <ArrowLeft className="size-4" />
-          AI Executive Center
+          {copy.backToExecutiveCenter}
         </Link>
       </Button>
 
       <PageHeader
-        eyebrow="AI Worker"
-        title={worker?.name ?? "AI worker"}
-        description={worker?.description ?? "Loading worker…"}
+        eyebrow={copy.eyebrow}
+        title={worker?.name ?? copy.fallbackTitle}
+        description={worker?.description ?? copy.fallbackDescription}
         actions={
           worker ? (
             <div className="flex items-center gap-2">
               <Badge className={cn("border-0", STATUS_TONE[status])}>{STATUS_LABEL[status]}</Badge>
               <Button size="sm" variant="outline" onClick={toggleEnabled}>
-                {worker.is_enabled ? "Pause worker" : "Activate worker"}
+                {worker.is_enabled ? copy.pauseWorker : copy.activateWorker}
               </Button>
             </div>
           ) : null
@@ -138,9 +141,9 @@ function WorkerDetail() {
             <Bot className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="text-base font-semibold">Assign a task</h2>
+            <h2 className="text-base font-semibold">{copy.assignTaskTitle}</h2>
             <p className="text-xs text-muted-foreground">
-              Add an optional brief, then let the worker plan and execute.
+              {copy.assignTaskDescription}
             </p>
           </div>
         </div>
@@ -149,8 +152,8 @@ function WorkerDetail() {
           value={brief}
           onChange={(event) => setBrief(event.target.value)}
           rows={3}
-          placeholder="Optional brief — e.g. focus on Ramadan 2027 departures for families from Johor."
-          aria-label="Task brief"
+          placeholder={copy.briefPlaceholder}
+          aria-label={copy.briefAriaLabel}
         />
 
         <div className="flex flex-wrap gap-2">
@@ -172,18 +175,18 @@ function WorkerDetail() {
         </div>
         {worker?.is_enabled === false ? (
           <p className="text-xs text-muted-foreground">
-            This worker is paused. Activate it to assign new tasks.
+            {copy.workerPausedNotice}
           </p>
         ) : null}
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-base font-semibold">Task history</h2>
+        <h2 className="text-base font-semibold">{copy.taskHistoryTitle}</h2>
         {tasks.isLoading ? (
           <Skeleton className="h-40 rounded-2xl" />
         ) : (tasks.data ?? []).length === 0 ? (
           <p className="panel p-6 text-center text-sm text-muted-foreground">
-            No tasks yet for this worker.
+            {copy.noTasksForWorker}
           </p>
         ) : (
           (tasks.data ?? []).map((task) => (
@@ -209,6 +212,7 @@ function TaskCard({
   onDecide: (decision: "approve" | "reject") => void;
   deciding: boolean;
 }) {
+  const copy = useCopy(EXECUTIVE_DICT).workerDetail;
   const [open, setOpen] = useState(false);
   const sections = task.output?.sections ?? [];
 
@@ -223,17 +227,17 @@ function TaskCard({
             </Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            {task.summary ?? task.error ?? "Processing…"}
+            {task.summary ?? task.error ?? copy.processing}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            {new Date(task.created_at).toLocaleString()} · saves ~{task.minutes_saved} min
+            {new Date(task.created_at).toLocaleString()} · {copy.savesMinutes(task.minutes_saved)}
           </p>
         </div>
         {task.status === "waiting_approval" ? (
           <div className="flex gap-2">
             <Button size="sm" disabled={deciding} onClick={() => onDecide("approve")}>
               <Check className="size-4" />
-              Approve
+              {copy.approve}
             </Button>
             <Button
               size="sm"
@@ -242,7 +246,7 @@ function TaskCard({
               onClick={() => onDecide("reject")}
             >
               <X className="size-4" />
-              Reject
+              {copy.reject}
             </Button>
           </div>
         ) : null}
@@ -257,7 +261,7 @@ function TaskCard({
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
           >
-            {open ? "Hide output" : `View output (${sections.length} sections)`}
+            {open ? copy.hideOutput : copy.viewOutput(sections.length)}
           </Button>
           {open ? (
             <div className="mt-3 space-y-4 rounded-xl border border-border/60 bg-surface p-4">

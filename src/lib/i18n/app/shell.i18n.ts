@@ -136,6 +136,16 @@ export const shellCopy = createDict({
       escalatedWaiting: "{count} conversation(s) escalated and waiting for a human.",
       noEscalations: "No escalations pending — the AI is handling every chat.",
     },
+    charts: {
+      revenue: "Revenue",
+      bookings: "Bookings",
+      leads: "Leads",
+      pilgrims: "Pilgrims",
+      conversion: "Conversion",
+      sent: "Sent",
+      pending: "Pending",
+      skipped: "Skipped",
+    },
   },
   bm: {
     shell: {
@@ -265,6 +275,16 @@ export const shellCopy = createDict({
       responseTimeHint: "Purata balasan pertama AI",
       escalatedWaiting: "{count} perbualan dinaikkan dan menunggu manusia.",
       noEscalations: "Tiada eskalasi tertunggak — AI sedang mengendalikan semua perbualan.",
+    },
+    charts: {
+      revenue: "Hasil",
+      bookings: "Tempahan",
+      leads: "Leads",
+      pilgrims: "Jemaah",
+      conversion: "Penukaran",
+      sent: "Dihantar",
+      pending: "Tertunggu",
+      skipped: "Dilangkau",
     },
   },
 });

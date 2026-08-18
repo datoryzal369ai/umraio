@@ -16,6 +16,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { myr } from "@/lib/dashboard";
+import { useCopy } from "@/lib/i18n/dict";
+import { shellCopy } from "@/lib/i18n/app/shell.i18n";
 import {
   RANGES,
   fetchAnalytics,
@@ -73,6 +75,7 @@ function Panel({
 }
 
 function AnalyticsPage() {
+  const t = useCopy(shellCopy).analytics;
   const [range, setRange] = useState<string>("180");
   const days = Number(range);
   const { data, isLoading } = useQuery({
@@ -83,13 +86,13 @@ function AnalyticsPage() {
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6">
       <PageHeader
-        eyebrow="Insights"
-        title="AI Analytics"
-        description="How your Autonomous AI Business Executive turns Umrah enquiries into confirmed pilgrims."
+        eyebrow={t.insights}
+        title={t.title}
+        description={t.description}
         actions={
           <div
             role="group"
-            aria-label="Date range"
+            aria-label={t.dateRange}
             className="flex flex-wrap gap-1.5 rounded-xl border border-border bg-surface p-1"
           >
             {RANGES.map((option) => (
@@ -107,12 +110,20 @@ function AnalyticsPage() {
         }
       />
 
-      {isLoading || !data ? <AnalyticsSkeleton /> : <AnalyticsBody data={data} days={days} />}
+      {isLoading || !data ? <AnalyticsSkeleton /> : <AnalyticsBody data={data} days={days} t={t} />}
     </div>
   );
 }
 
-function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
+function AnalyticsBody({
+  data,
+  days,
+  t,
+}: {
+  data: AnalyticsData;
+  days: number;
+  t: ReturnType<typeof useCopy<typeof shellCopy.en>>["analytics"];
+}) {
   const stats = summary(data);
   const funnel = funnelSeries(data);
   const sources = sourceSeries(data);
@@ -125,46 +136,48 @@ function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard
           icon={Percent}
-          label="Conversion rate"
+          label={t.kpi.conversionRate}
           value={`${stats.conversion.toFixed(1)}%`}
-          hint={`${stats.booked} booked of ${stats.totalLeads} leads`}
+          hint={t.kpi.bookedOfLeads
+            .replace("{booked}", String(stats.booked))
+            .replace("{total}", String(stats.totalLeads))}
         />
         <KpiCard
           icon={Wallet}
-          label="Revenue"
+          label={t.kpi.revenue}
           value={myr(stats.revenue)}
-          hint={`Avg deal ${myr(Math.round(stats.avgDeal))}`}
+          hint={t.kpi.avgDeal.replace("{amount}", myr(Math.round(stats.avgDeal)))}
         />
         <KpiCard
           icon={Bot}
-          label="AI handled"
+          label={t.kpi.aiHandled}
           value={`${Math.round(stats.aiShare)}%`}
-          hint={`${stats.aiMessages} AI replies sent`}
+          hint={t.kpi.aiRepliesSent.replace("{count}", String(stats.aiMessages))}
         />
         <KpiCard
           icon={BadgeCheck}
-          label="Follow-up completion"
+          label={t.kpi.followUpCompletion}
           value={`${Math.round(stats.followupRate)}%`}
-          hint={`${stats.followupsSent} sent`}
+          hint={t.kpi.sent.replace("{count}", String(stats.followupsSent))}
         />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel
           className="lg:col-span-2"
-          title="Sales performance"
-          description="Revenue against lead-to-booking conversion per month."
+          title={t.salesPerformance}
+          description={t.salesPerformanceDescription}
         >
           <RevenueConversionChart data={trend} />
         </Panel>
-        <Panel title="Lead source" description="Where your enquiries come from.">
+        <Panel title={t.leadSource} description={t.leadSourceDescription}>
           <LeadSourceChart data={sources} />
           <ul className="mt-3 space-y-1.5">
             {sources.slice(0, 5).map((source) => (
               <li key={source.source} className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">{source.source}</span>
                 <span className="font-semibold">
-                  {source.leads} · {source.rate}% booked
+                  {source.leads} · {source.rate}% {t.booked}
                 </span>
               </li>
             ))}
@@ -173,16 +186,16 @@ function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Conversion funnel" description="Leads reaching each pipeline stage.">
+        <Panel title={t.conversionFunnel} description={t.conversionFunnelDescription}>
           <ConversionFunnelChart data={funnel} />
         </Panel>
-        <Panel title="Booking trend" description="Confirmed bookings and pilgrims per month.">
+        <Panel title={t.bookingTrend} description={t.bookingTrendDescription}>
           <BookingTrendChart data={trend} />
         </Panel>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Top packages" description="Best performing packages by revenue.">
+        <Panel title={t.topPackages} description={t.topPackagesDescription}>
           {packages.length ? (
             <>
               <TopPackagesChart data={packages} />
@@ -191,23 +204,23 @@ function AnalyticsBody({ data, days }: { data: AnalyticsData; days: number }) {
                   <li key={pkg.name} className="flex items-center justify-between gap-3 text-xs">
                     <span className="truncate text-muted-foreground">{pkg.name}</span>
                     <span className="shrink-0 font-semibold">
-                      {pkg.bookings} bookings · {myr(pkg.revenue)}
+                      {t.bookingsRevenue
+                        .replace("{bookings}", String(pkg.bookings))
+                        .replace("{revenue}", myr(pkg.revenue))}
                     </span>
                   </li>
                 ))}
               </ul>
             </>
           ) : (
-            <p className="py-16 text-center text-sm text-muted-foreground">
-              No bookings in this period yet.
-            </p>
+            <p className="py-16 text-center text-sm text-muted-foreground">{t.noBookings}</p>
           )}
         </Panel>
-        <Panel title="Follow-up performance" description="Sent, pending and skipped AI follow-ups.">
+        <Panel title={t.followUpPerformance} description={t.followUpPerformanceDescription}>
           <FollowupPerformanceChart data={followups} />
           <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
             <Flame className="size-3.5 text-primary" />
-            {stats.hotLeads} hot leads currently need attention
+            {t.hotLeadsAttention.replace("{count}", String(stats.hotLeads))}
             <TrendingUp className="ml-auto size-3.5 text-primary" />
           </div>
         </Panel>
