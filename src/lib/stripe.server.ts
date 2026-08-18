@@ -77,7 +77,11 @@ export async function stripeFetch<T = unknown>(
     body = toFormBody(init.body).toString();
   }
 
-  const response = await fetch(`${STRIPE_API}${path}`, { method, headers, body });
+  const response = await fetch(`${STRIPE_API}${path}`, {
+    method,
+    headers,
+    ...(body === undefined ? {} : { body }),
+  });
   const text = await response.text();
 
   if (!response.ok) {
