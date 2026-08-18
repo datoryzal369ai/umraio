@@ -63,7 +63,7 @@ export type ConfidenceRead = {
 /* ------------------------------------------------------------------ */
 
 const CAPABILITY_ASK =
-  /\b(boleh(\s+(tak|ke|x))?\??|boleh\s+bantu|boleh\s+tolong|can\s+(you|u)\s+(help|do)|can\s+it|is\s+it\s+possible|macam\s+mana\s+nak|camne\s+nak|how\s+(do|can)\s+i|how\s+to)\b/i;
+  /(?<!\b(?:tak|tidak|x|xleh)\s)\b(boleh(\s+(tak|ke|x))?\??|boleh\s+bantu|boleh\s+tolong|can\s+(you|u)\s+(help|do)|can\s+it|is\s+it\s+possible|macam\s+mana\s+nak|camne\s+nak|how\s+(do|can)\s+i|how\s+to)\b/i;
 
 const MOMENTUM_ASK =
   /\b(nak\s+mula|nak\s+start|macam\s+mana\s+nak\s+mula|how\s+do\s+we\s+start|where\s+do\s+we\s+start|let'?s\s+start|ok\s+lah?\s+mula)\b/i;
@@ -82,12 +82,12 @@ const TARGET_PATTERNS: Array<{ re: RegExp; unit: CustomerTarget["unit"] }> = [
 ];
 
 const TARGET_FRAMING =
-  /\b(nak|mahu|target|sasaran|sekurang[- ]?kurang(nya|)|at\s+least|want\s+to\s+close|nak\s+close|minimum|aim)\b/i;
+  /\b(nak|mahu|target|sasaran|sekurang[-\s]?(kurang(nya)?|2\s*nya|2)|at\s+least|want\s+to\s+close|nak\s+close|minimum|aim)\b/i;
 
 /** A number the customer frames as something they want to achieve. */
 export function detectCustomerTarget(text: string | null | undefined): CustomerTarget | null {
   if (!text) return null;
-  const masked = maskNegatedSpans(normalizeMessage(text));
+  const masked = normalizeMessage(text);
   if (!TARGET_FRAMING.test(masked)) return null;
   for (const p of TARGET_PATTERNS) {
     const m = p.re.exec(masked);
@@ -101,17 +101,17 @@ export function detectCustomerTarget(text: string | null | undefined): CustomerT
 
 export function detectCapabilityAsk(text: string | null | undefined): boolean {
   if (!text) return false;
-  return CAPABILITY_ASK.test(maskNegatedSpans(normalizeMessage(text)));
+  return CAPABILITY_ASK.test(normalizeMessage(text));
 }
 
 export function detectMomentumRequest(text: string | null | undefined): boolean {
   if (!text) return false;
-  return MOMENTUM_ASK.test(maskNegatedSpans(normalizeMessage(text)));
+  return MOMENTUM_ASK.test(normalizeMessage(text));
 }
 
 export function detectSmallVolumeFraming(text: string | null | undefined): boolean {
   if (!text) return false;
-  return SMALL_VOLUME.test(maskNegatedSpans(normalizeMessage(text)));
+  return SMALL_VOLUME.test(normalizeMessage(text));
 }
 
 export function detectPositiveProgress(text: string | null | undefined): boolean {
