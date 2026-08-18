@@ -24,6 +24,11 @@ import {
   buildMeetExecutiveBrief,
   deriveMeetEvents,
 } from "@/lib/meet/b2b-executive.core";
+import {
+  analyzeConversion,
+  buildConversionBrief,
+  deriveConversionEvents,
+} from "@/lib/meet/b2b-conversion.core";
 
 type Intent = "trial" | "demo" | "human";
 
