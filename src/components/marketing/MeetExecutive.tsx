@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
 
+import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +13,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CAPABILITIES,
   EXECUTION_FLOW,
   OPENING_MESSAGE,
+  OPENING_MESSAGE_MS,
+  type MeetLanguagePreference,
   type DemoMessage,
 } from "@/lib/meet-executive.core";
 import {
@@ -45,7 +55,14 @@ const GAP_STATUS_LABEL = {
   NOT_YET_ESTABLISHED: "Not yet established",
 } as const;
 
+const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
+  auto: "Auto / Natural",
+  ms: "Bahasa Melayu",
+  en: "English",
+};
+
 export function MeetExecutive() {
+  const [language, setLanguage] = useState<MeetLanguagePreference>("auto");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { role: "executive", content: OPENING_MESSAGE },
   ]);
@@ -61,6 +78,17 @@ export function MeetExecutive() {
   const recommended = CAPABILITIES.filter(
     (c) => c.status === "active" && intel.recommendedCapabilities.includes(c.key),
   );
+
+  /** Language changes communication only — conversation state is never reset. */
+  function changeLanguage(next: MeetLanguagePreference) {
+    setLanguage(next);
+    setMessages((prev) =>
+      prev.length === 1 && prev[0]?.role === "executive"
+        ? [{ role: "executive", content: next === "ms" ? OPENING_MESSAGE_MS : OPENING_MESSAGE }]
+        : prev,
+    );
+  }
+
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
@@ -78,7 +106,7 @@ export function MeetExecutive() {
       const res = await fetch("/api/public/meet-executive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next.slice(-20) }),
+        body: JSON.stringify({ language, messages: next.slice(-20) }),
       });
       const data = (await res.json()) as { reply?: string; error?: string };
       if (!res.ok || !data.reply) {
@@ -96,15 +124,39 @@ export function MeetExecutive() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <section className="panel flex min-w-0 flex-col p-4 sm:p-6" aria-label="Conversation">
-        <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span aria-hidden className="grid size-8 place-items-center rounded-full bg-primary/15">
-            <Sparkles className="size-4 text-primary" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">Meet Your UMRAIO Executive™</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Demonstration mode · AI, not a human
+        <div className="flex items-center gap-3 border-b border-border/60 pb-3">
+          <img
+            src={raioAsset.url}
+            alt="RAIŌ"
+            aria-hidden
+            className="size-9 shrink-0 rounded-full bg-surface object-cover object-top ring-1 ring-border/70"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">RAIŌ</p>
+            <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Autonomous AI Business Executive™
             </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Label htmlFor="meet-language" className="hidden text-[11px] text-muted-foreground sm:block">
+              Language
+            </Label>
+            <Select value={language} onValueChange={(v) => changeLanguage(v as MeetLanguagePreference)}>
+              <SelectTrigger
+                id="meet-language"
+                aria-label="Conversation language"
+                className="h-9 w-[132px] rounded-full text-xs"
+              >
+                <SelectValue placeholder={LANGUAGE_LABEL.auto} />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(LANGUAGE_LABEL) as MeetLanguagePreference[]).map((key) => (
+                  <SelectItem key={key} value={key} className="text-xs">
+                    {LANGUAGE_LABEL[key]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -112,7 +164,8 @@ export function MeetExecutive() {
           ref={logRef}
           role="log"
           aria-live="polite"
-          aria-label="Conversation with the AI Business Executive"
+          aria-label="Conversation with RAIŌ, UMRAIO's Autonomous AI Business Executive"
+
           className="mt-4 flex max-h-[52vh] min-h-[280px] flex-col gap-3 overflow-y-auto pr-1"
         >
           {messages.map((m, i) => (
@@ -124,7 +177,7 @@ export function MeetExecutive() {
                   : "mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-border/60 bg-surface/60 px-4 py-2.5 text-sm leading-relaxed"
               }
             >
-              <span className="sr-only">{m.role === "visitor" ? "You: " : "Executive: "}</span>
+              <span className="sr-only">{m.role === "visitor" ? "You: " : "RAIŌ: "}</span>
               {m.content.split("\n").map((line, li) => (
                 <p key={li} className={li ? "mt-2" : undefined}>
                   {line}
@@ -154,7 +207,7 @@ export function MeetExecutive() {
         >
           <div className="min-w-0 flex-1">
             <Label htmlFor="meet-input" className="sr-only">
-              Tell the AI Business Executive how your agency works
+              Tell RAIŌ how your agency works
             </Label>
             <Textarea
               id="meet-input"
@@ -168,7 +221,8 @@ export function MeetExecutive() {
               }}
               rows={2}
               maxLength={1500}
-              placeholder="Tell it how your agency works…"
+              placeholder="Tell RAIŌ how your agency works…"
+
               className="min-h-11 resize-none"
             />
           </div>

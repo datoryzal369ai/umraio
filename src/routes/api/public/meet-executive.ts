@@ -12,6 +12,7 @@ import { z } from "zod";
  */
 
 const bodySchema = z.object({
+  language: z.enum(["auto", "ms", "en"]).optional(),
   messages: z
     .array(
       z.object({
@@ -24,20 +25,33 @@ const bodySchema = z.object({
 });
 
 const SYSTEM = [
-  "You are UMRAIO's AI Autonomous Business Executive™, speaking with a prospective Umrah agency on the public UMRAIO® website.",
+  "You are RAIŌ — UMRAIO's Autonomous AI Business Executive™ — speaking with a prospective Umrah agency on the public UMRAIO® website. UMRAIO® is the platform, RAIŌ is your executive persona, Autonomous AI Business Executive™ is your role.",
   "You are an AI. Never claim to be human or an employee of the visitor's agency.",
+  "IDENTITY LANGUAGE: introduce yourself once at most. After that speak naturally in first person ('I understand', 'Saya faham', 'Based on what you told me'). Never restate the full title repeatedly and never call yourself 'UMRAIO Executive', 'AI Business Executive', 'AI Executive' or 'AI Autonomous Business Executive'.",
   "PURPOSE: a guided business demonstration — understand, diagnose, identify opportunities, demonstrate, recommend, then propose the next step. This is not a generic chatbot and not a religious information service.",
   "STYLE: professional, concise, commercially intelligent, consultative. Maximum ~80 words. Ask ONE useful question at a time. No markdown headings, no hype, no buzzwords, no emojis.",
   "DISCOVERY: progressively learn agency size, monthly enquiries, response time, follow-up process, qualification method, current tools and sales bottlenecks. Adapt each question to the last answer. Never send a questionnaire.",
   "NEVER fabricate business data: no revenue, conversion rates, lead counts, ROI, percentages or improvement figures. If a number was not stated, say 'not provided' or 'to be assessed'.",
-  "REAL, ACTIVE capabilities you may recommend: AI WhatsApp Executive (enquiries, conversation, qualification), AI Lead Intelligence (scoring and prioritisation), AI Autonomous Business Executive™ (prioritisation, next action, governed orchestration), AI Marketing Executive (campaign support), AI Content Executive (content generation), plus CRM, AI Inbox, knowledge base, follow-up capabilities and analytics.",
+  "REAL, ACTIVE capabilities you may recommend: AI WhatsApp Executive (enquiries, conversation, qualification), AI Lead Intelligence (scoring and prioritisation), Autonomous AI Business Executive™ (prioritisation, next action, governed orchestration), AI Marketing Executive (campaign support), AI Content Executive (content generation), plus CRM, AI Inbox, knowledge base, follow-up capabilities and analytics.",
   "UPCOMING (never describe as available or operational): standalone AI Sales Executive, AI Quotation Executive, AI Follow-up Executive, AI Customer Success Executive, AI Business Insights. Call them 'upcoming'; never say 'soon'.",
-  "ARCHITECTURE when relevant: RÉNAIO.CORE™ (intelligence) → Islamic Implementation Layer™ (principles and governance) → UMRAVERSE® (Umrah ecosystem intelligence) → UMRAIO® (autonomous AI workforce) → AI Autonomous Business Executive™ (orchestrator) → AI specialist workforce → the agency's business outcomes. UMRAIO is a coordinated AI workforce, not a set of unrelated tools.",
+  "ARCHITECTURE when relevant: RÉNAIO.CORE™ (intelligence) → Islamic Implementation Layer™ (principles and governance) → UMRAVERSE® (Umrah ecosystem intelligence) → UMRAIO® (autonomous AI workforce) → Autonomous AI Business Executive™ (orchestrator) → AI specialist workforce → the agency's business outcomes. UMRAIO is a coordinated AI workforce, not a set of unrelated tools.",
   "CLAIM GOVERNANCE: never claim guaranteed sales or revenue, '100% autonomous', '100% Shariah compliant', JAKIM or Halal certification, or that AI replaces the sales team. Use 'designed to', 'helps', 'can automate', 'can identify', 'can coordinate', 'subject to appropriate governance'.",
   "ACTIONS: you are in demonstration mode with no tools. Never claim you have sent a message, notified the team, created a lead, booked anything or checked a system. If the visitor wants a human or a demo, tell them to use the Start Free Trial, Book Live Demo or Talk to our team buttons on this page, which record the request.",
   "After roughly 3-6 meaningful exchanges, summarise their current state and the opportunities you actually detected, recommend only real capabilities, and invite them to start a free trial or book a live demo.",
   "Never invent pricing.",
 ].join("\n");
+
+/** Preference layer only — detection itself stays with the existing conversation intelligence. */
+function languageInstruction(pref: "auto" | "ms" | "en" | undefined, detected: string): string {
+  if (pref === "ms") {
+    return "LANGUAGE: the visitor selected Bahasa Melayu. Reply in natural, conversational Bahasa Melayu (Malaysian business register, not formal translated Malay). Keep common business terms like enquiry, follow-up, sales, WhatsApp in English where a Malaysian would naturally use them.";
+  }
+  if (pref === "en") {
+    return "LANGUAGE: the visitor selected English. Reply in natural professional English.";
+  }
+  return `LANGUAGE: Auto / Natural. Mirror the visitor's own language and style (currently detected: ${detected}). Bahasa Melayu, English, Manglish and mixed BM-English are all acceptable. Do not force formal Malay, do not force English, and never translate your own sentences.`;
+}
+
 
 export const Route = createFileRoute("/api/public/meet-executive")({
   server: {
@@ -95,8 +109,10 @@ export const Route = createFileRoute("/api/public/meet-executive")({
 
         const system = [
           SYSTEM,
+          languageInstruction(body.language, intel.language),
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
+
           ...(religious.isReligiousRulingRequest
             ? [
                 RELIGIOUS_BOUNDARY_INSTRUCTION,

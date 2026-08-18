@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
+import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MeetExecutive } from "@/components/marketing/MeetExecutive";
 import { Button } from "@/components/ui/button";
@@ -8,31 +9,32 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/meet")({
   head: () => ({
     meta: [
-      { title: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { title: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         name: "description",
         content:
-          "Tell UMRAIO about your Umrah agency and let its AI Autonomous Business Executive™ identify where automation can improve your sales workflow — before you subscribe.",
+          "Tell RAIŌ how your Umrah agency works. UMRAIO's Autonomous AI Business Executive™ will identify where automation can improve your sales workflow — before you subscribe.",
       },
-      { property: "og:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { property: "og:title", content: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         property: "og:description",
         content:
-          "See how an autonomous AI business executive can work inside your Umrah agency — a guided business diagnosis, not a generic chatbot.",
+          "Meet RAIŌ — UMRAIO's Autonomous AI Business Executive™ for Umrah agencies. A guided business diagnosis, not a generic chatbot.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://umraio.com/meet" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { name: "twitter:title", content: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         name: "twitter:description",
         content:
-          "A guided business demonstration with UMRAIO's AI Autonomous Business Executive™ for Umrah agencies.",
+          "A guided business demonstration with RAIŌ — UMRAIO's Autonomous AI Business Executive™ for Umrah agencies.",
       },
       { name: "robots", content: "index, follow" },
     ],
     links: [{ rel: "canonical", href: "https://umraio.com/meet" }],
   }),
+
   component: MeetPage,
 });
 
@@ -53,22 +55,51 @@ function MeetPage() {
         </header>
 
         <main className="mx-auto w-full max-w-7xl px-5 pb-20 sm:px-10">
-          <section className="mx-auto max-w-3xl text-center">
-            <h1 className="text-balance text-2xl font-extrabold leading-tight tracking-tight sm:text-4xl">
-              Meet Your <span className="text-gradient-brand">UMRAIO Executive</span>
-              <sup className="ml-0.5 align-super text-[0.5em] leading-none">™</sup>
-            </h1>
-            <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground sm:text-base">
-              See how an autonomous AI business executive can work inside your Umrah agency. Tell
-              UMRAIO how your agency operates, and its AI Business Executive will identify where
-              automation can improve your sales workflow.
-            </p>
+          <section className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.85fr)] lg:gap-10">
+            <div className="text-center lg:col-start-1 lg:row-start-1 lg:text-left">
+              <p className="text-xs font-medium uppercase tracking-[0.28em] text-primary">
+                Meet your AI Executive
+              </p>
+              <h1 className="mt-3 text-balance text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+                Autonomous AI
+                <br />
+                <span className="text-gradient-brand">Business Executive</span>
+                <sup className="ml-0.5 align-super text-[0.4em] leading-none">™</sup>
+              </h1>
+            </div>
+
+            <div className="flex flex-col items-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-center">
+              <img
+                src={raioAsset.url}
+                alt="RAIŌ — UMRAIO's Autonomous AI Business Executive™"
+                className="w-full max-w-[260px] object-contain drop-shadow-[0_24px_60px_hsl(var(--primary)/0.25)] sm:max-w-[340px]"
+                width={1159}
+                height={1332}
+              />
+              <p className="mt-2 font-display text-lg font-bold tracking-[0.2em]">RAIŌ</p>
+              <p className="text-center text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                The Autonomous AI Business Executive™
+              </p>
+            </div>
+
+            <div className="text-center lg:col-start-1 lg:row-start-2 lg:text-left">
+              <p className="text-balance text-base font-light text-muted-foreground sm:text-lg">
+                Your intelligent AI executive for modern Umrah agencies.
+              </p>
+              <p className="mt-4 text-balance text-sm font-light leading-relaxed text-muted-foreground">
+                Tell RAIŌ how your agency works. RAIŌ will understand your workflow, identify
+                opportunities and show you where UMRAIO can help your agency sell, follow up and
+                grow.
+              </p>
+            </div>
           </section>
+
 
           <div className="mt-10">
             <MeetExecutive />
           </div>
         </main>
+
       </div>
     </div>
   );
