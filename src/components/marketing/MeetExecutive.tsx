@@ -349,10 +349,13 @@ export function MeetExecutive() {
         intent={intent}
         onClose={() => setIntent(null)}
         snapshot={{
-          state: snapshot.state,
-          opportunities: snapshot.gaps
-            .filter((g) => g.status === "opportunity")
-            .map((g) => g.label),
+          state: intel.snapshot,
+          opportunities: intel.detectedGaps.map((g) => g.label),
+          stage: intel.stage,
+          next_best_action: intel.nextBestAction,
+          language: intel.language,
+          events: deriveMeetEvents(intel),
+          executive_brief: buildMeetExecutiveBrief(intel),
         }}
       />
     </div>
