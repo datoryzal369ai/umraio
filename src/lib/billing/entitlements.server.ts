@@ -16,7 +16,20 @@ type Db = SupabaseClient<any, any, any>;
  *   from `agency_settings.plan`, which any authenticated user can edit today.
  */
 
-export type PlanCode = "founding" | "trial" | "growth" | "scale";
+/**
+ * Legacy codes (founding/trial/growth/scale) remain resolvable for existing
+ * tenants. Canonical commercial codes (basic/pro/premium/enterprise) are added
+ * additively — see src/lib/billing/pricing.core.ts for the pricing truth.
+ */
+export type PlanCode =
+  | "founding"
+  | "trial"
+  | "growth"
+  | "scale"
+  | "basic"
+  | "pro"
+  | "premium"
+  | "enterprise";
 
 export type AutonomyEntitlement = "off" | "assisted" | "autonomous";
 
