@@ -106,7 +106,7 @@ export function MeetExecutive() {
       const res = await fetch("/api/public/meet-executive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next.slice(-20) }),
+        body: JSON.stringify({ language, messages: next.slice(-20) }),
       });
       const data = (await res.json()) as { reply?: string; error?: string };
       if (!res.ok || !data.reply) {
@@ -124,15 +124,39 @@ export function MeetExecutive() {
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
       <section className="panel flex min-w-0 flex-col p-4 sm:p-6" aria-label="Conversation">
-        <div className="flex items-center gap-2 border-b border-border/60 pb-3">
-          <span aria-hidden className="grid size-8 place-items-center rounded-full bg-primary/15">
-            <Sparkles className="size-4 text-primary" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">Meet Your UMRAIO Executive™</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Demonstration mode · AI, not a human
+        <div className="flex items-center gap-3 border-b border-border/60 pb-3">
+          <img
+            src={raioAsset.url}
+            alt="RAIŌ"
+            aria-hidden
+            className="size-9 shrink-0 rounded-full bg-surface object-cover object-top ring-1 ring-border/70"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">RAIŌ</p>
+            <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+              Autonomous AI Business Executive™ · AI, not a human
             </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Label htmlFor="meet-language" className="hidden text-[11px] text-muted-foreground sm:block">
+              Language
+            </Label>
+            <Select value={language} onValueChange={(v) => changeLanguage(v as MeetLanguagePreference)}>
+              <SelectTrigger
+                id="meet-language"
+                aria-label="Conversation language"
+                className="h-9 w-[132px] rounded-full text-xs"
+              >
+                <SelectValue placeholder={LANGUAGE_LABEL.auto} />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(LANGUAGE_LABEL) as MeetLanguagePreference[]).map((key) => (
+                  <SelectItem key={key} value={key} className="text-xs">
+                    {LANGUAGE_LABEL[key]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -140,7 +164,8 @@ export function MeetExecutive() {
           ref={logRef}
           role="log"
           aria-live="polite"
-          aria-label="Conversation with the AI Business Executive"
+          aria-label="Conversation with RAIŌ, UMRAIO's Autonomous AI Business Executive"
+
           className="mt-4 flex max-h-[52vh] min-h-[280px] flex-col gap-3 overflow-y-auto pr-1"
         >
           {messages.map((m, i) => (
