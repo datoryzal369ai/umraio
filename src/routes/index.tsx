@@ -22,62 +22,8 @@ import { BrandLogo } from "@/components/brand/BrandLogo";
 import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-
-const faqs = [
-  {
-    q: "What is UMRAIO®?",
-    a: "UMRAIO® is an Autonomous AI Business Executive built for Umrah agencies. It answers enquiries, qualifies prospects, recommends packages and follows up so your team can focus on closing bookings.",
-  },
-  {
-    q: "Is UMRAIO® a CRM or a chatbot?",
-    a: "Neither. UMRAIO® is positioned as an Autonomous AI Business Executive purpose-built for Umrah agencies. It includes a pipeline and messaging, but its role is to execute business workflows — enquiry handling, qualification, package recommendation and follow-up — rather than to act as a generic chatbot or a conventional CRM.",
-  },
-  {
-    q: "What does UMRAIO® do for Umrah agencies?",
-    a: "UMRAIO® handles WhatsApp enquiries, qualifies prospects, recommends suitable Umrah packages, follows up with leads and automates repetitive business workflows for agency teams.",
-  },
-  {
-    q: "Who is UMRAIO® for?",
-    a: "Licensed Umrah and travel agencies — primarily in Malaysia — that handle enquiries over WhatsApp and want to convert more of them into bookings.",
-  },
-
-
-  {
-    q: "How does UMRAIO® work with WhatsApp?",
-    a: "You connect your WhatsApp Business number in settings. UMRAIO® then replies to incoming messages in Bahasa Malaysia or English, using your agency's packages and knowledge base.",
-  },
-  {
-    q: "Can UMRAIO® capture and follow up with leads?",
-    a: "Yes. Every conversation is captured as a lead with budget, pax, travel window and intent, then scored and placed in your CRM pipeline with scheduled follow-ups.",
-  },
-  {
-    q: "What is the Islamic Implementation Layer™?",
-    a: "It is an architectural layer designed to connect relevant Islamic principles, halal baselines, ethical business practices and governance requirements with AI-assisted workflows and operational execution.",
-  },
-  {
-    q: "Is UMRAIO® a Shariah authority?",
-    a: "No. UMRAIO® is an AI business intelligence and automation platform. It does not issue fatwa or replace qualified Islamic scholars. Relevant Shariah matters remain subject to appropriate human expertise and governance.",
-  },
-  {
-    q: "Is UMRAIO® Halal or JAKIM certified?",
-    a: "UMRAIO® should not be represented as formally Halal or JAKIM certified unless and until the appropriate authority grants such recognition. The platform is designed with Shariah-aware and halal-oriented implementation principles for relevant Umrah workflows.",
-  },
-  {
-    q: "Does UMRAIO® replace human sales consultants?",
-    a: "No. UMRAIO® automates repetitive business workflows and assists sales teams while preserving human judgement, approval and relationship management.",
-  },
-  {
-    q: "What is RÉNAIO.CORE™?",
-    a: "RÉNAIO.CORE™ (RENAIO.CORE™) is the Autonomous Intelligence Core powering the Digital Renaissance ecosystem and its AI-native platforms. UMRAIO® is the Autonomous AI Business Executive for Umrah agencies built within that intelligence architecture — it is a separate product, not the core itself.",
-  },
-  {
-    q: "What powers UMRAIO®?",
-    a: "RÉNAIO.CORE™ provides the autonomous intelligence layer that powers UMRAIO®, the Islamic Implementation Layer™ adds principles and governance context, and UMRAVERSE® provides the Umrah ecosystem, knowledge, business and customer context. UMRAIO® is the autonomous AI business executive built for modern Umrah agencies.",
-  },
-
-];
-
-
+import { useLocale } from "@/lib/i18n/locale";
+import { SCHEMA_FAQS, siteCopy } from "@/lib/i18n/site.i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -130,7 +76,7 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "FAQPage",
-          mainEntity: faqs.map((f) => ({
+          mainEntity: SCHEMA_FAQS.map((f) => ({
             "@type": "Question",
             name: f.q,
             acceptedAnswer: { "@type": "Answer", text: f.a },
@@ -145,6 +91,8 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user, loading } = useAuth();
+  const { locale } = useLocale();
+  const t = siteCopy(locale);
 
   return (
     <div className="relative min-h-dvh overflow-hidden bg-aurora">
@@ -158,7 +106,7 @@ function Index() {
             <LanguageSelector />
             {loading ? null : user ? (
               <Button asChild size="sm" className="rounded-full">
-                <Link to="/dashboard">Dashboard</Link>
+                <Link to="/dashboard">{t.nav.dashboard}</Link>
               </Button>
             ) : (
               <>
@@ -169,12 +117,12 @@ function Index() {
                   className="hidden rounded-full sm:inline-flex"
                 >
                   <Link to="/auth" search={{ mode: "login", redirect: undefined }}>
-                    Sign in
+                    {t.nav.signIn}
                   </Link>
                 </Button>
                 <Button asChild size="sm" className="rounded-full shadow-elevated">
                   <Link to="/auth" search={{ mode: "register", redirect: undefined }}>
-                    Start Free Trial
+                    {t.hero.ctaTrial}
                   </Link>
                 </Button>
               </>
@@ -187,15 +135,13 @@ function Index() {
             <span className="animate-rise inline-flex items-center gap-2 rounded-full border border-primary/30 bg-surface/60 px-4 py-1.5 text-[10px] font-light uppercase tracking-[0.28em] text-muted-foreground shadow-[0_0_24px_-12px_var(--color-primary)] backdrop-blur sm:text-[11px]">
               <Sparkles className="size-3.5 text-primary" />
               <span className="whitespace-nowrap">
-                Powered by{" "}
+                {t.hero.poweredBy}{" "}
                 <span className="font-medium text-primary">
                   RÉNAIO.CORE
                   <sup className="ml-0.5 align-super text-[0.62em] leading-none tracking-normal">™</sup>
                 </span>
               </span>
             </span>
-
-
 
             <div
               className="animate-rise relative mt-12 w-full max-w-3xl"
@@ -221,23 +167,21 @@ function Index() {
               className="animate-rise mt-4 text-[10px] font-light uppercase tracking-[0.42em] text-primary/90 sm:text-xs"
               style={{ animationDelay: "120ms" }}
             >
-              Autonomous AI Business Executive
+              {t.hero.kicker}
             </p>
 
             <h1
               className="animate-rise mt-12 max-w-4xl text-balance text-3xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl lg:text-6xl"
               style={{ animationDelay: "180ms" }}
             >
-              Your Autonomous AI Business Executive for{" "}
-              <span className="text-gradient-brand">Modern Umrah Agencies</span>
+              {t.hero.headingLead}{" "}
+              <span className="text-gradient-brand">{t.hero.headingAccent}</span>
             </h1>
             <p
               className="animate-rise mt-6 max-w-xl text-balance text-base font-light leading-relaxed text-muted-foreground sm:max-w-2xl sm:text-lg"
               style={{ animationDelay: "240ms" }}
             >
-              UMRAIO® combines autonomous AI execution, Umrah domain intelligence, customer context
-              and governed workflows — with an Islamic Implementation Layer™ designed for the
-              specific requirements of the Umrah ecosystem.
+              {t.hero.subheading}
             </p>
 
             <div
@@ -250,7 +194,7 @@ function Index() {
                 className="btn-premium h-13 w-full rounded-2xl px-8 text-base font-semibold text-background hover:bg-transparent sm:w-auto"
               >
                 <Link to="/auth" search={{ mode: "register", redirect: undefined }}>
-                  Start Free Trial
+                  {t.hero.ctaTrial}
                   <ArrowRight className="umr-arrow ml-1 size-4" />
                 </Link>
               </Button>
@@ -262,7 +206,7 @@ function Index() {
               >
                 <Link to="/meet">
                   <Sparkles className="mr-1 size-4 text-primary" />
-                  Meet Your AI Business Executive™
+                  {t.hero.ctaMeet}
                 </Link>
               </Button>
               <Button
@@ -273,7 +217,7 @@ function Index() {
               >
                 <Link to="/meet" hash="book-demo">
                   <PlayCircle className="mr-1 size-4 text-primary" />
-                  Book Live Demo
+                  {t.hero.ctaDemo}
                 </Link>
               </Button>
             </div>
@@ -291,8 +235,6 @@ function Index() {
           <DifferentiationLadder />
           <EcosystemRelationship />
 
-
-
           <PricingSection />
 
           <section className="mt-24" aria-labelledby="faq-heading">
@@ -300,10 +242,10 @@ function Index() {
               id="faq-heading"
               className="text-center text-2xl font-bold tracking-tight sm:text-3xl"
             >
-              Frequently Asked Questions
+              {t.faqHeading}
             </h2>
             <div className="mx-auto mt-10 grid max-w-3xl gap-4">
-              {faqs.map((item) => (
+              {t.faqs.map((item) => (
                 <article key={item.q} className="panel p-6 text-left">
                   <h3 className="text-base font-semibold tracking-tight">{item.q}</h3>
                   <p className="mt-2.5 text-sm font-light leading-relaxed text-muted-foreground">
@@ -315,18 +257,10 @@ function Index() {
           </section>
 
           <ClosingStatement />
-
-
-
         </main>
 
         <BrandArchitecture />
-
-
       </div>
-
     </div>
   );
 }
-
-
