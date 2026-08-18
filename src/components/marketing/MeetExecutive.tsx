@@ -183,9 +183,9 @@ export function MeetExecutive() {
           </p>
 
           <dl className="mt-4 grid gap-2">
-            {snapshot.state.map((row) => (
+            {intel.snapshot.map((row) => (
               <div
-                key={row.label}
+                key={row.key}
                 className="flex items-center justify-between gap-3 rounded-lg border border-border/50 px-3 py-2"
               >
                 <dt className="text-xs text-muted-foreground">{row.label}</dt>
@@ -197,37 +197,55 @@ export function MeetExecutive() {
           <h3 className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Opportunities detected
           </h3>
-          <ul className="mt-2 grid gap-2">
-            {snapshot.gaps.map((gap) => (
-              <li key={gap.key} className="rounded-lg border border-border/50 px-3 py-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium">{gap.label}</span>
-                  <span
-                    className={
-                      gap.status === "opportunity"
-                        ? "rounded-full border border-primary/40 px-2 py-0.5 text-[9px] uppercase tracking-wider text-primary"
-                        : "rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
-                    }
-                  >
-                    {gap.status === "opportunity"
-                      ? "Opportunity"
-                      : gap.status === "partial"
-                        ? "Partial"
-                        : "Insufficient data"}
-                  </span>
-                </div>
-                {gap.status === "insufficient" ? null : (
+          {visibleGaps.length ? (
+            <ul className="mt-2 grid gap-2">
+              {visibleGaps.map((gap) => (
+                <li key={gap.key} className="rounded-lg border border-border/50 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-medium">{gap.label}</span>
+                    <span
+                      className={
+                        gap.status === "DETECTED"
+                          ? "rounded-full border border-primary/40 px-2 py-0.5 text-[9px] uppercase tracking-wider text-primary"
+                          : "rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground"
+                      }
+                    >
+                      {GAP_STATUS_LABEL[gap.status]}
+                    </span>
+                  </div>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
                     {gap.detail}
                   </p>
-                )}
-              </li>
-            ))}
-          </ul>
+                  {gap.status === "DETECTED" && gap.consequence ? (
+                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                      {gap.consequence}
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Nothing established yet — tell the executive how your agency handles enquiries and this
+              will update live.
+            </p>
+          )}
 
-          {snapshot.headline ? (
+          {intel.diagnosis ? (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2.5">
+              <h3 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
+                Your UMRAIO business diagnosis™
+              </h3>
+              <p className="mt-1.5 text-xs leading-relaxed">
+                {intel.headline} {intel.diagnosis.commercialRelevance}
+              </p>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                {intel.diagnosis.nextStep}
+              </p>
+            </div>
+          ) : intel.headline ? (
             <p className="mt-4 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-xs leading-relaxed">
-              {snapshot.headline}
+              {intel.headline}
             </p>
           ) : null}
 
