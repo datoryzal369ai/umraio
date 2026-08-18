@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
+import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 import { MeetExecutive } from "@/components/marketing/MeetExecutive";
 import { Button } from "@/components/ui/button";
@@ -8,31 +9,32 @@ import { Button } from "@/components/ui/button";
 export const Route = createFileRoute("/meet")({
   head: () => ({
     meta: [
-      { title: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { title: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         name: "description",
         content:
-          "Tell UMRAIO about your Umrah agency and let its AI Autonomous Business Executive™ identify where automation can improve your sales workflow — before you subscribe.",
+          "Tell RAIŌ how your Umrah agency works. UMRAIO's Autonomous AI Business Executive™ will identify where automation can improve your sales workflow — before you subscribe.",
       },
-      { property: "og:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { property: "og:title", content: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         property: "og:description",
         content:
-          "See how an autonomous AI business executive can work inside your Umrah agency — a guided business diagnosis, not a generic chatbot.",
+          "Meet RAIŌ — UMRAIO's Autonomous AI Business Executive™ for Umrah agencies. A guided business diagnosis, not a generic chatbot.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://umraio.com/meet" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Meet Your UMRAIO Executive™ | UMRAIO®" },
+      { name: "twitter:title", content: "Meet Your Autonomous AI Business Executive™ | UMRAIO®" },
       {
         name: "twitter:description",
         content:
-          "A guided business demonstration with UMRAIO's AI Autonomous Business Executive™ for Umrah agencies.",
+          "A guided business demonstration with RAIŌ — UMRAIO's Autonomous AI Business Executive™ for Umrah agencies.",
       },
       { name: "robots", content: "index, follow" },
     ],
     links: [{ rel: "canonical", href: "https://umraio.com/meet" }],
   }),
+
   component: MeetPage,
 });
 
