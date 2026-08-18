@@ -134,7 +134,7 @@ export function MeetExecutive() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">RAIŌ</p>
             <p className="truncate text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-              Autonomous AI Business Executive™ · AI, not a human
+              Autonomous AI Business Executive™
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
