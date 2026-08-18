@@ -13,6 +13,8 @@
  * No model call, no database, no schema change, no UI change.
  */
 
+import { pricingFactSheet } from "@/lib/billing/pricing.core";
+
 import { maskNegatedSpans, normalizeMessage } from "@/lib/sales/hardening.core";
 import type { DemoMessage } from "@/lib/meet-executive.core";
 import type { MeetIntelligence } from "./b2b-executive.core";
@@ -293,8 +295,6 @@ export function buildClosingRead(input: {
     reason,
   };
 }
-
-import { pricingFactSheet } from "@/lib/billing/pricing.core";
 
 /* ------------------------------------------------------------------ *
  * Prompt directive — context for the model, never text to echo.
