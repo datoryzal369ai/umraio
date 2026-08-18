@@ -41,6 +41,8 @@ export const Route = createFileRoute("/_authenticated/settings/subscription")({
 
 function SubscriptionPage() {
   const queryClient = useQueryClient();
+  const { locale } = useLocale();
+  const copy = PRICING_SECTION_COPY[locale];
   const { data: agency } = useQuery({ queryKey: ["agency"], queryFn: fetchAgency });
   const { data: settings, isLoading } = useQuery({
     queryKey: ["agency-settings", agency?.id],
