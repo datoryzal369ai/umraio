@@ -76,14 +76,17 @@ function SubscriptionPage() {
             <CreditCard className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Current plan</h2>
-            <p className="text-xs text-muted-foreground">Your active subscription and usage.</p>
+            <h2 className="font-display text-base font-semibold tracking-tight">Selected plan</h2>
+            <p className="text-xs text-muted-foreground">
+              Your selected plan and usage. Paid subscription activation is confirmed by the UMRAIO
+              team.
+            </p>
           </div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-border bg-surface p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Plan</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">Selected plan</p>
             <p className="mt-1 font-display text-lg font-bold">{current.name}</p>
             <Badge variant="secondary" className="mt-2 capitalize">
               {settings.plan_status}

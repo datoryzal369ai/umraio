@@ -5,6 +5,7 @@ import wordmarkAsset from "@/assets/umraio-wordmark-clear.png.asset.json";
 
 import { BrandArchitecture } from "@/components/brand/BrandArchitecture";
 import { AutomationShowcase } from "@/components/marketing/AutomationShowcase";
+import { PricingSection } from "@/components/marketing/PricingSection";
 import { WorkforceMetrics } from "@/components/marketing/WorkforceMetrics";
 import {
   BuiltForUmrah,
@@ -289,6 +290,8 @@ function Index() {
           <EcosystemRelationship />
 
 
+
+          <PricingSection />
 
           <section className="mt-24" aria-labelledby="faq-heading">
             <h2
