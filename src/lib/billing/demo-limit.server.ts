@@ -8,10 +8,15 @@ import { createHash } from "crypto";
  * so a single visitor can never generate unbounded AI cost.
  */
 
+/**
+ * STEP 3E.1 — the old 12/hour ceiling cut genuine prospects off mid-conversation
+ * (a real diagnosis runs well past 12 turns). Limits are raised to fit a full
+ * human conversation while still capping cost per visitor and per hour.
+ */
 export const DEMO_LIMITS = {
-  perIpPerHour: 12,
-  perIpPerDay: 40,
-  globalPerHour: 600,
+  perIpPerHour: 45,
+  perIpPerDay: 120,
+  globalPerHour: 900,
 } as const;
 
 export const DEMO_LIMIT_MESSAGE =
