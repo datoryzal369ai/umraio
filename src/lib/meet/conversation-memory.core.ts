@@ -126,7 +126,9 @@ export function buildCarryOver(input: {
     `Conversion state: ${conversion.state}; commercial intent: ${conversion.commercialIntent}.`,
   );
   if (conversion.valueBridge)
-    lines.push(`Value bridge already established around: ${conversion.valueBridge.gapLabel}.`);
+    lines.push(
+      `Value bridge already established around: ${conversion.valueBridge.businessGap}.`,
+    );
   if (intel.diagnosis)
     lines.push(`Diagnosis already given: ${intel.diagnosis.primaryOpportunity.label}.`);
 
