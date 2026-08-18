@@ -17,9 +17,13 @@ import {
   CAPABILITIES,
   EXECUTION_FLOW,
   OPENING_MESSAGE,
-  deriveSnapshot,
   type DemoMessage,
 } from "@/lib/meet-executive.core";
+import {
+  analyzeMeetConversation,
+  buildMeetExecutiveBrief,
+  deriveMeetEvents,
+} from "@/lib/meet/b2b-executive.core";
 
 type Intent = "trial" | "demo" | "human";
 
@@ -28,6 +32,13 @@ const INTENT_LABEL: Record<Intent, string> = {
   demo: "Book live demo",
   human: "Talk to our team",
 };
+
+const GAP_STATUS_LABEL = {
+  DETECTED: "Detected",
+  ASSESSING: "Assessing",
+  COVERED: "Covered",
+  NOT_YET_ESTABLISHED: "Not yet established",
+} as const;
 
 export function MeetExecutive() {
   const [messages, setMessages] = useState<DemoMessage[]>([
@@ -39,9 +50,10 @@ export function MeetExecutive() {
   const [intent, setIntent] = useState<Intent | null>(null);
   const logRef = useRef<HTMLDivElement>(null);
 
-  const snapshot = useMemo(() => deriveSnapshot(messages), [messages]);
+  const intel = useMemo(() => analyzeMeetConversation(messages), [messages]);
+  const visibleGaps = intel.gaps.filter((g) => g.status !== "NOT_YET_ESTABLISHED");
   const recommended = CAPABILITIES.filter(
-    (c) => c.status === "active" && snapshot.recommended.includes(c.key),
+    (c) => c.status === "active" && intel.recommendedCapabilities.includes(c.key),
   );
 
   useEffect(() => {
