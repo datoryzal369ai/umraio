@@ -305,7 +305,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       headingAccent: "Modern Umrah Agencies",
       subheading:
         "UMRAIO® combines autonomous AI execution, Umrah domain intelligence, customer context and governed workflows — with an Islamic Implementation Layer™ designed for the specific requirements of the Umrah ecosystem.",
-      ctaTrial: "Start Free Trial",
+      ctaTrial: "Choose a Plan",
       ctaMeet: "Meet Your AI Business Executive™",
       ctaDemo: "Book Live Demo",
     },
@@ -529,7 +529,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       upcoming: "Upcoming",
       active: "Active",
       convertHeading: "Ready to see UMRAIO working with your agency?",
-      ctaTrial: "Start Free Trial",
+      ctaTrial: "Choose a Plan",
       ctaDemo: "Book Live Demo",
       ctaHuman: "Talk to our team",
       dialog: {
@@ -567,7 +567,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       headingAccent: "Agensi Umrah Moden",
       subheading:
         "UMRAIO® menggabungkan pelaksanaan AI autonomi, kecerdasan domain Umrah, konteks pelanggan dan aliran kerja bertadbir urus — bersama Islamic Implementation Layer™ yang direka khusus untuk keperluan ekosistem Umrah.",
-      ctaTrial: "Mulakan Percubaan Percuma",
+      ctaTrial: "Daftar & Pilih Pelan",
       ctaMeet: "Jumpa AI Business Executive™",
       ctaDemo: "Tempah Demo Langsung",
     },
@@ -791,7 +791,7 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       upcoming: "Akan datang",
       active: "Aktif",
       convertHeading: "Bersedia untuk melihat UMRAIO bekerja dengan agensi anda?",
-      ctaTrial: "Mulakan Percubaan Percuma",
+      ctaTrial: "Daftar & Pilih Pelan",
       ctaDemo: "Tempah Demo Langsung",
       ctaHuman: "Hubungi pasukan kami",
       dialog: {

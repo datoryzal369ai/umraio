@@ -11,10 +11,10 @@
 
 export type CanonicalPlanId = "basic" | "pro" | "premium" | "enterprise";
 
-export type PlanCta = "start_free_trial" | "talk_to_team";
+export type PlanCta = "choose_plan" | "talk_to_team";
 
 export const PLAN_CTA_LABEL: Record<PlanCta, string> = {
-  start_free_trial: "Start Free Trial",
+  choose_plan: "Choose a plan",
   talk_to_team: "Talk to our team",
 };
 
@@ -61,7 +61,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     founding: false,
     billingInterval: "month",
     publicVisible: true,
-    cta: "start_free_trial",
+    cta: "choose_plan",
     description: "For small Umrah agencies starting with autonomous WhatsApp enquiry handling.",
     features: [
       "1 WhatsApp Number",
@@ -87,7 +87,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     founding: true,
     billingInterval: "month",
     publicVisible: true,
-    cta: "start_free_trial",
+    cta: "choose_plan",
     description: "For growing agencies that want governed autonomous execution and follow-ups.",
     features: [
       "2 WhatsApp Numbers",
@@ -115,7 +115,7 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     founding: false,
     billingInterval: "month",
     publicVisible: true,
-    cta: "start_free_trial",
+    cta: "choose_plan",
     description: "For established agencies running high enquiry volume across multiple numbers.",
     features: [
       "5 WhatsApp Numbers",
