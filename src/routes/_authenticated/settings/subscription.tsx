@@ -58,17 +58,52 @@ function SubscriptionPage() {
     enabled: Boolean(agency?.id),
   });
 
+  const { user } = useAuth();
+  const startCheckout = useServerFn(prepareCheckout);
+  const checkAvailability = useServerFn(getCheckoutAvailability);
+
+  const { data: availability } = useQuery({
+    queryKey: ["checkout-availability"],
+    queryFn: () => checkAvailability({}),
+    staleTime: 5 * 60 * 1000,
+  });
+  const checkoutAvailable = availability?.available === true;
+
   const choose = useMutation({
     mutationFn: async (plan: string) => {
       if (!settings) throw new Error(settingsAi.toasts.settingsNotLoaded);
       const target = publicPlans().find((item) => item.id === plan);
-      return updateSettings(settings.id, {
+
+      // The selection itself is only a preference — never proof of payment.
+      await updateSettings(settings.id, {
         plan,
         seats: target?.seats ?? settings.seats,
       });
+
+      // The server decides the price; the browser never sends one.
+      const prepared = await startCheckout({ data: { plan } });
+      if (prepared.status !== "ready") return prepared;
+
+      await initializePaddle();
+      window.Paddle.Checkout.open({
+        items: [{ priceId: prepared.paddlePriceId, quantity: 1 }],
+        customer: user?.email ? { email: user.email } : undefined,
+        customData: { agencyId: prepared.agencyId, userId: user?.id ?? "" },
+        settings: {
+          displayMode: "overlay",
+          successUrl: `${window.location.origin}/settings/subscription?checkout=success`,
+          allowLogout: false,
+          variant: "one-page",
+        },
+      });
+      return prepared;
     },
-    onSuccess: () => {
-      toast.success(copy.selectionRecorded);
+    onSuccess: (result) => {
+      if (result && result.status === "ready") {
+        toast.info(copy.openingCheckout);
+      } else {
+        toast.success(copy.activationRequested);
+      }
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -80,7 +115,9 @@ function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
+      <PaymentTestModeBanner />
       <UsagePanel />
+
 
       <section className="panel space-y-4 p-5">
 
