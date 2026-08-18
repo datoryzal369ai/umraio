@@ -11,7 +11,11 @@ import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { PaymentTestModeBanner } from "@/components/settings/PaymentTestModeBanner";
 import { UsagePanel } from "@/components/settings/UsagePanel";
 import { useAuth } from "@/hooks/useAuth";
-import { getCheckoutAvailability, prepareCheckout } from "@/lib/billing/checkout.functions";
+import {
+  getCheckoutAvailability,
+  openBillingPortal,
+  prepareCheckout,
+} from "@/lib/billing/checkout.functions";
 import { publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 import {
   PRICING_SECTION_COPY,
@@ -23,7 +27,6 @@ import {
 import { useCopy } from "@/lib/i18n/dict";
 import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
 import { useLocale } from "@/lib/i18n/locale";
-import { initializePaddle } from "@/lib/paddle";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
@@ -68,6 +71,15 @@ function SubscriptionPage() {
     staleTime: 5 * 60 * 1000,
   });
   const checkoutAvailable = availability?.available === true;
+  const manageBilling = useServerFn(openBillingPortal);
+  const portal = useMutation({
+    mutationFn: async () => manageBilling({}),
+    onSuccess: (result) => {
+      if ("url" in result) window.location.href = result.url;
+      else toast.error(copy.portalUnavailable);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   const choose = useMutation({
     mutationFn: async (plan: string) => {
@@ -80,22 +92,13 @@ function SubscriptionPage() {
         seats: target?.seats ?? settings.seats,
       });
 
-      // The server decides the price; the browser never sends one.
+      // The server decides the price and currency; the browser never sends one.
       const prepared = await startCheckout({ data: { plan } });
       if (prepared.status !== "ready") return prepared;
 
-      await initializePaddle();
-      window.Paddle.Checkout.open({
-        items: [{ priceId: prepared.paddlePriceId, quantity: 1 }],
-        customer: user?.email ? { email: user.email } : undefined,
-        customData: { agencyId: prepared.agencyId, userId: user?.id ?? "" },
-        settings: {
-          displayMode: "overlay",
-          successUrl: `${window.location.origin}/settings/subscription?checkout=success`,
-          allowLogout: false,
-          variant: "one-page",
-        },
-      });
+      // Redirect to the Stripe-hosted checkout. Reaching it grants nothing —
+      // entitlement is written only by the verified webhook.
+      window.location.href = prepared.url;
       return prepared;
     },
     onSuccess: (result) => {
@@ -115,7 +118,7 @@ function SubscriptionPage() {
 
   return (
     <div className="space-y-6">
-      <PaymentTestModeBanner />
+      <PaymentTestModeBanner mode={availability?.mode ?? null} />
       <UsagePanel />
 
 
@@ -160,6 +163,18 @@ function SubscriptionPage() {
             </p>
           </div>
         </div>
+
+        {checkoutAvailable ? (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={portal.isPending}
+            onClick={() => portal.mutate()}
+          >
+            <CreditCard className="size-4" />
+            {copy.manageBilling}
+          </Button>
+        ) : null}
       </section>
 
       <section className="panel space-y-4 p-5">
