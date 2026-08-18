@@ -189,13 +189,18 @@ function ExecutiveCenter() {
                       {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
                     </p>
                     <Button asChild size="sm" variant="outline">
-                      <Link
-                        to="/executive/$workerKey"
-                        params={{ workerKey: worker.worker_key }}
-                      >
-                        {copy.openWorker}
-                      </Link>
+                      {WORKER_ROUTES[worker.worker_key] ? (
+                        <Link to={WORKER_ROUTES[worker.worker_key]!}>{copy.openWorker}</Link>
+                      ) : (
+                        <Link
+                          to="/executive/$workerKey"
+                          params={{ workerKey: worker.worker_key }}
+                        >
+                          {copy.openWorker}
+                        </Link>
+                      )}
                     </Button>
+
                   </div>
                 </article>
               );
