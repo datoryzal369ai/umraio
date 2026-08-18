@@ -217,8 +217,13 @@ function SubscriptionPage() {
                   disabled={active || choose.isPending || plan.cta === "talk_to_team"}
                   onClick={() => choose.mutate(plan.id)}
                 >
-                  {active ? copy.selectedPlan : text.ctaLabel}
+                  {active
+                    ? copy.selectedPlan
+                    : plan.cta === "talk_to_team" || checkoutAvailable
+                      ? text.ctaLabel
+                      : copy.requestActivation}
                 </Button>
+
               </div>
             );
           })}
