@@ -103,23 +103,33 @@ export function MeetExecutive() {
     setError(null);
     setSending(true);
     try {
+      // Always send a well-formed payload: trimmed, clamped, no empty turns.
+      // Conversation state is never reset — only the transport window is trimmed.
+      const payload = next
+        .slice(-20)
+        .map((m) => ({ role: m.role, content: m.content.trim().slice(0, 4000) }))
+        .filter((m) => m.content.length > 0);
       const res = await fetch("/api/public/meet-executive", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ language, messages: next.slice(-20) }),
+        body: JSON.stringify({ language, messages: payload }),
       });
-      const data = (await res.json()) as { reply?: string; error?: string };
+      const data = (await res.json().catch(() => ({}))) as { reply?: string; error?: string };
       if (!res.ok || !data.reply) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+        setError(
+          data.error ??
+            "Maaf, saya tak dapat proses mesej itu seketika tadi. Boleh cuba sekali lagi?",
+        );
       } else {
         setMessages((prev) => [...prev, { role: "executive", content: data.reply as string }]);
       }
     } catch {
-      setError("Connection problem. Please try again.");
+      setError("Sambungan terputus sekejap. Boleh cuba sekali lagi? / Connection problem — please try again.");
     } finally {
       setSending(false);
     }
   }
+
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
