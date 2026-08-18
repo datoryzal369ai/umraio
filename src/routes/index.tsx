@@ -19,6 +19,7 @@ import {
 } from "@/components/marketing/PositioningSections";
 
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { LanguageSelector } from "@/components/app/LanguageSelector";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
