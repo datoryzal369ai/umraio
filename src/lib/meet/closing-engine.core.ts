@@ -51,12 +51,20 @@ const TRY_INTENT =
   /\b(saya\s+nak\s+cuba|nak\s+cuba\s+(dulu|sekarang)?|can\s+try\s+first|boleh\s+cuba\s+(dulu)?|try\s+first|free\s+trial|nak\s+trial|trial\s+dulu|i\s+(want|would\s+like)\s+to\s+try)\b/i;
 
 const PRICE_READY_INTENT =
-  /\b(berapa\s+(nak\s+)?bayar|berapa\s+(harga|kos|sebulan|per\s+month)|how\s+much\s+(is\s+it|to\s+(start|subscribe))|what('?s| is)\s+the\s+(price|cost))\b/i;
+  /\b(berapa\s+(nak\s+)?bayar|berapa\s+(harga|kos|sebulan|per\s+month)|harga\s+(macam\s?mana|berapa)|how\s+much\s+(is\s+it|to\s+(start|subscribe))|what('?s| is)\s+the\s+(price|cost))\b/i;
+
+/**
+ * STEP 3E.1 — an explicit payment / billing question is a buying moment, not a
+ * discovery moment. There is no in-chat payment flow, so this only stops
+ * discovery and routes to the real CTAs.
+ */
+const PAYMENT_INTENT =
+  /\b(macam\s?mana\s+(nak\s+)?(bayar|buat\s+bayaran|bayaran|payment)|bayaran\s+macam\s?mana|payment\s+(macam\s?mana|method|options?|how)|cara\s+(nak\s+)?(bayar|bayaran|pembayaran)|proses\s+(bayaran|pembayaran)|nak\s+buat\s+bayaran|how\s+(do|can)\s+i\s+pay|how\s+to\s+pay|payment\s+process|billing\s+process)\b/i;
 
 /** Natural high-intent detection: last visitor turns weigh most. */
 export function detectHighIntent(visitorMessages: string[]): {
   high: boolean;
-  kind: "SUBSCRIBE" | "START_NOW" | "TRY" | "PRICE" | null;
+  kind: "SUBSCRIBE" | "START_NOW" | "TRY" | "PAYMENT" | "PRICE" | null;
   evidence: string | null;
 } {
   const recent = visitorMessages.slice(-3);
@@ -72,10 +80,13 @@ export function detectHighIntent(visitorMessages: string[]): {
   if (startNow) return { high: true, kind: "START_NOW", evidence: startNow };
   const tryIt = hit(TRY_INTENT);
   if (tryIt) return { high: true, kind: "TRY", evidence: tryIt };
+  const payment = hit(PAYMENT_INTENT);
+  if (payment) return { high: true, kind: "PAYMENT", evidence: payment };
   const price = hit(PRICE_READY_INTENT);
   if (price) return { high: false, kind: "PRICE", evidence: price };
   return { high: false, kind: null, evidence: null };
 }
+
 
 /* ------------------------------------------------------------------ *
  * §8 / §15 — Post-CTA behaviour.
