@@ -105,29 +105,11 @@ export const AI_LANGUAGES = [
   { value: "ar", label: "Arabic" },
 ] as const;
 
-export const PLANS = [
-  {
-    value: "trial",
-    name: "Trial",
-    price: "Free · 14 days",
-    seats: 3,
-    features: ["1 WhatsApp number", "200 AI replies", "Basic analytics"],
-  },
-  {
-    value: "growth",
-    name: "Growth",
-    price: "RM 499 / month",
-    seats: 10,
-    features: ["2 WhatsApp numbers", "5,000 AI replies", "Full analytics", "Knowledge base"],
-  },
-  {
-    value: "scale",
-    name: "Scale",
-    price: "RM 1,299 / month",
-    seats: 30,
-    features: ["Unlimited numbers", "25,000 AI replies", "API access", "Priority support"],
-  },
-] as const;
+/**
+ * Commercial pricing lives in ONE place — src/lib/billing/pricing.core.ts.
+ * Re-exported here only for convenience; no prices are defined in this file.
+ */
+export { CANONICAL_PLANS, publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 
 /* ---------------- agency profile ---------------- */
 
