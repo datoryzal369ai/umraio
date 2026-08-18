@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useCopy } from "@/lib/i18n/dict";
+import { accountCopy } from "@/lib/i18n/app/account.i18n";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   head: () => ({
@@ -26,16 +28,17 @@ export const Route = createFileRoute("/_authenticated/profile")({
   component: ProfilePage,
 });
 
-const profileSchema = z.object({
-  full_name: z.string().trim().min(2, "Enter your full name").max(100),
-  phone: z.string().trim().max(30).optional().or(z.literal("")),
-  job_title: z.string().trim().max(80).optional().or(z.literal("")),
-});
-
 function ProfilePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const copy = useCopy(accountCopy).profile;
   const [form, setForm] = useState({ full_name: "", phone: "", job_title: "" });
+
+  const profileSchema = z.object({
+    full_name: z.string().trim().min(2, copy.enterFullName).max(100),
+    phone: z.string().trim().max(30).optional().or(z.literal("")),
+    job_title: z.string().trim().max(80).optional().or(z.literal("")),
+  });
 
   const { data, isLoading } = useQuery({
     queryKey: ["profile-detail", user?.id],
@@ -75,15 +78,15 @@ function ProfilePage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Profile updated.");
+      toast.success(copy.profileUpdated);
       queryClient.invalidateQueries({ queryKey: ["profile-detail", user?.id] });
       queryClient.invalidateQueries({ queryKey: ["profile", user?.id] });
     },
     onError: (error: unknown) => {
       toast.error(
         error instanceof z.ZodError
-          ? (error.issues[0]?.message ?? "Invalid details")
-          : "Could not save profile.",
+          ? (error.issues[0]?.message ?? copy.invalidDetails)
+          : copy.couldNotSave,
       );
     },
   });
@@ -94,10 +97,8 @@ function ProfilePage() {
   return (
     <div className="mx-auto w-full max-w-2xl space-y-8">
       <header>
-        <h1 className="text-3xl font-bold">Your profile</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          These details identify you inside your agency workspace.
-        </p>
+        <h1 className="text-3xl font-bold">{copy.title}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{copy.description}</p>
       </header>
 
       <form
@@ -108,11 +109,11 @@ function ProfilePage() {
         }}
       >
         <div className="space-y-2">
-          <Label>Email</Label>
+          <Label>{copy.email}</Label>
           <Input value={data?.email ?? user?.email ?? ""} disabled />
         </div>
         <div className="space-y-2">
-          <Label>Full name</Label>
+          <Label>{copy.fullName}</Label>
           <Input
             value={form.full_name}
             maxLength={100}
@@ -121,42 +122,42 @@ function ProfilePage() {
           />
         </div>
         <div className="space-y-2">
-          <Label>Phone</Label>
+          <Label>{copy.phone}</Label>
           <Input
             value={form.phone}
             maxLength={30}
-            placeholder="+60 12-345 6789"
+            placeholder={copy.phonePlaceholder}
             onChange={(event) => setForm((prev) => ({ ...prev, phone: event.target.value }))}
           />
         </div>
         <div className="space-y-2">
-          <Label>Job title</Label>
+          <Label>{copy.jobTitle}</Label>
           <Input
             value={form.job_title}
             maxLength={80}
-            placeholder="Sales Manager"
+            placeholder={copy.jobTitlePlaceholder}
             onChange={(event) => setForm((prev) => ({ ...prev, job_title: event.target.value }))}
           />
         </div>
         <Button type="submit" disabled={mutation.isPending || isLoading}>
-          {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "Save changes"}
+          {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : copy.saveChanges}
         </Button>
       </form>
 
       <div className="panel p-6">
-        <h2 className="text-lg font-semibold">Agency</h2>
+        <h2 className="text-lg font-semibold">{copy.agency}</h2>
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
           <div>
-            <dt className="text-muted-foreground">Name</dt>
-            <dd className="mt-1 font-medium">{agency?.name ?? "—"}</dd>
+            <dt className="text-muted-foreground">{copy.name}</dt>
+            <dd className="mt-1 font-medium">{agency?.name ?? copy.dash}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Country</dt>
-            <dd className="mt-1 font-medium">{agency?.country ?? "—"}</dd>
+            <dt className="text-muted-foreground">{copy.country}</dt>
+            <dd className="mt-1 font-medium">{agency?.country ?? copy.dash}</dd>
           </div>
           <div>
-            <dt className="text-muted-foreground">Plan</dt>
-            <dd className="mt-1 font-medium capitalize">{agency?.plan ?? "—"}</dd>
+            <dt className="text-muted-foreground">{copy.plan}</dt>
+            <dd className="mt-1 font-medium capitalize">{agency?.plan ?? copy.dash}</dd>
           </div>
         </dl>
       </div>

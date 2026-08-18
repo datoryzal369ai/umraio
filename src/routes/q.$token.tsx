@@ -13,6 +13,8 @@ import {
   formatMyrAmount,
   type QuotationStatus,
 } from "@/lib/quotations/pricing.core";
+import { useCopy } from "@/lib/i18n/dict";
+import { accountCopy } from "@/lib/i18n/app/account.i18n";
 
 export const Route = createFileRoute("/q/$token")({
   head: () => ({
@@ -38,9 +40,12 @@ export const Route = createFileRoute("/q/$token")({
       {error.message}
     </div>
   ),
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-xl p-10 text-sm">This quotation link is no longer valid.</div>
-  ),
+  notFoundComponent: () => {
+    const copy = useCopy(accountCopy).quotation;
+    return (
+      <div className="mx-auto max-w-xl p-10 text-sm">{copy.linkNoLongerValid}</div>
+    );
+  },
   component: PublicQuotationPage,
 });
 
@@ -57,6 +62,7 @@ function PublicQuotationPage() {
   const { token } = Route.useParams();
   const queryClient = useQueryClient();
   const [reason, setReason] = useState("");
+  const copy = useCopy(accountCopy).quotation;
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-quotation", token],
@@ -67,22 +73,22 @@ function PublicQuotationPage() {
     mutationFn: (decision: "accepted" | "rejected") =>
       respondPublicQuotation({ data: { token, decision, reason: reason.trim() || null } }),
     onSuccess: () => {
-      toast.success("Thank you — the agency has been notified.");
+      toast.success(copy.thankYouToast);
       queryClient.invalidateQueries({ queryKey: ["public-quotation", token] });
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   if (isLoading) {
-    return <div className="mx-auto max-w-xl p-10 text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="mx-auto max-w-xl p-10 text-sm text-muted-foreground">{copy.loading}</div>
+    );
   }
   if (!data?.quotation) {
     return (
       <main className="mx-auto max-w-xl p-10">
-        <h1 className="text-xl font-semibold">Quotation not found</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This link is no longer valid. Please contact the agency for an updated quotation.
-        </p>
+        <h1 className="text-xl font-semibold">{copy.notFoundTitle}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{copy.notFoundBody}</p>
       </main>
     );
   }
@@ -96,58 +102,61 @@ function PublicQuotationPage() {
     <main className="mx-auto w-full max-w-2xl px-4 py-10 sm:py-16">
       <header className="mb-8">
         <p className="text-xs uppercase tracking-[0.2em] text-primary">
-          {data.agency?.name ?? "Umrah agency"}
+          {data.agency?.name ?? copy.defaultAgency}
         </p>
         <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">
-          Your Umrah quotation {q["quotation_number"]}
+          {copy.yourQuotation.replace("{number}", String(q["quotation_number"]))}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Status: {QUOTATION_STATUS_LABELS[status] ?? status}
+          {copy.status}: {QUOTATION_STATUS_LABELS[status] ?? status}
           {q["valid_until"]
-            ? ` · valid until ${new Date(q["valid_until"]).toLocaleDateString("en-MY")}`
+            ? copy.validUntil.replace(
+                "{date}",
+                new Date(q["valid_until"]).toLocaleDateString("en-MY"),
+              )
             : ""}
         </p>
       </header>
 
       <section className="panel space-y-1 p-6">
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
-          <Plane className="h-4 w-4 text-primary" aria-hidden /> {snap["name"] ?? "Umrah package"}
+          <Plane className="h-4 w-4 text-primary" aria-hidden /> {snap["name"] ?? copy.defaultPackage}
         </h2>
         {snap["hotel_makkah"] ? (
-          <Row label="Makkah hotel" value={String(snap["hotel_makkah"])} />
+          <Row label={copy.makkahHotel} value={String(snap["hotel_makkah"])} />
         ) : null}
         {snap["hotel_madinah"] ? (
-          <Row label="Madinah hotel" value={String(snap["hotel_madinah"])} />
+          <Row label={copy.madinahHotel} value={String(snap["hotel_madinah"])} />
         ) : null}
-        {snap["nights"] ? <Row label="Nights" value={`${snap["nights"]}`} /> : null}
-        {snap["airline"] ? <Row label="Airline" value={String(snap["airline"])} /> : null}
+        {snap["nights"] ? <Row label={copy.nights} value={`${snap["nights"]}`} /> : null}
+        {snap["airline"] ? <Row label={copy.airline} value={String(snap["airline"])} /> : null}
         {q["travel_month"] || q["travel_date"] ? (
-          <Row label="Travel" value={String(q["travel_date"] ?? q["travel_month"])} />
+          <Row label={copy.travel} value={String(q["travel_date"] ?? q["travel_month"])} />
         ) : null}
       </section>
 
       <section className="panel mt-6 space-y-1 p-6">
         <h2 className="mb-3 flex items-center gap-2 text-base font-semibold">
-          <BadgeCheck className="h-4 w-4 text-primary" aria-hidden /> Price breakdown
+          <BadgeCheck className="h-4 w-4 text-primary" aria-hidden /> {copy.priceBreakdown}
         </h2>
         <Row
-          label={`Price per pilgrim × ${q["quantity"]}`}
+          label={copy.pricePerPilgrim.replace("{quantity}", String(q["quantity"]))}
           value={formatMyrAmount(Number(q["unit_price"]))}
         />
-        <Row label="Subtotal" value={formatMyrAmount(Number(q["subtotal"]))} />
+        <Row label={copy.subtotal} value={formatMyrAmount(Number(q["subtotal"]))} />
         {Number(q["discount"]) > 0 ? (
-          <Row label="Discount" value={`- ${formatMyrAmount(Number(q["discount"]))}`} />
+          <Row label={copy.discount} value={`- ${formatMyrAmount(Number(q["discount"]))}`} />
         ) : null}
-        <Row label="Total" value={formatMyrAmount(Number(q["total"]))} />
+        <Row label={copy.total} value={formatMyrAmount(Number(q["total"]))} />
         {q["deposit_amount"] !== null ? (
           <>
-            <Row label="Deposit to secure" value={formatMyrAmount(Number(q["deposit_amount"]))} />
-            <Row label="Balance" value={formatMyrAmount(Number(q["balance_amount"]))} />
+            <Row label={copy.depositToSecure} value={formatMyrAmount(Number(q["deposit_amount"]))} />
+            <Row label={copy.balance} value={formatMyrAmount(Number(q["balance_amount"]))} />
           </>
         ) : null}
         {Array.isArray(snap["inclusions"]) && snap["inclusions"].length ? (
           <p className="pt-3 text-sm text-muted-foreground">
-            Includes: {snap["inclusions"].join(", ")}
+            {copy.includes.replace("{items}", snap["inclusions"].join(", "))}
           </p>
         ) : null}
       </section>
@@ -155,36 +164,35 @@ function PublicQuotationPage() {
       {open ? (
         <section className="panel mt-6 space-y-4 p-6">
           <h2 className="flex items-center gap-2 text-base font-semibold">
-            <ShieldCheck className="h-4 w-4 text-primary" aria-hidden /> Your decision
+            <ShieldCheck className="h-4 w-4 text-primary" aria-hidden /> {copy.yourDecision}
           </h2>
-          <p className="text-sm text-muted-foreground">
-            No payment is taken here. Accepting simply tells the agency you are ready to proceed; a
-            consultant will confirm your deposit and booking.
-          </p>
+          <p className="text-sm text-muted-foreground">{copy.decisionDescription}</p>
           <Textarea
             value={reason}
             onChange={(e) => setReason(e.target.value.slice(0, 400))}
-            placeholder="Optional message to the agency"
-            aria-label="Message to the agency"
+            placeholder={copy.messagePlaceholder}
+            aria-label={copy.messageAriaLabel}
           />
           <div className="flex flex-wrap gap-3">
             <Button disabled={respond.isPending} onClick={() => respond.mutate("accepted")}>
-              Accept quotation
+              {copy.acceptQuotation}
             </Button>
             <Button
               variant="outline"
               disabled={respond.isPending}
               onClick={() => respond.mutate("rejected")}
             >
-              Not now
+              {copy.notNow}
             </Button>
           </div>
         </section>
       ) : (
         <section className="panel mt-6 p-6 text-sm text-muted-foreground">
           <CalendarDays className="mb-2 h-4 w-4 text-primary" aria-hidden />
-          This quotation is {QUOTATION_STATUS_LABELS[status]?.toLowerCase() ?? status}. Contact the
-          agency if you need an updated offer.
+          {copy.closedNotice.replace(
+            "{status}",
+            QUOTATION_STATUS_LABELS[status]?.toLowerCase() ?? status,
+          )}
         </section>
       )}
     </main>

@@ -5,6 +5,8 @@ import { ArrowLeft, CalendarCheck, Loader2, Send, Sparkle, User, UserRound } fro
 import { toast } from "sonner";
 
 import { AssistantAvatar } from "@/components/brand/BrandLogo";
+import { useCopy } from "@/lib/i18n/dict";
+import { WORKSPACE_COPY } from "@/lib/i18n/app/workspace.i18n";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -49,6 +51,7 @@ export const Route = createFileRoute("/_authenticated/conversations/$conversatio
 });
 
 function ConversationPage() {
+  const t = useCopy(WORKSPACE_COPY).conversation;
   const { conversationId } = Route.useParams();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
@@ -73,7 +76,7 @@ function ConversationPage() {
 
   const send = useMutation({
     mutationFn: async (body: string) => {
-      if (!conversation) throw new Error("Conversation not loaded");
+      if (!conversation) throw new Error(t.conversationNotLoadedError);
       await insertMessage(
         conversationId,
         conversation.agency_id,
@@ -84,11 +87,9 @@ function ConversationPage() {
       if (asHuman || !conversation.ai_enabled) return;
       const { reply, errorCode } = await aiReplyToConversation({ data: { conversationId } });
       if (errorCode === "AI_CREDITS_EXHAUSTED") {
-        throw new Error(
-          "AI replies are temporarily unavailable because the workspace has no AI credits remaining. Add credits in Settings → Plans & credits, then try again.",
-        );
+        throw new Error(t.aiCreditsExhaustedError);
       }
-      if (!reply) throw new Error("The AI Executive did not return a reply. Please try again.");
+      if (!reply) throw new Error(t.aiNoReplyError);
       await insertMessage(conversationId, conversation.agency_id, "ai", reply);
     },
     onSuccess: () => {
@@ -127,7 +128,7 @@ function ConversationPage() {
       <section className="panel flex h-[calc(100dvh-11rem)] min-h-[520px] flex-col overflow-hidden">
         <header className="flex items-center gap-3 border-b border-border/60 bg-card/60 px-4 py-3">
           <Button asChild variant="ghost" size="icon" className="min-h-11 min-w-11 xl:hidden">
-            <Link to="/conversations" aria-label="Back to inbox">
+            <Link to="/conversations" aria-label={t.backToInbox}>
               <ArrowLeft className="size-4" />
             </Link>
           </Button>
@@ -135,14 +136,14 @@ function ConversationPage() {
             <User className="size-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate font-medium">{lead?.full_name ?? "Unknown contact"}</p>
+            <p className="truncate font-medium">{lead?.full_name ?? t.unknownContact}</p>
             <p className="truncate text-xs text-muted-foreground">
-              {lead?.phone ?? "No number"} · WhatsApp
+              {lead?.phone ?? t.noNumber} · WhatsApp
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Label htmlFor="ai-toggle" className="hidden text-xs text-muted-foreground sm:block">
-              AI Executive
+              {t.aiExecutive}
             </Label>
             <Switch
               id="ai-toggle"
@@ -154,11 +155,10 @@ function ConversationPage() {
 
         <div ref={scrollRef} className="chat-canvas flex-1 space-y-4 overflow-y-auto px-4 py-5">
           {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading messages…</p>
+            <p className="text-sm text-muted-foreground">{t.loadingMessages}</p>
           ) : messages.length === 0 ? (
             <p className="mx-auto max-w-sm rounded-xl bg-muted/40 p-4 text-center text-sm text-muted-foreground">
-              No messages yet. Send the customer&apos;s first enquiry and the Autonomous AI Business Executive
-              will reply.
+              {t.emptyMessages}
             </p>
           ) : (
             grouped.map(([day, items]) => (
@@ -176,7 +176,7 @@ function ConversationPage() {
           )}
           {send.isPending && !asHuman && (
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin" /> Autonomous AI Business Executive is typing…
+              <Loader2 className="size-3.5 animate-spin" /> {t.aiTyping}
             </div>
           )}
         </div>
@@ -185,7 +185,7 @@ function ConversationPage() {
           <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
             <Switch id="as-human" checked={asHuman} onCheckedChange={setAsHuman} />
             <Label htmlFor="as-human" className="text-xs font-normal">
-              {asHuman ? "Replying as human agent" : "Sending as customer (AI will reply)"}
+              {asHuman ? t.replyingAsHuman : t.sendingAsCustomer}
             </Label>
           </div>
           <div className="flex items-end gap-2">
@@ -200,7 +200,7 @@ function ConversationPage() {
                 }
               }}
               rows={1}
-              placeholder="Type a message…"
+              placeholder={t.messagePlaceholder}
               className="max-h-32 min-h-11 resize-none"
             />
             <Button
@@ -208,7 +208,7 @@ function ConversationPage() {
               className="size-11 shrink-0"
               onClick={submit}
               disabled={!draft.trim() || send.isPending}
-              aria-label="Send message"
+              aria-label={t.sendMessage}
             >
               {send.isPending ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -225,7 +225,7 @@ function ConversationPage() {
         <div className="panel p-5">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              AI Executive Brief
+              {t.aiExecutiveBrief}
             </h2>
             <Button
               size="sm"
@@ -239,26 +239,26 @@ function ConversationPage() {
               ) : (
                 <Sparkle className="size-3.5" />
               )}
-              Generate
+              {t.generate}
             </Button>
           </div>
 
           {insights.data ? (
             <div className="mt-4 space-y-4 text-sm">
-              <Insight label="Summary" value={insights.data.summary} />
-              <Insight label="Customer profile" value={insights.data.customer_profile} />
-              <Insight label="Qualification" value={insights.data.qualification} />
-              <Insight label="Objections" value={insights.data.objections} />
-              <Insight label="Next step" value={insights.data.next_step} />
+              <Insight label={t.insightSummary} value={insights.data.summary} />
+              <Insight label={t.insightCustomerProfile} value={insights.data.customer_profile} />
+              <Insight label={t.insightQualification} value={insights.data.qualification} />
+              <Insight label={t.insightObjections} value={insights.data.objections} />
+              <Insight label={t.insightNextStep} value={insights.data.next_step} />
               <div className="rounded-xl border border-primary/25 bg-primary/5 p-3">
                 <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-primary">
-                  <CalendarCheck className="size-3.5" /> Booking suggestion
+                  <CalendarCheck className="size-3.5" /> {t.bookingSuggestion}
                 </p>
                 <p className="mt-1.5 text-sm">{insights.data.booking_suggestion}</p>
               </div>
               <div className="rounded-xl border border-border/60 bg-muted/30 p-3">
                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  Follow-up draft
+                  {t.followUpDraft}
                 </p>
                 <p className="mt-1.5 whitespace-pre-wrap text-sm">
                   {insights.data.followup_message}
@@ -273,14 +273,13 @@ function ConversationPage() {
                     inputRef.current?.focus();
                   }}
                 >
-                  Use as reply
+                  {t.useAsReply}
                 </Button>
               </div>
             </div>
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">
-              Generate a summary, qualification read, follow-up draft and booking suggestion from
-              this conversation.
+              {t.generatePrompt}
             </p>
           )}
         </div>
@@ -288,13 +287,13 @@ function ConversationPage() {
         {lead && (
           <div className="panel p-5 text-sm">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Lead
+              {t.lead}
             </h2>
             <p className="mt-3 font-medium">{lead.full_name}</p>
-            <p className="text-muted-foreground">Stage: {lead.stage}</p>
+            <p className="text-muted-foreground">{t.stage}: {lead.stage}</p>
             <Button asChild variant="outline" size="sm" className="mt-3 gap-2">
               <Link to="/leads/$leadId" params={{ leadId: lead.id }}>
-                <UserRound className="size-3.5" /> Open lead record
+                <UserRound className="size-3.5" /> {t.openLeadRecord}
               </Link>
             </Button>
           </div>
@@ -334,11 +333,11 @@ function Bubble({ message }: { message: ChatMessage }) {
           >
             {message.sender === "ai" ? (
               <>
-                <AssistantAvatar size={14} /> Autonomous AI Business Executive
+                <AssistantAvatar size={14} /> {t.aiExecutiveLabel}
               </>
             ) : (
               <>
-                <UserRound className="size-3" /> Agent
+                <UserRound className="size-3" /> {t.agent}
               </>
             )}
           </p>
