@@ -70,7 +70,12 @@ export const Route = createFileRoute("/api/public/meet-executive")({
         const { analyzeMeetConversation, meetExecutiveInstruction } = await import(
           "@/lib/meet/b2b-executive.core"
         );
+        // STEP 3C — B2B agency conversion & closing engine (deterministic).
+        const { analyzeConversion, conversionInstruction } = await import(
+          "@/lib/meet/b2b-conversion.core"
+        );
         const intel = analyzeMeetConversation(body.messages);
+        const conversion = analyzeConversion(intel, body.messages);
 
         // Customer control always wins, before any model call.
         if (intel.optedOut) {
