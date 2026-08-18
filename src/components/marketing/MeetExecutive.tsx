@@ -59,7 +59,8 @@ const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
 };
 
 export function MeetExecutive() {
-  const t = siteCopy(useLocale().locale).meet;
+  const { locale } = useLocale();
+  const t = siteCopy(locale).meet;
   const [language, setLanguage] = useState<MeetLanguagePreference>("auto");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { role: "executive", content: OPENING_MESSAGE },
@@ -388,21 +389,31 @@ export function MeetExecutive() {
             {t.workforceHeading}
           </h2>
           <ul className="mt-3 grid gap-1.5">
-            {CAPABILITIES.map((c) => (
-              <li
-                key={c.key}
-                className="flex items-center gap-2 rounded-lg border border-border/50 px-3 py-2"
-              >
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{c.name}</span>
-                {c.status === "active" ? (
-                  <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-label={t.active} />
-                ) : (
-                  <span className="shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
-                    {t.upcoming}
-                  </span>
-                )}
-              </li>
-            ))}
+            {CAPABILITIES.map((c) => {
+              const description = locale === "bm" ? c.descriptionMs ?? c.description : c.description;
+              return (
+                <li
+                  key={c.key}
+                  className="flex items-start gap-2 rounded-lg border border-border/50 px-3 py-2"
+                >
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-xs font-medium">{c.name}</span>
+                    {c.status === "active" && description ? (
+                      <span className="mt-1 block text-[10px] font-light leading-snug text-muted-foreground">
+                        {description}
+                      </span>
+                    ) : null}
+                  </div>
+                  {c.status === "active" ? (
+                    <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-label={t.active} />
+                  ) : (
+                    <span className="mt-1 shrink-0 rounded-full border border-border/70 px-2 py-0.5 text-[9px] uppercase tracking-wider text-muted-foreground">
+                      {t.upcoming}
+                    </span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
 
