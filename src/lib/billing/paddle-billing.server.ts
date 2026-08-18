@@ -40,6 +40,7 @@ export async function applyVerifiedSubscriptionEvent(
   supabase: Db,
   event: PaddleSubscriptionEvent,
   agencyIdFromCheckout: string | null,
+  provider: "paddle" | "stripe" = "paddle",
 ): Promise<ApplyOutcome> {
   const agencyId = await findAgencyId(supabase, event, agencyIdFromCheckout);
   if (!agencyId) return { applied: false, reason: "no_agency" };
@@ -57,7 +58,9 @@ export async function applyVerifiedSubscriptionEvent(
     return { applied: false, reason: "duplicate" };
   }
 
-  const { state, effects } = applySubscriptionEvent(currentState, event);
+  const applied = applySubscriptionEvent(currentState, event);
+  const state = { ...applied.state, provider };
+  const effects = applied.effects;
   if (effects.ignored && !effects.effectivePlan) {
     // Persist the event id so a retry of an unmappable event is not reprocessed.
     await supabase
@@ -76,7 +79,7 @@ export async function applyVerifiedSubscriptionEvent(
     {
       agency_id: agencyId,
       effective_plan: effectivePlan,
-      source: "paddle_subscription",
+      source: `${provider}_subscription`,
       overrides: { ...overrides, billing: state, founding: resolved.founding },
       updated_at: new Date().toISOString(),
     },
