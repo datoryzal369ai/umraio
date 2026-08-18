@@ -153,6 +153,16 @@ export const Route = createFileRoute("/api/public/meet-executive")({
         );
         const closing = buildClosingRead({ intel, conversion, messages: body.messages });
 
+        // STEP 3D.2 — Islamic confident sales presence (deterministic, additive).
+        const { buildConfidenceRead, confidentPresenceInstruction } = await import(
+          "@/lib/sales/confident-presence.core"
+        );
+        const confidence = buildConfidenceRead({
+          customerMessages: body.messages
+            .filter((m) => m.role === "visitor")
+            .map((m) => m.content),
+        });
+
         const memory = buildQuestionMemory(body.messages, intel, social);
         const register = resolveMeetRegister(
           body.messages.filter((m) => m.role === "visitor").map((m) => m.content),
@@ -175,6 +185,7 @@ export const Route = createFileRoute("/api/public/meet-executive")({
           meetExecutiveInstruction(intel),
           conversionInstruction(conversion),
           closingInstruction(closing),
+          confidentPresenceInstruction(confidence),
           ...(carryOver ? [carryOver] : []),
 
           ...(religious.isReligiousRulingRequest
