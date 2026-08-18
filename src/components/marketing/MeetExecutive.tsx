@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, CheckCircle2, Loader2, Send, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
 
+import raioAsset from "@/assets/raio-executive.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,11 +13,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   CAPABILITIES,
   EXECUTION_FLOW,
   OPENING_MESSAGE,
+  OPENING_MESSAGE_MS,
+  type MeetLanguagePreference,
   type DemoMessage,
 } from "@/lib/meet-executive.core";
 import {
@@ -45,7 +55,14 @@ const GAP_STATUS_LABEL = {
   NOT_YET_ESTABLISHED: "Not yet established",
 } as const;
 
+const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
+  auto: "Auto / Natural",
+  ms: "Bahasa Melayu",
+  en: "English",
+};
+
 export function MeetExecutive() {
+  const [language, setLanguage] = useState<MeetLanguagePreference>("auto");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { role: "executive", content: OPENING_MESSAGE },
   ]);
@@ -61,6 +78,17 @@ export function MeetExecutive() {
   const recommended = CAPABILITIES.filter(
     (c) => c.status === "active" && intel.recommendedCapabilities.includes(c.key),
   );
+
+  /** Language changes communication only — conversation state is never reset. */
+  function changeLanguage(next: MeetLanguagePreference) {
+    setLanguage(next);
+    setMessages((prev) =>
+      prev.length === 1 && prev[0]?.role === "executive"
+        ? [{ role: "executive", content: next === "ms" ? OPENING_MESSAGE_MS : OPENING_MESSAGE }]
+        : prev,
+    );
+  }
+
 
   useEffect(() => {
     logRef.current?.scrollTo({ top: logRef.current.scrollHeight, behavior: "smooth" });
