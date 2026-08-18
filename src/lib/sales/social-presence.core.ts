@@ -521,6 +521,9 @@ export function buildSocialProfile(input: {
     humanIdentityQuestion: detectHumanIdentityQuestion(last),
     isFirstTurn: customer.length <= 1,
     rememberedFacts,
+    greetedWithSalam: detectSalam(last) || detectSalam(joined),
+    adabOpenings: detectAdabOpenings(last),
+
   };
 }
 
