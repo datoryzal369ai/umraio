@@ -59,7 +59,8 @@ const LANGUAGE_LABEL: Record<MeetLanguagePreference, string> = {
 };
 
 export function MeetExecutive() {
-  const t = siteCopy(useLocale().locale).meet;
+  const { locale } = useLocale();
+  const t = siteCopy(locale).meet;
   const [language, setLanguage] = useState<MeetLanguagePreference>("auto");
   const [messages, setMessages] = useState<DemoMessage[]>([
     { role: "executive", content: OPENING_MESSAGE },
