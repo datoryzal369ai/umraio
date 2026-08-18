@@ -207,7 +207,7 @@ export function MeetExecutive() {
         >
           <div className="min-w-0 flex-1">
             <Label htmlFor="meet-input" className="sr-only">
-              Tell the AI Business Executive how your agency works
+              Tell RAIŌ how your agency works
             </Label>
             <Textarea
               id="meet-input"
@@ -221,7 +221,8 @@ export function MeetExecutive() {
               }}
               rows={2}
               maxLength={1500}
-              placeholder="Tell it how your agency works…"
+              placeholder="Tell RAIŌ how your agency works…"
+
               className="min-h-11 resize-none"
             />
           </div>
