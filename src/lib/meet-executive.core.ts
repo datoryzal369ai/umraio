@@ -242,6 +242,10 @@ export type Capability = {
   name: string;
   role: string;
   status: "active" | "upcoming";
+  /** Public workforce-card description (English). */
+  description?: string;
+  /** Public workforce-card description (Bahasa Melayu). */
+  descriptionMs?: string;
 };
 
 /** Only capabilities that exist in the product are marked active. */
@@ -281,6 +285,10 @@ export const CAPABILITIES: Capability[] = [
     name: "AI SALES ELITE™",
     role: "Elite sales intelligence, objection handling and closing",
     status: "active",
+    description:
+      "World-class AI sales intelligence and closing engine designed to understand customers, build trust, handle objections and guide qualified prospects toward the right next step.",
+    descriptionMs:
+      "Enjin kecerdasan jualan AI kelas dunia yang diformat untuk memahami pelanggan, membina kepercayaan, menangani bantahan dan membimbing prospek berkelayakan ke langkah seterusnya yang tepat.",
   },
   {
     key: "quotation",
