@@ -1,3 +1,4 @@
+import { agencyIdentityInstruction } from "@/lib/sales/unified-identity.core";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -400,6 +401,7 @@ function systemPrompt(
     conversationIntelligenceInstruction(intel),
     // STEP 3I.1 — AI SALES ELITE™ (state, single next best action, closing mode).
     eliteSalesInstruction(buildEliteIntelligence(ctx, intel)),
+    agencyIdentityInstruction(aiName),
 
     confidentPresenceInstruction(
       buildConfidenceRead({
