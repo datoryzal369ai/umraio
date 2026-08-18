@@ -329,10 +329,17 @@ export function extractAgencyFacts(visitorMessages: string[]): AgencyFacts {
 
   const crm = firstMatch(joined, /\b(hubspot|zoho|salesforce|pipedrive|odoo|excel|spreadsheet|google\s+sheet[s]?)\b/i);
 
+  // STEP 3E — capacity phrasing ("tak sempat", "can't reply fast enough") is a
+  // stated pain, not a negated claim, so it is read from the raw text. Bare
+  // "slow" only counts as a response gap when it sits in a response context —
+  // "sales saya slow" must not be diagnosed as a reply-speed problem.
+  const RESPONSE_DELAY_PHRASE =
+    /\b(lambat\s*(sikit\s*)?(nak\s*)?(reply|balas|respond|jawab)|(reply|balas|respond|jawab)\s*\w{0,6}\s*(lambat|slow|lewat)|slow\s+(to\s+)?(reply|respond|response)|(can'?t|cannot|tak\s+boleh|tak\s+sempat|tidak\s+sempat|tak\s+larat|no\s+time\s+to)\s+(reply|balas|respond|jawab|layan)\w*|esok\s+baru|next\s+day|overnight|berjam|terlepas\s+(lead|enquiry|enquiries|mesej|message|prospek)|miss(ed)?\s+(lead|enquiry|message))\b/i;
+  const RESPONSE_CONTEXT =
+    /\b(reply|balas|respond|response|jawab|enquiry|enquiries|whatsapp|mesej|message|customer|prospek|lead)\b/i;
   const delayed =
-    /\b(lambat|slow|delay|lewat|esok\s+baru|next\s+day|overnight|terlepas|miss(ed)?\s+(lead|enquiry|message)|tak\s+sempat\s+(reply|balas)|berjam)\b/i.test(
-      masked,
-    );
+    RESPONSE_DELAY_PHRASE.test(joined) ||
+    (/\b(lambat|slow|delay\w*|lewat)\b/i.test(masked) && RESPONSE_CONTEXT.test(masked));
   const fast =
     /\b(reply|respond|balas)\D{0,20}\b(segera|instantly|immediately|within\s+minutes|dalam\s+beberapa\s+minit)\b/i.test(
       masked,
@@ -344,9 +351,17 @@ export function extractAgencyFacts(visitorMessages: string[]): AgencyFacts {
     ) && /\b(tak|tidak|no|belum|esok|next\s+day|lambat|slow|nobody|tiada)\b/i.test(joined);
   const afterHoursCovered = /\b24\/7|24\s*jam|round\s+the\s+clock|shift\s+malam\b/i.test(masked);
 
+  // STEP 3E — "team tak sempat follow-up" / "follow-up lemah" are the most
+  // common ways an agency states this pain and must register as a real gap.
+  const followupWeak =
+    /\b(tak|tidak|jarang|kurang|lupa|terlepas|belum|no|never)\b[\w\s'’-]{0,20}?follow[\s-]?up\b/i.test(joined) ||
+    /\bfollow[\s-]?up\b[\w\s'’-]{0,20}?\b(lemah|lembab|lambat|tak\s+konsisten|inconsistent|manual|lupa|terlepas)\b/i.test(
+      joined,
+    );
   const followupManual =
-    /\b(follow[\s-]?up)\b/i.test(joined) &&
-    /\b(manual|lupa|forget|tak\s+konsisten|inconsistent|ad\s*hoc|tiada|no\s+system|by\s+memory|ingat)\b/i.test(joined);
+    followupWeak ||
+    (/\b(follow[\s-]?up)\b/i.test(joined) &&
+      /\b(manual|lupa|forget|tak\s+konsisten|inconsistent|ad\s*hoc|tiada|no\s+system|by\s+memory|ingat)\b/i.test(joined));
   const followupStructured =
     /\bfollow[\s-]?up\b/i.test(joined) &&
     /\b(automated|automatik|scheduled|reminder|sistem|system|crm)\b/i.test(masked);
