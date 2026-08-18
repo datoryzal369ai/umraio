@@ -109,7 +109,7 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
         .select("conversation_id, sender, body, created_at")
         .in(
           "conversation_id",
-          active.map((c) => c.id as string),
+          active.map((c) => c['id'] as string),
         )
         .order("created_at", { ascending: true })
         .limit(1200)
@@ -117,24 +117,24 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
 
   const byConversation = new Map<string, Array<Record<string, any>>>();
   for (const m of (messagesRes.data ?? []) as Array<Record<string, any>>) {
-    const list = byConversation.get(m.conversation_id as string) ?? [];
+    const list = byConversation.get(m['conversation_id'] as string) ?? [];
     list.push(m);
-    byConversation.set(m.conversation_id as string, list);
+    byConversation.set(m['conversation_id'] as string, list);
   }
 
-  const leadById = new Map(leads.map((l) => [l.id as string, l]));
+  const leadById = new Map(leads.map((l) => [l['id'] as string, l]));
 
   const items: EliteDeskItem[] = active
-    .map((conversation) => {
-      const messages = byConversation.get(conversation.id as string) ?? [];
+    .map((conversation): EliteDeskItem | null => {
+      const messages = byConversation.get(conversation['id'] as string) ?? [];
       if (!messages.length) return null;
-      const lead = conversation.lead_id ? (leadById.get(conversation.lead_id as string) ?? null) : null;
+      const lead = conversation['lead_id'] ? (leadById.get(conversation['lead_id'] as string) ?? null) : null;
 
       const intel: ConversationIntelligence = buildConversationIntelligence({
         messages: messages.map((m) => ({
-          sender: m.sender as "customer" | "ai" | "human",
-          body: String(m.body ?? ""),
-          created_at: m.created_at as string,
+          sender: m['sender'] as "customer" | "ai" | "human",
+          body: String(m['body'] ?? ""),
+          created_at: m['created_at'] as string,
         })),
         lead: lead
           ? {
@@ -152,11 +152,11 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
       });
 
       const customerMessages = messages
-        .filter((m) => m.sender === "customer")
-        .map((m) => String(m.body ?? ""));
+        .filter((m) => m['sender'] === "customer")
+        .map((m) => String(m['body'] ?? ""));
       const lastCustomerAt = messages
-        .filter((m) => m.sender === "customer")
-        .map((m) => new Date(m.created_at as string).getTime())
+        .filter((m) => m['sender'] === "customer")
+        .map((m) => new Date(m['created_at'] as string).getTime())
         .pop();
 
       const read = buildEliteRead({
@@ -186,8 +186,8 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
         conversation["ai_enabled"] === false;
 
       return {
-        conversationId: conversation.id as string,
-        leadId: (conversation.lead_id as string | null) ?? null,
+        conversationId: conversation['id'] as string,
+        leadId: (conversation['lead_id'] as string | null) ?? null,
         leadName: (lead?.["full_name"] as string | undefined) ?? "Unnamed enquiry",
         stage: (lead?.["stage"] as string | undefined) ?? "new",
         score: Number(lead?.["score"] ?? 0),
@@ -215,9 +215,9 @@ export async function loadEliteDesk(supabase: AnyClient): Promise<EliteDesk> {
                   : "This conversation was flagged for human attention."),
             })
           : null,
-      } satisfies EliteDeskItem;
+      } as EliteDeskItem;
     })
-    .filter((x): x is EliteDeskItem => x !== null)
+    .filter((x) => x !== null)
     .sort((a, b) => {
       const rank = (i: EliteDeskItem) =>
         (i.read.escalate ? 0 : i.read.psychology.readiness === "high" ? 1 : 2) * 1000 - i.score;
