@@ -85,3 +85,30 @@ export const prepareCheckout = createServerFn({ method: "POST" })
       return { status: "unavailable", reason: "provider_unavailable" };
     }
   });
+
+/**
+ * Whether a real self-serve checkout can currently be completed. Used only to
+ * pick honest CTA wording — it never grants anything.
+ */
+export const getCheckoutAvailability = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async (): Promise<{ available: boolean; reason: string | null }> => {
+    const clientToken = process.env["VITE_PAYMENTS_CLIENT_TOKEN"];
+    const environment: "sandbox" | "live" =
+      clientToken && !clientToken.startsWith("test_") ? "live" : "sandbox";
+    try {
+      const { PADDLE_PLAN_MAP } = await import("./paddle-mapping.core");
+      const { gatewayFetch } = await import("@/lib/paddle.server");
+      const response = await gatewayFetch(
+        environment,
+        `/prices?external_id=${encodeURIComponent(PADDLE_PLAN_MAP.pro.priceExternalId)}`,
+      );
+      if (!response.ok) return { available: false, reason: "price_lookup_failed" };
+      const result = (await response.json()) as { data?: Array<{ id: string }> };
+      return result.data?.length
+        ? { available: true, reason: null }
+        : { available: false, reason: "price_not_configured" };
+    } catch {
+      return { available: false, reason: "provider_unavailable" };
+    }
+  });
