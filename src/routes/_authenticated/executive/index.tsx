@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Radar,
   Sparkles,
+  Target,
   TicketCheck,
   TrendingUp,
   UserPlus,
