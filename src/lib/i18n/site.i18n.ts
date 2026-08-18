@@ -168,6 +168,22 @@ type SiteCopy = {
     ctaTrial: string;
     ctaDemo: string;
     ctaHuman: string;
+    dialog: {
+      description: string;
+      done: string;
+      close: string;
+      name: string;
+      agencyName: string;
+      email: string;
+      whatsapp: string;
+      agencySize: string;
+      agencySizePlaceholder: string;
+      monthlyEnquiries: string;
+      monthlyEnquiriesPlaceholder: string;
+      submit: string;
+      failed: string;
+      connection: string;
+    };
     gapStatus: {
       DETECTED: string;
       ASSESSING: string;
@@ -516,6 +532,23 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       ctaTrial: "Start Free Trial",
       ctaDemo: "Book Live Demo",
       ctaHuman: "Talk to our team",
+      dialog: {
+        description:
+          "Share only what our team needs to contact you. Your details are recorded for this request.",
+        done: "Your request has been recorded. Our team will contact you using the details you provided.",
+        close: "Close",
+        name: "Name",
+        agencyName: "Agency name",
+        email: "Email",
+        whatsapp: "WhatsApp",
+        agencySize: "Agency size",
+        agencySizePlaceholder: "e.g. 8 staff",
+        monthlyEnquiries: "Monthly enquiries",
+        monthlyEnquiriesPlaceholder: "e.g. 300",
+        submit: "Submit request",
+        failed: "We could not record your request. Please try again.",
+        connection: "Connection problem. Please try again.",
+      },
       gapStatus: {
         DETECTED: "Detected",
         ASSESSING: "Assessing",
@@ -761,6 +794,23 @@ export const SITE_COPY: Record<Locale, SiteCopy> = {
       ctaTrial: "Mulakan Percubaan Percuma",
       ctaDemo: "Tempah Demo Langsung",
       ctaHuman: "Hubungi pasukan kami",
+      dialog: {
+        description:
+          "Kongsi maklumat yang diperlukan sahaja supaya pasukan kami boleh menghubungi anda. Butiran anda direkod untuk permintaan ini.",
+        done: "Permintaan anda telah direkod. Pasukan kami akan menghubungi anda menggunakan butiran yang diberikan.",
+        close: "Tutup",
+        name: "Nama",
+        agencyName: "Nama agensi",
+        email: "Emel",
+        whatsapp: "WhatsApp",
+        agencySize: "Saiz agensi",
+        agencySizePlaceholder: "cth. 8 staf",
+        monthlyEnquiries: "Pertanyaan sebulan",
+        monthlyEnquiriesPlaceholder: "cth. 300",
+        submit: "Hantar permintaan",
+        failed: "Kami tidak dapat merekod permintaan anda. Sila cuba lagi.",
+        connection: "Masalah sambungan. Sila cuba lagi.",
+      },
       gapStatus: {
         DETECTED: "Dikesan",
         ASSESSING: "Sedang dinilai",
