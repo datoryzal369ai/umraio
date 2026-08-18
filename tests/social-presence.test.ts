@@ -142,3 +142,46 @@ describe("STEP 3D.1 — name & honorific evidence rules", () => {
     expect(socialPresenceInstruction(profile)).toContain("FIRST CONTACT");
   });
 });
+
+describe("Islamic adab & natural presence (Step 3D.1)", () => {
+  it("returns salam when the customer opens with it", () => {
+    const profile = buildSocialProfile({
+      messages: [{ sender: "customer", body: "Assalamualaikum, saya nak tanya pasal UMRAIO" }],
+    });
+    expect(profile.greetedWithSalam).toBe(true);
+    expect(profile.adabOpenings).toContain("RETURN_SALAM");
+    expect(socialPresenceInstruction(profile)).toContain("Waalaikumsalam");
+  });
+
+  it("does not force Islamic phrases when nothing calls for them", () => {
+    const profile = buildSocialProfile({
+      messages: [{ sender: "customer", body: "We use HubSpot for the pipeline right now." }],
+    });
+    expect(profile.greetedWithSalam).toBe(false);
+    const text = socialPresenceInstruction(profile);
+    expect(text).toContain("Do NOT insert");
+  });
+
+  it("marks Insya-Allah as natural when a next step is discussed", () => {
+    const profile = buildSocialProfile({
+      messages: [{ sender: "customer", body: "Ok, kita nak mula. Apa langkah seterusnya?" }],
+    });
+    expect(profile.adabOpenings).toContain("FORWARD_PLAN");
+    expect(socialPresenceInstruction(profile)).toContain("Insya-Allah");
+  });
+
+  it("never leaks internal psychology labels to the customer", () => {
+    const profile = buildSocialProfile({
+      messages: [{ sender: "customer", body: "Mahal sikit, saya kena fikir dulu" }],
+    });
+    const text = socialPresenceInstruction(profile);
+    expect(text).toContain("NEVER expose internal analysis labels");
+  });
+
+  it("keeps anda suppression and ethical sales guidance active", () => {
+    const profile = buildSocialProfile({ messages: [{ sender: "customer", body: "Sales saya merudum" }] });
+    const text = socialPresenceInstruction(profile);
+    expect(text).toContain('"anda" is NOT the default');
+    expect(text).toContain("ETHICAL SALES");
+  });
+});

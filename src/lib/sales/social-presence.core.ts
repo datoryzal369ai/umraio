@@ -376,6 +376,62 @@ export function detectHumanIdentityQuestion(text: string | null | undefined): bo
 /* Profile                                                             */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/* Islamic adab — contextual, never mechanical                         */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Moments where an Islamic expression is natural for a Malaysian Umrah
+ * business conversation. Nothing here forces a phrase; it only marks where
+ * one would be welcome so RAIŌ never sprinkles them as filler.
+ */
+export type AdabOpening =
+  | "RETURN_SALAM"
+  | "OFFER_HELP"
+  | "FORWARD_PLAN"
+  | "GOOD_NEWS"
+  | "REASSURANCE"
+  | "GRATITUDE";
+
+const SALAM_RE = /\b(assalamualaikum|assalamu'?alaikum|salam(?:\s+sejahtera)?|as-?salam)\b/i;
+
+const ADAB_PATTERNS: Array<{ opening: AdabOpening; re: RegExp }> = [
+  {
+    opening: "OFFER_HELP",
+    re: /(boleh bantu|tolong|help me|need help|nak tanya|minta bantuan|advise|nasihat)/i,
+  },
+  {
+    opening: "FORWARD_PLAN",
+    re: /(next step|langkah seterusnya|kita mula|start|nak buat|plan|rancang|proceed|teruskan)/i,
+  },
+  {
+    opening: "GOOD_NEWS",
+    re: /(dah settle|sudah settle|alhamdulillah|good news|berjaya|naik|meningkat|dah ok|dah jalan)/i,
+  },
+  {
+    opening: "REASSURANCE",
+    re: /(risau|bimbang|takut|worried|tak pasti|not sure|susah|stress|slow|merudum|menurun|drop)/i,
+  },
+  { opening: "GRATITUDE", re: /(terima kasih|thanks|thank you|tq|appreciate)/i },
+];
+
+export function detectSalam(text: string | null | undefined): boolean {
+  if (!text) return false;
+  return SALAM_RE.test(normalizeMessage(text));
+}
+
+/** Contextual adab openings present in the customer's latest message. */
+export function detectAdabOpenings(text: string | null | undefined): AdabOpening[] {
+  if (!text) return [];
+  const n = normalizeMessage(text);
+  const out: AdabOpening[] = [];
+  if (SALAM_RE.test(n)) out.push("RETURN_SALAM");
+  for (const p of ADAB_PATTERNS) if (p.re.test(n) && !out.includes(p.opening)) out.push(p.opening);
+  return out;
+}
+
+
+
 export type SocialProfile = {
   address: AddressReading;
   language: LanguageCode;
@@ -393,9 +449,14 @@ export type SocialProfile = {
   needsIntroduction: boolean;
   /** Facts already stated by the customer that must never be re-asked. */
   rememberedFacts: string[];
+  /** True when the customer opened with salam — the reply must return it. */
+  greetedWithSalam: boolean;
+  /** Where an Islamic expression would land naturally in this turn, if anywhere. */
+  adabOpenings: AdabOpening[];
 };
 
 const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+
 
 export function buildSocialProfile(input: {
   messages: SocialMessage[];
@@ -460,6 +521,9 @@ export function buildSocialProfile(input: {
     humanIdentityQuestion: detectHumanIdentityQuestion(last),
     isFirstTurn: customer.length <= 1,
     rememberedFacts,
+    greetedWithSalam: detectSalam(last) || detectSalam(joined),
+    adabOpenings: detectAdabOpenings(last),
+
   };
 }
 
@@ -558,7 +622,46 @@ export function socialPresenceInstruction(profile: SocialProfile): string {
   }
 
   lines.push(IDENTITY_RULE);
+  // Islamic adab — contextual only, never mechanical.
+
+  if (profile.greetedWithSalam) {
+    lines.push(
+      '- They greeted with salam. Return it once, naturally ("Waalaikumsalam.") before anything else, then continue. Do not repeat the salam in later replies.',
+    );
+  }
+  if (profile.adabOpenings.some((o) => o !== "RETURN_SALAM")) {
+    const map: Record<string, string> = {
+      OFFER_HELP: 'offering help ("Insya-Allah, saya boleh bantu tengok bahagian mana yang paling banyak ruang.")',
+      FORWARD_PLAN: 'proposing a next step ("Insya-Allah kita tengok satu-satu dahulu.")',
+      GOOD_NEWS: 'acknowledging good progress ("Alhamdulillah, kalau proses itu sudah berjalan...")',
+      REASSURANCE: 'reassuring them ("Semoga dipermudahkan — kita selesaikan satu-satu.")',
+      GRATITUDE: 'thanking them plainly ("Terima kasih.")',
+    };
+    const hits = profile.adabOpenings
+      .filter((o) => o !== "RETURN_SALAM")
+      .map((o) => map[o])
+      .filter(Boolean);
+    lines.push(
+      `- ISLAMIC ADAB (contextual): an Islamic expression would sit naturally here when ${hits.join(
+        "; ",
+      )}. Use AT MOST ONE such expression in this reply, and only if it genuinely fits. Never open every message with one, never use them as filler, never lecture on religion, and never use religion as sales pressure.`,
+    );
+  } else {
+    lines.push(
+      '- ISLAMIC ADAB: reflect Malaysian Muslim business etiquette through respect and warmth, not phrases. Do NOT insert "Insya-Allah", "Alhamdulillah" or "Masya-Allah" into this reply unless the moment truly calls for it (offering help, a forward plan, good news, reassurance).',
+    );
+  }
+  lines.push(
+    "- ETHICAL SALES (Islamic principle): understand the person first, then help them decide with confidence. Behavioural insight is for understanding, never manipulation — no fear, no guilt, no fabricated scarcity, no religious pressure, no guaranteed outcomes.",
+  );
+  lines.push(
+    '- NEVER expose internal analysis labels (price sensitivity, hesitation, trust concern, buying signal, stage). Say the human version instead: "Saya faham Dato\' nak pastikan kos itu betul-betul berbaloi sebelum buat keputusan."',
+  );
+  lines.push(
+    '- NATURAL EXECUTIVE LANGUAGE: speak as "saya"/"I", not "UMRAIO akan..." or "Your AI executive will...". Instead of "You need to improve your sales process", say "Saya rasa kita tak perlu ubah semuanya — kita cari dulu bahagian yang paling memberi kesan." Instead of "insufficient data", say "Setakat ini saya belum cukup maklumat untuk buat kesimpulan yang tepat."',
+  );
   lines.push(NO_CHATBOT_RULE);
+
   lines.push(
     "- Ethical persuasion only: no manufactured urgency, no false scarcity, no fabricated social proof or testimonials, no pressure after a clear rejection. Customer autonomy always wins.",
   );
