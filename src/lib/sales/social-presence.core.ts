@@ -126,6 +126,16 @@ export type AddressReading = {
   shouldAskHowToAddress: boolean;
 };
 
+export function detectSelfName(text: string | null | undefined): string | null {
+  if (!text) return null;
+  for (const re of NAME_PATTERNS) {
+    const m = re.exec(text);
+    const cleaned = cleanName(m?.[1]);
+    if (cleaned) return cleaned;
+  }
+  return null;
+}
+
 export function detectHonorific(text: string | null | undefined): Honorific | null {
   if (!text) return null;
   for (const p of HONORIFIC_PATTERNS) if (p.re.test(text)) return p.value;
