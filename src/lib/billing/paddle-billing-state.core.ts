@@ -24,7 +24,7 @@ import {
 } from "./paddle-mapping.core";
 
 export type PaddleBillingState = {
-  provider: "paddle";
+  provider: "paddle" | "stripe";
   environment: "sandbox" | "live";
   subscription_id: string;
   customer_id: string | null;
@@ -314,9 +314,15 @@ export function readBillingState(overrides: unknown): PaddleBillingState | null 
   const billing = (overrides as Record<string, unknown>)["billing"];
   if (!billing || typeof billing !== "object") return null;
   const candidate = billing as Partial<PaddleBillingState>;
-  if (candidate.provider !== "paddle" || typeof candidate.subscription_id !== "string") return null;
+  if (
+    (candidate.provider !== "paddle" && candidate.provider !== "stripe") ||
+    typeof candidate.subscription_id !== "string"
+  ) {
+    return null;
+  }
   return {
     ...emptyBillingState(candidate.subscription_id, candidate.environment ?? "sandbox"),
+    provider: candidate.provider,
     ...candidate,
     processed_events: Array.isArray(candidate.processed_events) ? candidate.processed_events : [],
   } as PaddleBillingState;
