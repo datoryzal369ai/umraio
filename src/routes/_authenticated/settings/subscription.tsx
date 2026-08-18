@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UsagePanel } from "@/components/settings/UsagePanel";
 import {
-  PLAN_CTA_LABEL,
   formatPlanPrice,
+  foundingSavings,
   foundingNote,
   publicPlans,
   resolveDisplayPlan,
@@ -91,6 +91,9 @@ function SubscriptionPage() {
             <Badge variant="secondary" className="mt-2 capitalize">
               {settings.plan_status}
             </Badge>
+            <p className="mt-2 text-xs text-muted-foreground">
+              No active paid subscription — payment is not yet implemented.
+            </p>
           </div>
           <div className="rounded-xl border border-border bg-surface p-4">
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Seats</p>
@@ -135,12 +138,18 @@ function SubscriptionPage() {
                   active ? "border-primary bg-primary/10" : "border-border bg-surface",
                 )}
               >
-                <p className="font-display text-lg font-bold">{plan.name}</p>
-                <p className="text-sm text-muted-foreground">{formatPlanPrice(plan)}</p>
+                <p className="font-display text-lg font-bold">{plan.baseName}</p>
+                <p className="text-xs text-muted-foreground">{plan.subtitle}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{formatPlanPrice(plan)}</p>
                 {note ? (
                   <p className="text-xs text-muted-foreground">
                     {note}
                     <span className="ml-1 line-through">RM{plan.referencePriceMyrMonthly}/month</span>
+                  </p>
+                ) : null}
+                {foundingSavings(plan) ? (
+                  <p className="mt-1 text-xs font-semibold text-primary">
+                    Jimat RM{foundingSavings(plan)}/bulan
                   </p>
                 ) : null}
                 <ul className="mt-4 flex-1 space-y-2 text-sm">
@@ -157,11 +166,7 @@ function SubscriptionPage() {
                   disabled={active || choose.isPending || plan.cta === "talk_to_team"}
                   onClick={() => choose.mutate(plan.id)}
                 >
-                  {active
-                    ? "Selected plan"
-                    : plan.cta === "talk_to_team"
-                      ? PLAN_CTA_LABEL[plan.cta]
-                      : `Select ${plan.baseName}`}
+                  {active ? "Selected plan" : plan.ctaLabel}
                 </Button>
               </div>
             );

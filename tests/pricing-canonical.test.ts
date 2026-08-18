@@ -5,6 +5,7 @@ import {
   LEGACY_PLAN_MAP,
   formatPlanPrice,
   foundingNote,
+  foundingSavings,
   getPlan,
   isLegacyPlanCode,
   pricingFactSheet,
@@ -87,5 +88,33 @@ describe("UMRAIO canonical pricing (Step 3G.1)", () => {
     expect(text).toContain("RM299/month");
     expect(text).toContain("Never invent discounts");
     expect(text).toMatch(/not processed in this demonstration/i);
+  });
+});
+
+describe("UMRAIO premium pricing presentation (Step 3G.1A)", () => {
+  it("Pro is the single visual hero with founding savings", () => {
+    const pro = getPlan("pro");
+    expect(pro.recommended).toBe(true);
+    expect(publicPlans().filter((p) => p.recommended)).toHaveLength(1);
+    expect(foundingSavings(pro)).toBe(200);
+    expect(foundingSavings(getPlan("basic"))).toBeNull();
+  });
+
+  it("each plan carries an honest, non-trial CTA label", () => {
+    expect(getPlan("basic").ctaLabel).toBe("Pilih Basic");
+    expect(getPlan("pro").ctaLabel).toBe("Pilih Pro Founding");
+    expect(getPlan("premium").ctaLabel).toBe("Pilih Premium");
+    expect(getPlan("enterprise").ctaLabel).toBe("Hubungi Kami");
+    for (const plan of publicPlans()) {
+      expect(plan.ctaLabel).not.toMatch(/free trial/i);
+      expect(plan.subtitle.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("features mirror the actual entitlement configuration", () => {
+    expect(getPlan("basic").features).toContain("1,500 AI Replies / month");
+    expect(getPlan("pro").features).toContain("5,000 AI Replies / month");
+    expect(getPlan("premium").features).toContain("20,000 AI Replies / month");
+    expect(getPlan("enterprise").features.join(" ")).toMatch(/custom/i);
   });
 });

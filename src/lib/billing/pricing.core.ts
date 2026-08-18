@@ -20,6 +20,14 @@ export const PLAN_CTA_LABEL: Record<PlanCta, string> = {
 
 export type CanonicalPlan = {
   id: CanonicalPlanId;
+  /** Short positioning line shown under the plan title. */
+  subtitle: string;
+  /** Exact CTA button label for this plan. */
+  ctaLabel: string;
+  /** Optional emphasis badges (e.g. MOST POPULAR / FOUNDING MEMBER). */
+  badges: readonly string[];
+  /** Visual hero plan on the pricing grid. */
+  recommended: boolean;
   /** Display name, e.g. "Pro — Founding". */
   name: string;
   /** Base plan name without founding suffix. */
@@ -42,6 +50,10 @@ export type CanonicalPlan = {
 export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
   {
     id: "basic",
+    subtitle: "Untuk agency yang baru mula",
+    ctaLabel: "Pilih Basic",
+    badges: [],
+    recommended: false,
     name: "Basic",
     baseName: "Basic",
     priceMyrMonthly: 199,
@@ -52,15 +64,22 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     cta: "start_free_trial",
     description: "For small Umrah agencies starting with autonomous WhatsApp enquiry handling.",
     features: [
-      "1 WhatsApp number",
-      "AI enquiry handling & qualification",
-      "Lead capture and CRM pipeline",
-      "Knowledge base",
+      "1 WhatsApp Number",
+      "1,500 AI Replies / month",
+      "300 AI Worker Tasks / month",
+      "3 Seats",
+      "Knowledge Base (50 articles)",
+      "AI Follow-up (assisted)",
+      "Basic Analytics",
     ],
     seats: 3,
   },
   {
     id: "pro",
+    subtitle: "FOUNDING MEMBER · EARLY ACCESS",
+    ctaLabel: "Pilih Pro Founding",
+    badges: ["★ MOST POPULAR", "FOUNDING MEMBER", "EARLY ACCESS"],
+    recommended: true,
     name: "Pro — Founding",
     baseName: "Pro",
     priceMyrMonthly: 299,
@@ -71,15 +90,24 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     cta: "start_free_trial",
     description: "For growing agencies that want governed autonomous execution and follow-ups.",
     features: [
-      "2 WhatsApp numbers",
+      "2 WhatsApp Numbers",
+      "5,000 AI Replies / month",
+      "1,000 AI Worker Tasks / month",
+      "10 Seats",
       "Autonomous follow-ups & task engine",
       "Quotations and conversion tracking",
-      "Full analytics",
+      "Knowledge Base (250 articles)",
+      "Full Analytics",
+      "Priority Support",
     ],
     seats: 10,
   },
   {
     id: "premium",
+    subtitle: "Untuk agency yang mahu scale",
+    ctaLabel: "Pilih Premium",
+    badges: [],
+    recommended: false,
     name: "Premium",
     baseName: "Premium",
     priceMyrMonthly: 799,
@@ -90,15 +118,23 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     cta: "start_free_trial",
     description: "For established agencies running high enquiry volume across multiple numbers.",
     features: [
-      "Multiple WhatsApp numbers",
-      "Higher AI reply and task limits",
-      "API access",
-      "Priority support",
+      "5 WhatsApp Numbers",
+      "20,000 AI Replies / month",
+      "4,000 AI Worker Tasks / month",
+      "30 Seats",
+      "Advanced Analytics",
+      "Knowledge Base (1,000 articles)",
+      "API Access",
+      "Dedicated Support",
     ],
     seats: 30,
   },
   {
     id: "enterprise",
+    subtitle: "Untuk Agency Group / Multi-Branch",
+    ctaLabel: "Hubungi Kami",
+    badges: [],
+    recommended: false,
     name: "Enterprise",
     baseName: "Enterprise",
     priceMyrMonthly: null,
@@ -109,10 +145,14 @@ export const CANONICAL_PLANS: readonly CanonicalPlan[] = [
     cta: "talk_to_team",
     description: "Custom scope, integrations and governance for larger operators and groups.",
     features: [
-      "Custom limits and integrations",
+      "Custom WhatsApp Numbers",
+      "Custom AI usage limits",
+      "Custom AI Worker capacity",
+      "Custom seats & multi-branch capability",
+      "API & Integrations",
       "Dedicated onboarding",
       "Custom governance requirements",
-      "Dedicated support",
+      "Priority support & SLA",
     ],
     seats: null,
   },
@@ -138,6 +178,15 @@ export function formatPlanPrice(plan: CanonicalPlan): string {
 export function foundingNote(plan: CanonicalPlan): string | null {
   if (!plan.founding || plan.referencePriceMyrMonthly === null) return null;
   return `Founding price · Reference RM${plan.referencePriceMyrMonthly}`;
+}
+
+/** "Jimat RM200/bulan" — savings vs the reference price, or null. */
+export function foundingSavings(plan: CanonicalPlan): number | null {
+  if (!plan.founding || plan.referencePriceMyrMonthly === null || plan.priceMyrMonthly === null) {
+    return null;
+  }
+  const diff = plan.referencePriceMyrMonthly - plan.priceMyrMonthly;
+  return diff > 0 ? diff : null;
 }
 
 /* ------------------------------------------------------------------ *
