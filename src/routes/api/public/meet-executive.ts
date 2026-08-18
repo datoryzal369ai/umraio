@@ -80,8 +80,12 @@ export const Route = createFileRoute("/api/public/meet-executive")({
         try {
           body = bodySchema.parse(await request.json());
         } catch {
-          return Response.json({ error: "Invalid request" }, { status: 400 });
+          return Response.json({ error: GENERIC_FAILURE }, { status: 400 });
         }
+        if (!body.messages.length) {
+          return Response.json({ error: GENERIC_FAILURE }, { status: 400 });
+        }
+
 
         // Abuse / cost protection for this unauthenticated endpoint.
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
