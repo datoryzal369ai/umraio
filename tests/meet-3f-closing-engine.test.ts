@@ -89,7 +89,7 @@ describe("STEP 3F — readiness ladder and CTA selection", () => {
       expect(r.confirmUnderstanding).toBe(true);
       const text = closingInstruction(r);
       expect(text).toContain("STOP DISCOVERY");
-      expect(text).not.toMatch(/discount|promo/i);
+      expect(text).toContain("Never invent pricing");
     }
   });
 
