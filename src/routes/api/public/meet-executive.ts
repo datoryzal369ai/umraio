@@ -11,17 +11,22 @@ import { z } from "zod";
  *  - never sends WhatsApp messages or creates CRM records.
  */
 
+/**
+ * STEP 3E.1 — a legitimate long sales conversation must never be rejected.
+ * The ceiling is only an abuse guard; anything above the model window is
+ * compacted server-side (see compactMeetConversation) instead of erroring.
+ */
 const bodySchema = z.object({
   language: z.enum(["auto", "ms", "en"]).optional(),
   messages: z
     .array(
       z.object({
         role: z.enum(["visitor", "executive"]),
-        content: z.string().min(1).max(1500),
+        content: z.string().min(1).max(4000),
       }),
     )
     .min(1)
-    .max(16),
+    .max(400),
 });
 
 const SYSTEM = [
