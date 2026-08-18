@@ -35,9 +35,9 @@ export const shellCopy = createDict({
         marketing: "AI Marketing Executive",
         content: "AI Content Executive",
         lead_intel: "AI Lead Intelligence",
+        sales_elite: "AI SALES ELITE™",
       },
       futureModules: {
-        sales: "AI Sales Executive",
         quotation: "AI Quotation Executive",
         followup: "AI Follow-up Executive",
         customerSuccess: "AI Customer Success Executive",
@@ -175,9 +175,9 @@ export const shellCopy = createDict({
         marketing: "AI Marketing Executive",
         content: "AI Content Executive",
         lead_intel: "AI Lead Intelligence",
+        sales_elite: "AI SALES ELITE™",
       },
       futureModules: {
-        sales: "AI Sales Executive",
         quotation: "AI Quotation Executive",
         followup: "AI Follow-up Executive",
         customerSuccess: "AI Customer Success Executive",
