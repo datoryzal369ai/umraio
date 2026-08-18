@@ -50,7 +50,7 @@ describe("A — curious agency", () => {
     expect(intel.diagnosis).toBeNull();
   });
   test("salam is recognised so it can be returned", () => {
-    expect(social.salamReceived).toBe(true);
+    expect(social.greetedWithSalam).toBe(true);
   });
   test("no name or honorific is invented", () => {
     expect(social.address.name).toBeNull();
