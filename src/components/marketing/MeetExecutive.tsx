@@ -177,7 +177,7 @@ export function MeetExecutive() {
                   : "mr-auto max-w-[90%] rounded-2xl rounded-bl-sm border border-border/60 bg-surface/60 px-4 py-2.5 text-sm leading-relaxed"
               }
             >
-              <span className="sr-only">{m.role === "visitor" ? "You: " : "Executive: "}</span>
+              <span className="sr-only">{m.role === "visitor" ? "You: " : "RAIŌ: "}</span>
               {m.content.split("\n").map((line, li) => (
                 <p key={li} className={li ? "mt-2" : undefined}>
                   {line}
