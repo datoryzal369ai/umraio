@@ -277,10 +277,16 @@ export function buildClosingRead(input: {
       readiness === "READY_TO_TRIAL" ||
       readiness === "HESITANT" ||
       readiness === "BLOCKED" ||
+      intent.kind === "PAYMENT" ||
+      intent.kind === "PRICE" ||
       postCta === "SEND_DETAILS",
     confirmUnderstanding:
-      (readiness === "READY_TO_SUBSCRIBE" || readiness === "READY_TO_TRIAL") && !ctaPresented,
+      (readiness === "READY_TO_SUBSCRIBE" || readiness === "READY_TO_TRIAL") &&
+      intent.kind !== "PAYMENT" &&
+      !ctaPresented,
     highIntent: intent.high,
+    paymentQuestion: intent.kind === "PAYMENT",
+    priceQuestion: intent.kind === "PRICE",
     intentEvidence: intent.evidence,
     ctaPresented,
     postCta,
