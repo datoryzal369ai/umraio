@@ -398,6 +398,8 @@ const EMOJI_RE = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
 export function buildSocialProfile(input: {
   messages: SocialMessage[];
   knownName?: string | null;
+  /** Honorific already verified in trusted context (lead record, CRM). */
+  knownHonorific?: string | null;
   knownFacts?: Record<string, string | number | null | undefined>;
 }): SocialProfile {
   const customer = input.messages.filter((m) => m.sender === "customer").map((m) => m.body ?? "");
@@ -434,12 +436,17 @@ export function buildSocialProfile(input: {
     rememberedFacts.push(`${key} = ${value}`);
   }
 
+  const address = resolveAddress({
+    customerMessages: customer,
+    knownName: input.knownName ?? null,
+    trustedHonorific: input.knownHonorific ?? null,
+    turnCount: customer.length,
+  });
+
   return {
-    address: resolveAddress({
-      customerMessages: customer,
-      knownName: input.knownName ?? null,
-      turnCount: customer.length,
-    }),
+    address,
+    needsIntroduction: customer.length <= 2 && address.confidence === "UNKNOWN",
+
     language: detectMessageLanguage(last)?.language ?? detectMessageLanguage(joined)?.language ?? "ms",
     register,
     pacing,
