@@ -63,7 +63,14 @@ const workerIcon: Record<string, typeof Bot> = {
   marketing: Sparkles,
   content: BrainCircuit,
   lead_intel: Radar,
+  sales_elite: Target,
 };
+
+/** Workers that own a dedicated workspace route instead of the generic worker page. */
+const WORKER_ROUTES: Record<string, "/sales-elite"> = {
+  sales_elite: "/sales-elite",
+};
+
 
 function ExecutiveCenter() {
   const copy = useCopy(EXECUTIVE_DICT).overview;
