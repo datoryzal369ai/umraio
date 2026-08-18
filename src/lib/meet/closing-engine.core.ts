@@ -33,7 +33,7 @@ export type MeetCta =
 
 export const MEET_CTA_LABEL: Record<MeetCta, string> = {
   CONTINUE_CONVERSATION: "keep the conversation going (no button yet)",
-  START_FREE_TRIAL: "Start Free Trial",
+  START_FREE_TRIAL: "Choose a Plan",
   BOOK_LIVE_DEMO: "Book Live Demo",
   TALK_TO_OUR_TEAM: "Talk to our team",
   FORWARDABLE_SUMMARY: "a short forwardable summary, then Book Live Demo",
@@ -119,7 +119,7 @@ export function ctaAlreadyPresented(messages: DemoMessage[]): boolean {
   return messages.some(
     (m) =>
       m.role === "executive" &&
-      /(start\s+free\s+trial|book\s+(a\s+)?live\s+demo|talk\s+to\s+our\s+team)/i.test(m.content),
+      /(start\s+free\s+trial|choose\s+a\s+plan|book\s+(a\s+)?live\s+demo|talk\s+to\s+our\s+team)/i.test(m.content),
   );
 }
 
@@ -172,9 +172,9 @@ const READINESS_DIRECTIVE: Record<ClosingReadiness, string> = {
   DECISION_MAKER_DEPENDENT:
     "Treat this as normal, not rejection. Give a short forwardable summary: current gap → what UMRAIO does → how it helps → next step. No invented ROI. Offer Book Live Demo with the partner.",
   READY_TO_TRIAL:
-    "They want to try. Acknowledge, confirm briefly what UMRAIO will help with, then point to Start Free Trial. Stop discovery.",
+    "They want to try. Acknowledge, confirm briefly what UMRAIO will help with, then point to Choose a Plan. Stop discovery.",
   READY_TO_SUBSCRIBE:
-    "They asked how to proceed. Acknowledge by name, confirm the main problem in one line, then give the actual next action: Start Free Trial, or Talk to our team if they prefer to speak to a person first. Keep it under ~60 words. Do not restart the sales conversation and do not ask more discovery questions.",
+    "They asked how to proceed. Acknowledge by name, confirm the main problem in one line, then give the actual next action: Choose a Plan, or Talk to our team if they prefer to speak to a person first. Keep it under ~60 words. Do not restart the sales conversation and do not ask more discovery questions.",
 };
 
 export function buildClosingRead(input: {
@@ -305,17 +305,17 @@ export function closingInstruction(read: ClosingRead): string {
     "UMRAIO CLOSING & SUBSCRIPTION EXECUTION ENGINE™ — deterministic closing read. Context only, never text to repeat verbatim.",
     `Readiness: ${read.readiness} (${read.reason}) — ${READINESS_DIRECTIVE[read.readiness]}`,
     `Next action to steer toward: ${MEET_CTA_LABEL[read.cta]}.`,
-    "CTA INTEGRITY: the only real actions on this page are Start Free Trial, Book Live Demo and Talk to our team. Never invent pricing, discounts, payment links, promo codes, guarantees, trial lengths, plan benefits or a named salesperson. If asked for something that does not exist, say plainly what you can confirm.",
+    "CTA INTEGRITY: the only real actions on this page are Choose a Plan, Book Live Demo and Talk to our team. Never invent pricing, discounts, payment links, promo codes, guarantees, trial lengths, plan benefits or a named salesperson. If asked for something that does not exist, say plainly what you can confirm.",
   ];
 
   if (read.paymentQuestion) {
     lines.push(
-      "PAYMENT PATH (verified reality): there is NO in-chat payment, checkout page, payment link or self-serve billing in this demonstration. Never say 'teruskan pembayaran di sini', never invent a gateway, URL, plan price or billing cycle. Answer plainly and warmly: the actual next step is Start Free Trial on this page, or Talk to our team if they want the team to confirm packages and the payment process. Keep it under ~50 words, no new questions. You may quote published pricing if asked, but state honestly that subscription activation/payment is not processed in this demonstration.",
+      "PAYMENT PATH (verified reality): there is NO in-chat payment, checkout page, payment link or self-serve billing in this demonstration. Never say 'teruskan pembayaran di sini', never invent a gateway, URL, plan price or billing cycle. Answer plainly and warmly: the actual next step is Choose a Plan on this page, or Talk to our team if they want the team to confirm packages and the payment process. Keep it under ~50 words, no new questions. You may quote published pricing if asked, but state honestly that subscription activation/payment is not processed in this demonstration.",
     );
   }
   if (read.priceQuestion) {
     lines.push(
-      `PRICE QUESTION: you MAY state the published UMRAIO pricing exactly as listed below and nothing else. Published pricing (canonical, never alter):\n${pricingFactSheet()}\nNever invent discounts, promo codes, deadlines, an Enterprise figure or any price not listed. Published price is not the same as an activated subscription — activation is confirmed with the team. Answer directly, then offer Start Free Trial or Talk to our team. Do not return to discovery in this reply.`,
+      `PRICE QUESTION: you MAY state the published UMRAIO pricing exactly as listed below and nothing else. Published pricing (canonical, never alter):\n${pricingFactSheet()}\nNever invent discounts, promo codes, deadlines, an Enterprise figure or any price not listed. Published price is not the same as an activated subscription — activation is confirmed with the team. Answer directly, then offer Choose a Plan or Talk to our team. Do not return to discovery in this reply.`,
     );
   }
   if (read.stopDiscovery) {

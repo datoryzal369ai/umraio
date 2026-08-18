@@ -79,9 +79,9 @@ const STATE_DIRECTIVE: Record<ConversionState, string> = {
   DECISION:
     "They are deciding or must consult someone. Give a short forwardable summary, agree a check-back, and stop selling.",
   TRIAL_READY:
-    "Move them to Start Free Trial on this page. Stop selling, confirm what happens next.",
+    "Move them to Choose a Plan on this page. Stop selling, confirm what happens next.",
   SUBSCRIPTION_READY:
-    "Direct them to Start Free Trial or Talk to our team so a specialist confirms the plan. Never invent pricing or discounts.",
+    "Direct them to Choose a Plan or Talk to our team so a specialist confirms the plan. Never invent pricing or discounts.",
   HUMAN_HANDOFF:
     "Stop autonomous selling. Confirm a specialist will continue and ask nothing further about their business.",
 };
