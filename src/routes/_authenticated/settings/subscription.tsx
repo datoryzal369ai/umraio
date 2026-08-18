@@ -60,7 +60,7 @@ function SubscriptionPage() {
       });
     },
     onSuccess: () => {
-      toast.success("Plan selection recorded. No payment has been taken — our team confirms activation.");
+      toast.success(copy.selectionRecorded);
       queryClient.invalidateQueries({ queryKey: ["agency-settings"] });
     },
     onError: (error: Error) => toast.error(error.message),
@@ -81,34 +81,35 @@ function SubscriptionPage() {
             <CreditCard className="size-4 text-primary" />
           </div>
           <div>
-            <h2 className="font-display text-base font-semibold tracking-tight">Selected plan</h2>
-            <p className="text-xs text-muted-foreground">
-              Your selected plan and usage. Paid subscription activation is confirmed by the UMRAIO
-              team.
-            </p>
+            <h2 className="font-display text-base font-semibold tracking-tight">
+              {copy.selectedPlanHeading}
+            </h2>
+            <p className="text-xs text-muted-foreground">{copy.selectedPlanNote}</p>
           </div>
         </header>
 
         <div className="grid gap-3 sm:grid-cols-3">
           <div className="rounded-xl border border-border bg-surface p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Selected plan</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">
+              {copy.selectedPlanHeading}
+            </p>
             <p className="mt-1 font-display text-lg font-bold">{current.name}</p>
             <Badge variant="secondary" className="mt-2 capitalize">
               {settings.plan_status}
             </Badge>
             <p className="mt-2 text-xs text-muted-foreground">
-              No active paid subscription — payment is not yet implemented.
+              {copy.noActiveSubscription}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-surface p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Seats</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.seats}</p>
             <p className="mt-1 flex items-center gap-2 font-display text-lg font-bold">
               <Users className="size-4 text-primary" />
               {settings.seats}
             </p>
           </div>
           <div className="rounded-xl border border-border bg-surface p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Renews</p>
+            <p className="text-xs uppercase tracking-wide text-muted-foreground">{copy.renews}</p>
             <p className="mt-1 font-display text-lg font-bold">
               {settings.renews_at ? new Date(settings.renews_at).toLocaleDateString() : "—"}
             </p>
