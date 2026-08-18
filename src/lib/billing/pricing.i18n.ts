@@ -44,6 +44,8 @@ type SectionCopy = {
   activationRequested: string;
   checkoutUnavailable: string;
   openingCheckout: string;
+  manageBilling: string;
+  portalUnavailable: string;
 };
 
 export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
@@ -79,6 +81,9 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
     checkoutUnavailable:
       "Pembayaran dalam sistem belum tersedia. Permintaan anda direkod dan pasukan kami akan sahkan pengaktifan.",
     openingCheckout: "Membuka pembayaran…",
+    manageBilling: "Urus Bil & Pembayaran",
+    portalUnavailable:
+      "Tiada langganan aktif untuk diurus lagi.",
   },
   en: {
     eyebrow: "Pricing",
@@ -111,6 +116,8 @@ export const PRICING_SECTION_COPY: Record<Locale, SectionCopy> = {
     checkoutUnavailable:
       "Checkout is not available yet. Your request has been recorded and our team confirms activation.",
     openingCheckout: "Opening checkout…",
+    manageBilling: "Manage billing",
+    portalUnavailable: "No active subscription to manage yet.",
   },
 };
 

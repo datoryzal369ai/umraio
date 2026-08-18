@@ -76,7 +76,7 @@ function SubscriptionPage() {
     mutationFn: async () => manageBilling({}),
     onSuccess: (result) => {
       if ("url" in result) window.location.href = result.url;
-      else toast.error(copy.noActiveSubscription);
+      else toast.error(copy.portalUnavailable);
     },
     onError: (error: Error) => toast.error(error.message),
   });
