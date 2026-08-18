@@ -392,17 +392,18 @@ function SalesIntelligencePanel({
 }: {
   snapshot: ConversationIntelligenceSnapshot | null;
 }) {
+  const t = useCopy(WORKSPACE_COPY).conversation;
   if (!snapshot?.state) return null;
   const chips: Array<{ label: string; value: string }> = [
-    { label: "Stage", value: snapshot.state.replaceAll("_", " ").toLowerCase() },
-    snapshot.language ? { label: "Language", value: snapshot.language.toUpperCase() } : null,
-    snapshot.style ? { label: "Style", value: snapshot.style.replaceAll("_", " ") } : null,
+    { label: t.stageChip, value: snapshot.state.replaceAll("_", " ").toLowerCase() },
+    snapshot.language ? { label: t.languageChip, value: snapshot.language.toUpperCase() } : null,
+    snapshot.style ? { label: t.styleChip, value: snapshot.style.replaceAll("_", " ") } : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
     <div className="panel p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        Sales intelligence
+        {t.salesIntelligence}
       </h2>
       <div className="mt-3 flex flex-wrap gap-2">
         {chips.map((c) => (
@@ -415,45 +416,45 @@ function SalesIntelligencePanel({
         ))}
         {typeof snapshot.quality_score === "number" && (
           <span className="rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">
-            Conversation quality: {snapshot.quality_score}/100
+            {t.conversationQuality}: {snapshot.quality_score}/100
           </span>
         )}
       </div>
       {snapshot.next_best_action && (
         <p className="mt-3 text-sm">
-          <span className="text-muted-foreground">Next best action: </span>
+          <span className="text-muted-foreground">{t.nextBestAction}: </span>
           {HUMANISED[snapshot.next_best_action] ?? snapshot.next_best_action}
         </p>
       )}
       {snapshot.objection_memory?.length ? (
         <p className="mt-2 text-xs text-muted-foreground">
-          Objections raised: {snapshot.objection_memory.join(", ").toLowerCase().replaceAll("_", " ")}
+          {t.objectionsRaised}: {snapshot.objection_memory.join(", ").toLowerCase().replaceAll("_", " ")}
         </p>
       ) : null}
       {snapshot.buying_signals?.length ? (
         <p className="mt-1 text-xs text-chart-4">
-          Buying signals: {snapshot.buying_signals.join(", ").toLowerCase().replaceAll("_", " ")}
+          {t.buyingSignals}: {snapshot.buying_signals.join(", ").toLowerCase().replaceAll("_", " ")}
         </p>
       ) : null}
       {snapshot.missing?.length ? (
-        <p className="mt-1 text-xs text-muted-foreground">Still unknown: {snapshot.missing.join(", ")}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t.stillUnknown}: {snapshot.missing.join(", ")}</p>
       ) : null}
       {snapshot.behavior?.strategy ? (
         <div className="mt-4 border-t border-border/60 pt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Behavioural read
+            {t.behaviouralRead}
           </p>
           <p className="mt-2 text-sm">
-            <span className="text-muted-foreground">Strategy: </span>
+            <span className="text-muted-foreground">{t.strategy}: </span>
             {STRATEGY_LABEL[snapshot.behavior.strategy] ?? snapshot.behavior.strategy}
           </p>
           <div className="mt-2 flex flex-wrap gap-2">
             {[
-              ["Readiness", snapshot.behavior.decision_readiness?.value],
-              ["Trust", snapshot.behavior.trust?.value],
-              ["Hesitation", snapshot.behavior.hesitation?.value],
-              ["Price sensitivity", snapshot.behavior.price_sensitivity?.value],
-              ["Closing readiness", snapshot.behavior.closing_readiness?.value],
+              [t.readiness, snapshot.behavior.decision_readiness?.value],
+              [t.trust, snapshot.behavior.trust?.value],
+              [t.hesitation, snapshot.behavior.hesitation?.value],
+              [t.priceSensitivity, snapshot.behavior.price_sensitivity?.value],
+              [t.closingReadiness, snapshot.behavior.closing_readiness?.value],
             ]
               .filter(([, v]) => v && v !== "UNKNOWN" && v !== "NONE")
               .map(([label, v]) => (
@@ -467,12 +468,12 @@ function SalesIntelligencePanel({
           </div>
           {snapshot.behavior.decision_maker_dependency && snapshot.behavior.decision_makers?.length ? (
             <p className="mt-2 text-xs text-muted-foreground">
-              Waiting on: {snapshot.behavior.decision_makers.join(", ").toLowerCase()}
+              {t.waitingOn}: {snapshot.behavior.decision_makers.join(", ").toLowerCase()}
             </p>
           ) : null}
           {snapshot.behavior.value_dimensions?.length ? (
             <p className="mt-1 text-xs text-muted-foreground">
-              Cares about: {snapshot.behavior.value_dimensions.join(", ").toLowerCase().replaceAll("_", " ")}
+              {t.caresAbout}: {snapshot.behavior.value_dimensions.join(", ").toLowerCase().replaceAll("_", " ")}
             </p>
           ) : null}
         </div>
