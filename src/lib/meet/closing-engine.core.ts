@@ -174,7 +174,7 @@ export function buildClosingRead(input: {
 
   const objections = new Set(conversion.activeObjections);
   const decisionMaker =
-    objections.has("DECISION_MAKER") ||
+    objections.has("NEEDS_PARTNER_APPROVAL") ||
     /\b(partner|bincang\s+dengan|discuss\s+with\s+(my|our)\s+(partner|boss|team)|kena\s+tanya\s+boss)\b/i.test(
       maskNegatedSpans(normalizeMessage(visitor.slice(-3).join("\n"))),
     );
@@ -197,10 +197,10 @@ export function buildClosingRead(input: {
   } else if (decisionMaker) {
     readiness = "DECISION_MAKER_DEPENDENT";
     reason = "The owner must consult a partner or another decision maker.";
-  } else if (objections.has("PRICE") || objections.has("BUDGET")) {
+  } else if (objections.has("COST")) {
     readiness = "CONSIDERING";
     reason = "Price or budget concern is active — clarify value before any CTA.";
-  } else if (objections.has("COMPETITOR") || objections.has("EXISTING_TOOL") || objections.has("CRM")) {
+  } else if (objections.has("ALREADY_HAVE_CRM") || objections.has("ALREADY_HAVE_SALES_TEAM") || objections.has("TEAM_CAN_DO_IT")) {
     readiness = "COMPARING";
     reason = "They are comparing UMRAIO with an existing tool.";
   } else if (objections.size) {
@@ -246,8 +246,7 @@ export function buildClosingRead(input: {
   // Complex / high-value cases are better served by a person.
   const complex =
     (intel.facts.salesTeam != null && intel.facts.salesTeam >= 20) ||
-    objections.has("TRUST") ||
-    objections.has("SECURITY");
+    objections.has("DATA_SECURITY");
   if (complex && (cta === "START_FREE_TRIAL" || cta === "CONTINUE_CONVERSATION") && readiness !== "EXPLORING") {
     cta = cta === "START_FREE_TRIAL" ? "START_FREE_TRIAL" : "TALK_TO_OUR_TEAM";
   }
