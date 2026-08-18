@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { Check, CreditCard, Sparkles, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -7,7 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LanguageSelector } from "@/components/app/LanguageSelector";
+import { PaymentTestModeBanner } from "@/components/settings/PaymentTestModeBanner";
 import { UsagePanel } from "@/components/settings/UsagePanel";
+import { useAuth } from "@/hooks/useAuth";
+import { getCheckoutAvailability, prepareCheckout } from "@/lib/billing/checkout.functions";
 import { publicPlans, resolveDisplayPlan } from "@/lib/billing/pricing.core";
 import {
   PRICING_SECTION_COPY,
@@ -19,6 +23,7 @@ import {
 import { useCopy } from "@/lib/i18n/dict";
 import { settingsCopy } from "@/lib/i18n/app/settings.i18n";
 import { useLocale } from "@/lib/i18n/locale";
+import { initializePaddle } from "@/lib/paddle";
 import { fetchAgency, fetchSettings, updateSettings } from "@/lib/settings";
 import { cn } from "@/lib/utils";
 
