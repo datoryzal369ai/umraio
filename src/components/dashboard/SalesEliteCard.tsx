@@ -123,8 +123,8 @@ export function SalesEliteCard({ data }: { data: DashboardData }) {
 
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline">
-          <Link to="/crm">
-            Open pipeline <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
+          <Link to="/sales-elite">
+            Open AI SALES ELITE™ <ArrowRight className="ml-1 size-3.5" aria-hidden="true" />
           </Link>
         </Button>
         <Button asChild size="sm" variant="ghost">

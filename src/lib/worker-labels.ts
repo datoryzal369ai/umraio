@@ -3,4 +3,5 @@ export const WORKER_LABELS: Record<string, string> = {
   marketing: "AI Marketing Executive",
   content: "AI Content Executive",
   lead_intel: "AI Lead Intelligence",
+  sales_elite: "AI SALES ELITE™",
 };

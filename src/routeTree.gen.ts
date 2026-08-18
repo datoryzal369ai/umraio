@@ -22,6 +22,7 @@ import { Route as AuthenticatedAnalyticsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedSalesEliteRouteImport } from './routes/_authenticated/sales-elite'
 import { Route as AuthenticatedSettingsRouteRouteImport } from './routes/_authenticated/settings/route'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as QTokenRouteImport } from './routes/q.$token'
@@ -110,6 +111,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSalesEliteRoute = AuthenticatedSalesEliteRouteImport.update({
+  id: '/sales-elite',
+  path: '/sales-elite',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSettingsRouteRoute =
@@ -270,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/sales-elite': typeof AuthenticatedSalesEliteRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/q/$token': typeof QTokenRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
@@ -308,6 +315,7 @@ export interface FileRoutesByTo {
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/sales-elite': typeof AuthenticatedSalesEliteRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/q/$token': typeof QTokenRoute
   '/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
@@ -349,6 +357,7 @@ export interface FileRoutesById {
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/sales-elite': typeof AuthenticatedSalesEliteRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/q/$token': typeof QTokenRoute
   '/_authenticated/conversations/$conversationId': typeof AuthenticatedConversationsConversationIdRoute
@@ -390,6 +399,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/sales-elite'
     | '/tasks'
     | '/q/$token'
     | '/conversations/$conversationId'
@@ -428,6 +438,7 @@ export interface FileRouteTypes {
     | '/crm'
     | '/dashboard'
     | '/profile'
+    | '/sales-elite'
     | '/tasks'
     | '/q/$token'
     | '/conversations/$conversationId'
@@ -468,6 +479,7 @@ export interface FileRouteTypes {
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
+    | '/_authenticated/sales-elite'
     | '/_authenticated/tasks'
     | '/q/$token'
     | '/_authenticated/conversations/$conversationId'
@@ -605,6 +617,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sales-elite': {
+      id: '/_authenticated/sales-elite'
+      path: '/sales-elite'
+      fullPath: '/sales-elite'
+      preLoaderRoute: typeof AuthenticatedSalesEliteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settings': {
@@ -821,6 +840,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedSalesEliteRoute: typeof AuthenticatedSalesEliteRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedConversationsConversationIdRoute: typeof AuthenticatedConversationsConversationIdRoute
   AuthenticatedExecutiveWorkerKeyRoute: typeof AuthenticatedExecutiveWorkerKeyRoute
@@ -837,6 +857,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedSalesEliteRoute: AuthenticatedSalesEliteRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedConversationsConversationIdRoute:
     AuthenticatedConversationsConversationIdRoute,

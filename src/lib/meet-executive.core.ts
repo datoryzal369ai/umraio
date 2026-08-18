@@ -276,7 +276,12 @@ export const CAPABILITIES: Capability[] = [
     role: "Content generation",
     status: "active",
   },
-  { key: "sales", name: "AI Sales Executive", role: "Standalone sales worker", status: "upcoming" },
+  {
+    key: "sales_elite",
+    name: "AI SALES ELITE™",
+    role: "Elite sales intelligence, objection handling and closing",
+    status: "active",
+  },
   {
     key: "quotation",
     name: "AI Quotation Executive",
