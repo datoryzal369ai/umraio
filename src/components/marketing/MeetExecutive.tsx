@@ -56,6 +56,7 @@ export function MeetExecutive() {
   const logRef = useRef<HTMLDivElement>(null);
 
   const intel = useMemo(() => analyzeMeetConversation(messages), [messages]);
+  const conversion = useMemo(() => analyzeConversion(intel, messages), [intel, messages]);
   const visibleGaps = intel.gaps.filter((g) => g.status !== "NOT_YET_ESTABLISHED");
   const recommended = CAPABILITIES.filter(
     (c) => c.status === "active" && intel.recommendedCapabilities.includes(c.key),
