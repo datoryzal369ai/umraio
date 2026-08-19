@@ -74,7 +74,9 @@ const WORKER_ROUTES: Record<string, "/sales-elite"> = {
 
 
 function ExecutiveCenter() {
-  const copy = useCopy(EXECUTIVE_DICT).overview;
+  const dict = useCopy(EXECUTIVE_DICT);
+  const copy = dict.overview;
+  const workforceCopy = dict.commandPanel;
 
   const relative = (iso: string) => {
     const mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
