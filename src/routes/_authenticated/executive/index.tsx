@@ -200,7 +200,14 @@ function ExecutiveCenter() {
             ? Array.from({ length: 4 }).map((_, i) => (
                 <Skeleton key={i} className="h-44 rounded-2xl" />
               ))
-            : (workers.data ?? []).map((worker) => {
+            : [...(workers.data ?? [])]
+                .sort(
+                  (a, b) =>
+                    (b.worker_key === "sales_elite" ? 1 : 0) -
+                      (a.worker_key === "sales_elite" ? 1 : 0) ||
+                    Number(b.is_enabled) - Number(a.is_enabled),
+                )
+                .map((worker) => {
                 const Icon = workerIcon[worker.worker_key] ?? Bot;
                 const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
                 return (
@@ -211,7 +218,7 @@ function ExecutiveCenter() {
                           <Icon className="size-5 text-primary" />
                         </div>
                         <div className="min-w-0">
-                          <h3 className="truncate text-base font-semibold">{worker.name}</h3>
+                          <h3 className="text-base font-semibold leading-tight">{worker.name}</h3>
                           <p className="text-xs text-muted-foreground">{worker.description}</p>
                         </div>
                       </div>
