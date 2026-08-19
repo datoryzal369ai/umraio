@@ -440,7 +440,11 @@
   --border: rgba(10, 35, 55, 0.12);
   --input: rgba(10, 35, 55, 0.16);
   --ring: rgba(10, 126, 164, 0.45);
+  --chart-1: #0a7ea4;
+  --chart-2: #1f6feb;
+  --chart-3: #0f6f8c;
   --chart-4: #1f6feb;
+  --chart-5: #3f7fa8;
   color: var(--foreground);
 }
 
