@@ -59,7 +59,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-emerald: var(--emerald);
+  --color-emerald-bright: var(--emerald-bright);
+  --color-emerald-soft: var(--emerald-soft);
+  --color-verdant: var(--verdant);
 }
+
 
 :root,
 .dark {
@@ -117,7 +122,17 @@
   --shadow-elevated: 0 24px 70px -30px rgba(0, 215, 255, 0.6);
   --shadow-panel: 0 1px 0 0 rgba(255, 255, 255, 0.06) inset;
   --shadow-glow: 0 0 0 1px rgba(0, 215, 255, 0.28), 0 18px 50px -20px rgba(0, 215, 255, 0.5);
+  /* Premium emerald accent system (executive hierarchy only) */
+  --emerald: #10b981;
+  --emerald-bright: #22c55e;
+  --emerald-soft: #34d399;
+  --verdant: #4caf50;
+  --emerald-surface: rgba(16, 185, 129, 0.06);
+  --emerald-border: rgba(52, 211, 153, 0.22);
+  --emerald-glow: rgba(16, 185, 129, 0.16);
+  --gradient-emerald: linear-gradient(120deg, #ffffff 10%, #34d399 55%, #10b981 100%);
 }
+
 
 
 
@@ -181,6 +196,57 @@
     transform: translateY(-2px);
   }
 }
+
+/* --- Executive hierarchy: premium emerald layer --- */
+
+@utility panel-executive {
+  position: relative;
+  background-color: color-mix(in oklab, var(--color-card) 88%, transparent);
+  background-image:
+    radial-gradient(120% 90% at 8% -10%, var(--emerald-glow), transparent 58%),
+    radial-gradient(90% 70% at 100% 0%, rgba(0, 215, 255, 0.08), transparent 60%);
+  border: 1px solid var(--emerald-border);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    var(--shadow-panel),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 30px 70px -40px rgba(16, 185, 129, 0.55);
+  backdrop-filter: blur(16px);
+}
+
+@utility panel-workforce {
+  position: relative;
+  background-color: color-mix(in oklab, var(--color-card) 82%, transparent);
+  background-image:
+    radial-gradient(110% 70% at 50% -20%, rgba(52, 211, 153, 0.12), transparent 62%);
+  border: 1px solid var(--emerald-border);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    var(--shadow-panel),
+    0 24px 60px -42px rgba(16, 185, 129, 0.5);
+  backdrop-filter: blur(14px);
+}
+
+@utility surface-emerald {
+  background-color: var(--emerald-surface);
+  border: 1px solid var(--emerald-border);
+}
+
+@utility ring-elite {
+  border-color: rgba(52, 211, 153, 0.38);
+  box-shadow:
+    var(--shadow-panel),
+    0 0 0 1px rgba(52, 211, 153, 0.22),
+    0 26px 60px -40px rgba(16, 185, 129, 0.6);
+}
+
+@utility text-gradient-emerald {
+  background-image: var(--gradient-emerald);
+  background-clip: text;
+  color: transparent;
+}
+
+
 
 @utility glow-ring {
   box-shadow: var(--shadow-glow);

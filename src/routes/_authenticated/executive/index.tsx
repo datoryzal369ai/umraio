@@ -160,25 +160,59 @@ function ExecutiveCenter() {
         />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
+      <section className="grid gap-4 md:grid-cols-2" aria-label="AI Executive Workforce">
         {workers.isLoading
           ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)
           : (workers.data ?? []).map((worker) => {
               const Icon = workerIcon[worker.worker_key] ?? Bot;
               const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
+              const isElite = worker.worker_key === "sales_elite";
               return (
-                <article key={worker.id} className="panel flex min-w-0 flex-col gap-4 p-5">
+                <article
+                  key={worker.id}
+                  className={cn(
+                    "panel relative flex min-w-0 flex-col gap-4 overflow-hidden p-5",
+                    isElite && "ring-elite",
+                  )}
+                >
+                  {isElite ? (
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -right-14 -top-14 size-40 rounded-full bg-emerald/12 blur-3xl"
+                    />
+                  ) : null}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-start gap-3">
-                      <div className="rounded-xl border border-border/60 bg-surface p-2.5">
-                        <Icon className="size-5 text-primary" />
+                      <div
+                        className={cn(
+                          "rounded-xl border p-2.5",
+                          isElite
+                            ? "border-emerald-soft/35 bg-emerald/10"
+                            : "border-border/60 bg-surface",
+                        )}
+                      >
+                        <Icon className={cn("size-5", isElite ? "text-emerald-soft" : "text-primary")} />
                       </div>
                       <div className="min-w-0">
-                        <h2 className="truncate text-base font-semibold">{worker.name}</h2>
+                        <h2
+                          className={cn(
+                            "truncate font-semibold",
+                            isElite ? "text-lg tracking-tight" : "text-base",
+                          )}
+                        >
+                          {worker.name}
+                        </h2>
                         <p className="text-xs text-muted-foreground">{worker.description}</p>
                       </div>
                     </div>
-                    <Badge className={cn("shrink-0 border-0", STATUS_TONE[status])}>
+                    <Badge
+                      className={cn(
+                        "shrink-0 border-0",
+                        isElite && status !== "idle"
+                          ? "bg-emerald/15 text-emerald-soft"
+                          : STATUS_TONE[status],
+                      )}
+                    >
                       {STATUS_LABEL[status]}
                     </Badge>
                   </div>
