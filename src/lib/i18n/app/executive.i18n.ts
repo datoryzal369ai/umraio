@@ -79,12 +79,6 @@ type ExecutiveCopy = {
     toastRejected: string;
   };
   commandPanel: {
-    commanderName: string;
-    commanderRoleLabel: string;
-    capabilitiesLabel: string;
-    orchestrates: string;
-    workforceTitle: string;
-    workforceSubtitle: string;
     whereThisSits: string;
     hierarchy: {
       core: string;
@@ -264,12 +258,6 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       toastRejected: "Output rejected.",
     },
     commandPanel: {
-      commanderName: "RAIŌ",
-      commanderRoleLabel: "Commander",
-      capabilitiesLabel: "Executive capabilities",
-      orchestrates: "Orchestrates",
-      workforceTitle: "AI Executive Workforce™",
-      workforceSubtitle: "Elite AI specialists orchestrated by RAIŌ",
       whereThisSits: "Where this sits",
       hierarchy: {
         core: "Autonomous Intelligence Core",
@@ -455,12 +443,6 @@ export const EXECUTIVE_DICT = createDict<ExecutiveCopy>({
       toastRejected: "Output ditolak.",
     },
     commandPanel: {
-      commanderName: "RAIŌ",
-      commanderRoleLabel: "Komander",
-      capabilitiesLabel: "Keupayaan eksekutif",
-      orchestrates: "Mengorkestra",
-      workforceTitle: "AI Executive Workforce™",
-      workforceSubtitle: "Pakar AI elit yang diorkestra oleh RAIŌ",
       whereThisSits: "Di mana kedudukannya",
       hierarchy: {
         core: "Teras Kecerdasan Autonomi",
