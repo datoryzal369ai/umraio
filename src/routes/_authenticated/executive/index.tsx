@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
   Clock,
   MessageSquare,
   Radar,
@@ -161,6 +162,14 @@ function ExecutiveCenter() {
           hint={copy.hoursSavedHint}
         />
       </section>
+
+      <div aria-hidden="true" className="flex flex-col items-center gap-1.5 py-1">
+        <span className="umr-divider w-24" />
+        <ChevronDown className="size-4 text-primary/70" />
+        <span className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+          {workforceCopy.orchestrates}
+        </span>
+      </div>
 
       <section
         aria-labelledby="workforce-heading"
