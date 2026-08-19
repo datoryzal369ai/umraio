@@ -160,51 +160,79 @@ function ExecutiveCenter() {
         />
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        {workers.isLoading
-          ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-44 rounded-2xl" />)
-          : (workers.data ?? []).map((worker) => {
-              const Icon = workerIcon[worker.worker_key] ?? Bot;
-              const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
-              return (
-                <article key={worker.id} className="panel flex min-w-0 flex-col gap-4 p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 items-start gap-3">
-                      <div className="rounded-xl border border-border/60 bg-surface p-2.5">
-                        <Icon className="size-5 text-primary" />
+      <section
+        aria-labelledby="workforce-heading"
+        className="panel-workforce relative overflow-hidden p-4 sm:p-6"
+      >
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -top-24 left-1/2 size-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+        />
+        <div className="relative flex flex-col gap-1 pb-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <h2
+              id="workforce-heading"
+              className="font-display text-xl font-bold tracking-tight sm:text-2xl"
+            >
+              {workforceCopy.workforceTitle}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{workforceCopy.workforceSubtitle}</p>
+          </div>
+          <span className="shrink-0 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            {(workers.data ?? []).filter((w) => w.is_enabled).length}/
+            {(workers.data ?? []).length}
+          </span>
+        </div>
+        <span aria-hidden="true" className="umr-divider block" />
+        <div className="relative mt-4 grid gap-4 md:grid-cols-2">
+          {workers.isLoading
+            ? Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-44 rounded-2xl" />
+              ))
+            : (workers.data ?? []).map((worker) => {
+                const Icon = workerIcon[worker.worker_key] ?? Bot;
+                const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
+                return (
+                  <article key={worker.id} className="card-worker flex min-w-0 flex-col gap-4 p-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <div className="rounded-xl border border-primary/20 bg-primary/[0.07] p-2.5">
+                          <Icon className="size-5 text-primary" />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-base font-semibold">{worker.name}</h3>
+                          <p className="text-xs text-muted-foreground">{worker.description}</p>
+                        </div>
                       </div>
-                      <div className="min-w-0">
-                        <h2 className="truncate text-base font-semibold">{worker.name}</h2>
-                        <p className="text-xs text-muted-foreground">{worker.description}</p>
-                      </div>
+                      <Badge className={cn("shrink-0 border-0", STATUS_TONE[status])}>
+                        {STATUS_LABEL[status]}
+                      </Badge>
                     </div>
-                    <Badge className={cn("shrink-0 border-0", STATUS_TONE[status])}>
-                      {STATUS_LABEL[status]}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="min-w-0 text-xs text-muted-foreground">
-                      {worker.last_run_at ? copy.lastRun(relative(worker.last_run_at)) : copy.notRunYet}
-                      {" · "}
-                      {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
-                    </p>
-                    <Button asChild size="sm" variant="outline">
-                      {WORKER_ROUTES[worker.worker_key] ? (
-                        <Link to={WORKER_ROUTES[worker.worker_key]!}>{copy.openWorker}</Link>
-                      ) : (
-                        <Link
-                          to="/executive/$workerKey"
-                          params={{ workerKey: worker.worker_key }}
-                        >
-                          {copy.openWorker}
-                        </Link>
-                      )}
-                    </Button>
-
-                  </div>
-                </article>
-              );
-            })}
+                    <div className="mt-auto flex flex-wrap items-center justify-between gap-3">
+                      <p className="min-w-0 text-xs text-muted-foreground">
+                        {worker.last_run_at
+                          ? copy.lastRun(relative(worker.last_run_at))
+                          : copy.notRunYet}
+                        {" · "}
+                        {worker.autonomy === "auto" ? copy.autonomous : copy.approvalRequired}
+                      </p>
+                      <Button asChild size="sm" variant="outline">
+                        {WORKER_ROUTES[worker.worker_key] ? (
+                          <Link to={WORKER_ROUTES[worker.worker_key]!}>{copy.openWorker}</Link>
+                        ) : (
+                          <Link
+                            to="/executive/$workerKey"
+                            params={{ workerKey: worker.worker_key }}
+                          >
+                            {copy.openWorker}
+                          </Link>
+                        )}
+                      </Button>
+                    </div>
+                  </article>
+                );
+              })}
+        </div>
       </section>
 
       <section className="grid gap-4 lg:grid-cols-2">
