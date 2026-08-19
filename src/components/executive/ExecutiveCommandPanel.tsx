@@ -32,7 +32,7 @@ function Metric({
   loading?: boolean;
 }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-surface/70 p-3">
+    <div className="rounded-xl border border-emerald-soft/20 bg-surface/70 p-3 transition-colors hover:border-emerald-soft/40">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
         {label}
       </p>
@@ -127,18 +127,25 @@ export function ExecutiveCommandPanel({
       </div>
 
       {/* Executive command panel */}
-      <div className="panel relative overflow-hidden p-5">
+      <div className="panel-executive relative overflow-hidden p-5 sm:p-6">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-16 -top-16 size-52 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -right-16 -top-16 size-52 rounded-full bg-emerald/15 blur-3xl"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-soft/60 to-transparent"
         />
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
-            <div className="rounded-xl border border-primary/30 bg-primary/10 p-2.5">
-              <BrainCircuit aria-hidden="true" className="size-5 text-primary" />
+            <div className="rounded-xl border border-emerald-soft/35 bg-emerald/10 p-2.5 shadow-[0_10px_30px_-16px_rgba(16,185,129,0.9)]">
+              <BrainCircuit aria-hidden="true" className="size-5 text-emerald-soft" />
             </div>
             <div className="min-w-0">
-              <h2 id="abe-heading" className="font-display text-lg font-bold tracking-tight">
+              <h2
+                id="abe-heading"
+                className="text-gradient-emerald font-display text-xl font-bold tracking-tight sm:text-2xl"
+              >
                 {copy.title}
               </h2>
               <p className="text-xs text-muted-foreground">
@@ -150,7 +157,7 @@ export function ExecutiveCommandPanel({
             className={cn(
               "shrink-0 border-0",
               activeWorkers.length > 0
-                ? "bg-success/15 text-success"
+                ? "bg-emerald/15 text-emerald-soft"
                 : "bg-muted text-muted-foreground",
             )}
           >
@@ -194,7 +201,7 @@ export function ExecutiveCommandPanel({
         </div>
 
         {/* Today's executive brief */}
-        <div className="mt-5 rounded-xl border border-border/60 bg-surface/60 p-4">
+        <div className="mt-5 rounded-xl border border-emerald-soft/20 bg-surface/60 p-4">
           <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
             {copy.briefTitle}
           </h3>
@@ -211,7 +218,7 @@ export function ExecutiveCommandPanel({
           ) : (
             <ul className="mt-3 space-y-2 text-sm">
               <li className="flex items-start gap-2">
-                <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                <ListChecks aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-soft" />
                 <span>
                   {metrics.running > 0 || metrics.queued > 0
                     ? copy.workforceWorking(metrics.running, metrics.queued, metrics.completed)
@@ -249,9 +256,9 @@ export function ExecutiveCommandPanel({
                 </li>
               ) : null}
               <li className="flex items-start gap-2">
-                <ArrowRight aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                <ArrowRight aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-emerald-soft" />
                 <span>
-                  <span className="font-medium">{copy.recommendedNextAction}</span>
+                  <span className="font-semibold text-emerald-soft">{copy.recommendedNextAction}</span>
                   {metrics.waitingApproval > 0
                     ? copy.recommendedReviewApprovals
                     : topLead
@@ -282,14 +289,25 @@ export function ExecutiveCommandPanel({
       </div>
 
       {/* Orchestration visual */}
-      <div className="panel p-4">
-        <div className="flex items-center gap-2">
-          <Users aria-hidden="true" className="size-4 text-primary" />
-          <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            {copy.orchestrationHeading}
-          </h2>
+      <div className="panel-workforce relative overflow-hidden p-5">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-20 -top-20 size-56 rounded-full bg-emerald/10 blur-3xl"
+        />
+        <div className="flex items-start gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-emerald-soft/30 bg-emerald/10">
+            <Users aria-hidden="true" className="size-4 text-emerald-soft" />
+          </span>
+          <div className="min-w-0">
+            <h2 className="text-gradient-emerald font-display text-lg font-bold tracking-tight">
+              AI EXECUTIVE WORKFORCE&trade;
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Elite AI Workforce — Orchestrated by RAI&#332; · {copy.orchestrationHeading}
+            </p>
+          </div>
         </div>
-        <div className="mt-3 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2 text-[12px] font-semibold">
+        <div className="mt-4 rounded-lg border border-emerald-soft/30 bg-emerald/5 px-3 py-2 text-[12px] font-semibold">
           AI Autonomous Business Executive™
         </div>
         <div aria-hidden="true" className="mx-4 h-4 w-px bg-border" />
@@ -303,7 +321,7 @@ export function ExecutiveCommandPanel({
             : workers.map((worker) => (
                 <li
                   key={worker.id}
-                  className="rounded-lg border border-border/60 bg-surface px-3 py-2"
+                  className="surface-emerald rounded-lg px-3 py-2"
                 >
                   <p className="truncate text-[12px] font-semibold">{worker.name}</p>
                   <p className="truncate text-[10px] text-muted-foreground">
