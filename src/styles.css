@@ -416,6 +416,7 @@
 /* Scoped light-luxury token override. Applied only to the Executive Centre
    commander + workforce surfaces so the rest of the app stays dark. */
 .exec-bright {
+  --background: #ffffff;
   --foreground: #0a2337;
   --card: #ffffff;
   --card-foreground: #0a2337;

@@ -173,11 +173,11 @@ function ExecutiveCenter() {
 
       <section
         aria-labelledby="workforce-heading"
-        className="panel-workforce relative overflow-hidden p-4 sm:p-6"
+        className="exec-bright panel-workforce relative overflow-hidden p-4 sm:p-6"
       >
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -top-24 left-1/2 size-64 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -top-24 left-1/2 size-64 -translate-x-1/2 rounded-full bg-primary/5 blur-3xl"
         />
         <div className="relative flex flex-col gap-1 pb-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
@@ -211,10 +211,16 @@ function ExecutiveCenter() {
                 const Icon = workerIcon[worker.worker_key] ?? Bot;
                 const status = (worker.is_enabled ? worker.status : "idle") as WorkerStatus;
                 return (
-                  <article key={worker.id} className="card-worker flex min-w-0 flex-col gap-4 p-5">
+                  <article
+                    key={worker.id}
+                    className={cn(
+                      "card-worker flex min-w-0 flex-col gap-4 p-5",
+                      worker.worker_key === "sales_elite" && "card-worker-flagship",
+                    )}
+                  >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 items-start gap-3">
-                        <div className="rounded-xl border border-primary/20 bg-primary/[0.07] p-2.5">
+                        <div className="rounded-xl border border-primary/25 bg-primary/[0.08] p-2.5">
                           <Icon className="size-5 text-primary" />
                         </div>
                         <div className="min-w-0">
