@@ -95,14 +95,14 @@ export function ExecutiveCommandPanel({
   return (
     <section aria-labelledby="abe-heading" className="space-y-5">
       {/* LEVEL 1 — Commander */}
-      <div className="exec-bright panel-command relative overflow-hidden p-5 sm:p-8">
+      <div className="panel-command relative overflow-hidden p-5 sm:p-8">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/10 blur-3xl"
+          className="pointer-events-none absolute -right-24 -top-24 size-72 rounded-full bg-primary/20 blur-3xl"
         />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 -left-20 size-72 rounded-full bg-chart-4/5 blur-3xl"
+          className="pointer-events-none absolute -bottom-32 -left-20 size-72 rounded-full bg-chart-4/10 blur-3xl"
         />
 
         <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
