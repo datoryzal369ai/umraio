@@ -95,6 +95,32 @@ export function ExecutiveCommandPanel({
 
   return (
     <section aria-labelledby="abe-heading" className="space-y-5">
+      {/* Product hierarchy — supporting context, visually subordinate */}
+      <div className="panel p-4">
+        <div className="flex items-center gap-2">
+          <Layers aria-hidden="true" className="size-4 text-muted-foreground" />
+          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            {copy.whereThisSits}
+          </h2>
+        </div>
+        <ol className="mt-3 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+          {HIERARCHY.map((level, index) => (
+            <li key={level.name} className="flex min-w-0 items-center gap-2">
+              <div className="min-w-0 rounded-lg border border-border/60 bg-surface/70 px-3 py-1.5">
+                <p className="truncate text-[12px] font-semibold">{level.name}</p>
+                <p className="truncate text-[10px] text-muted-foreground">{level.role}</p>
+              </div>
+              {index < HIERARCHY.length - 1 ? (
+                <ArrowRight
+                  aria-hidden="true"
+                  className="hidden size-3.5 shrink-0 text-muted-foreground sm:block"
+                />
+              ) : null}
+            </li>
+          ))}
+        </ol>
+      </div>
+
       {/* LEVEL 1 — Commander */}
       <div className="panel-command relative overflow-hidden p-5 sm:p-8">
         <div
@@ -278,31 +304,6 @@ export function ExecutiveCommandPanel({
         </span>
       </div>
 
-      {/* Product hierarchy — supporting context, visually subordinate */}
-      <div className="panel p-4">
-        <div className="flex items-center gap-2">
-          <Layers aria-hidden="true" className="size-4 text-muted-foreground" />
-          <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            {copy.whereThisSits}
-          </h2>
-        </div>
-        <ol className="mt-3 flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
-          {HIERARCHY.map((level, index) => (
-            <li key={level.name} className="flex min-w-0 items-center gap-2">
-              <div className="min-w-0 rounded-lg border border-border/60 bg-surface/70 px-3 py-1.5">
-                <p className="truncate text-[12px] font-semibold">{level.name}</p>
-                <p className="truncate text-[10px] text-muted-foreground">{level.role}</p>
-              </div>
-              {index < HIERARCHY.length - 1 ? (
-                <ArrowRight
-                  aria-hidden="true"
-                  className="hidden size-3.5 shrink-0 text-muted-foreground sm:block"
-                />
-              ) : null}
-            </li>
-          ))}
-        </ol>
-      </div>
     </section>
   );
 }
